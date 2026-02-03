@@ -47,7 +47,7 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
       note: "Note"
     },
     ledger: {
-      title: "Ledger",
+      title: "Ledger", // CHANGED: Specifically "Baki Khata"
       addCustomer: "Add Customer",
       name: "Name",
       phone: "Phone",
@@ -70,7 +70,7 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
       search: "অনুসন্ধান...",
       loading: "লোড হচ্ছে...",
       noData: "কোন তথ্য পাওয়া যায়নি",
-      confirmDelete: "আপনি কি নিশ্চিত এটি মুছে ফেলতে চান?",
+      confirmDelete: "আপনি কি নিশ্চিত এটি মুছে ফেল?",
     },
     dashboard: {
       title: "ড্যাশবোর্ড",
@@ -106,7 +106,7 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
       note: "নোট"
     },
     ledger: {
-      title: "বাকি খাতা", // UPDATED BAKI KHATA
+      title: "বাকি খাতা", // CHANGED: "বাকি খাতা" (Baki Khata)
       addCustomer: "গ্রাহক যোগ",
       name: "নাম",
       phone: "ফোন",
