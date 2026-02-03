@@ -8,7 +8,7 @@ import { useLanguage } from '../../context/LanguageContext';
 
 const MainLayout: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const { t, lang } = useLanguage();
+  const { t, lang, toggleLang } = useLanguage(); // Added toggleLang
 
   const renderContent = () => {
     switch(activeTab) {
@@ -21,24 +21,25 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-800">
-      {/* Top Bar */}
-      <header className="bg-white sticky top-0 z-30 border-b border-gray-100 px-4 py-3 flex justify-between items-center shadow-sm">
-        <h1 className="font-bold text-lg text-teal-700 tracking-tight">{t('common.appName')}</h1>
+    <div className="min-h-screen bg-cream-50 font-sans text-earth-900 pb-20">
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-cream-200 px-4 py-4 flex justify-between items-center shadow-sm">
+        <div>
+          <h1 className="font-bold text-xl tracking-tight text-earth-800">{t('common.appName')}</h1>
+          <p className="text-xs text-earth-600 font-medium">Business Manager</p>
+        </div>
         <button 
-          onClick={() => {}} // Placeholder for sync or settings
-          className="text-xs bg-gray-100 px-3 py-1 rounded-full text-gray-600 font-medium"
+          onClick={toggleLang} // FIXED: Added Click Handler
+          className="flex items-center gap-1 bg-earth-50 hover:bg-earth-100 text-earth-800 text-xs px-3 py-1.5 rounded-full transition-colors border border-earth-100 font-semibold"
         >
-          {lang === 'en' ? 'বাংলা' : 'English'}
+          <span>{lang === 'en' ? 'বাংলা' : 'English'}</span>
         </button>
       </header>
 
-      {/* Main Content Area */}
-      <main className="animate-fade-in">
+      <main className="animate-fade-in px-4 pt-4">
         {renderContent()}
       </main>
 
-      {/* Bottom Navigation */}
       <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>
   );
