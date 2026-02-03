@@ -1,6 +1,6 @@
 import React from 'react';
 import { LayoutDashboard, Package, ShoppingCart, Receipt, Wallet, TrendingUp } from 'lucide-react';
-import { useLanguage } from '../../context/LanguageContext';
+import { useLanguage } from '../../context/LanguageContext'; // Ensure this is imported
 import { cn } from '../../lib/utils';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -35,7 +35,7 @@ interface BottomNavProps {
 }
 
 const BottomNav: React.FC<BottomNavProps> = ({ activeTab, setActiveTab }) => {
-  const { t } = useLanguage();
+  const { t } = useLanguage(); // Hook to get translations
   const { theme } = useTheme();
 
   return (
@@ -45,7 +45,10 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, setActiveTab }) => {
         <NavItem icon={ShoppingCart} label={t('sales.title')} isActive={activeTab === 'sales'} onClick={() => setActiveTab('sales')} />
         <NavItem icon={Receipt} label={t('expenses.title')} isActive={activeTab === 'expenses'} onClick={() => setActiveTab('expenses')} />
         <NavItem icon={Wallet} label={t('ledger.title')} isActive={activeTab === 'ledger'} onClick={() => setActiveTab('ledger')} />
-        <NavItem icon={TrendingUp} label="Market" isActive={activeTab === 'market'} onClick={() => setActiveTab('market')} />
+        
+        {/* UPDATED: Use translation key for Market label instead of hardcoded string */}
+        <NavItem icon={TrendingUp} label={t('market.title')} isActive={activeTab === 'market'} onClick={() => setActiveTab('market')} />
+        
         <NavItem icon={Package} label={t('inventory.title')} isActive={activeTab === 'inventory'} onClick={() => setActiveTab('inventory')} />
       </div>
     </div>
