@@ -46,9 +46,8 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
       amount: "Amount",
       note: "Note"
     },
-    // NEW ADDED
     ledger: {
-      title: "Ledger (Baki)",
+      title: "Ledger",
       addCustomer: "Add Customer",
       name: "Name",
       phone: "Phone",
@@ -66,7 +65,7 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
       appName: "দোকানদার বন্ধু",
       save: "সংরক্ষণ",
       cancel: "বাতিল",
-      delete: "মুছে ফেলুন",
+      delete: "মুছে ফেল",
       edit: "সম্পাদনা",
       search: "অনুসন্ধান...",
       loading: "লোড হচ্ছে...",
@@ -75,11 +74,11 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
     },
     dashboard: {
       title: "ড্যাশবোর্ড",
-      todaySales: "আজকের বিক্রি",
+      todaySales: "আজকের বিক্রয়",
       todayProfit: "আজকের লাভ",
       todayExpense: "আজকের খরচ",
       stockAlert: "মজুদ সতর্কতা",
-      recentSales: "সাম্প্রতিক বিক্রি"
+      recentSales: "সাম্প্রতিক বিক্রয়"
     },
     sales: {
       title: "বিক্রয়",
@@ -106,15 +105,14 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
       amount: "টাকা",
       note: "নোট"
     },
-    // NEW ADDED
     ledger: {
-      title: "হিসাব (বাকি)",
-      addCustomer: "ক্রেতা যোগ",
+      title: "বাকি খাতা", // UPDATED BAKI KHATA
+      addCustomer: "গ্রাহক যোগ",
       name: "নাম",
       phone: "ফোন",
       address: "ঠিকানা",
       debt: "বাকি",
-      receivePayment: "টাকা নিন"
+      receivePayment: "টাকা গ্রহণ"
     },
     staff: {
       title: "কর্মী",
