@@ -3,11 +3,9 @@ import { db } from '../db/db';
 import { startOfDay, endOfDay, subDays, format } from 'date-fns';
 
 export const useDashboardStats = () => {
-  // 1. Get today's range
   const todayStart = startOfDay(new Date()).getTime();
   const todayEnd = endOfDay(new Date()).getTime();
 
-  // 2. Live queries for sales today
   const salesToday = useLiveQuery(
     () => db.sales
       .where('date')
@@ -16,7 +14,6 @@ export const useDashboardStats = () => {
     [todayStart, todayEnd]
   );
 
-  // 3. Live queries for expenses today
   const expensesToday = useLiveQuery(
     () => db.expenses
       .where('date')
@@ -25,7 +22,6 @@ export const useDashboardStats = () => {
     [todayStart, todayEnd]
   );
 
-  // 4. Live query for low stock items (Stock < 10)
   const lowStockItems = useLiveQuery(
     () => db.products
       .where('stock')
@@ -34,22 +30,23 @@ export const useDashboardStats = () => {
     []
   );
 
-  // 5. Live query for ALL sales (needed for the chart)
   const allSales = useLiveQuery(() => db.sales.toArray(), []);
 
-  // 6. Calculate Daily Totals
   const totalSales = salesToday?.reduce((sum, sale) => sum + sale.total, 0) || 0;
   const totalProfit = salesToday?.reduce((sum, sale) => sum + sale.profit, 0) || 0;
   const totalExpense = expensesToday?.reduce((sum, exp) => sum + exp.amount, 0) || 0;
 
-  // 7. Generate Real Chart Data (Last 7 Days)
+  // FIX: Ensure comparison is always number vs number
   const chartData = Array.from({ length: 7 }).map((_, i) => {
     const d = subDays(new Date(), 6 - i);
     const dayStart = startOfDay(d).getTime();
     const dayEnd = endOfDay(d).getTime();
 
-    // Calculate actual sales for this specific day from allSales
-    const daySales = allSales?.filter(s => s.date >= dayStart && s.date <= dayEnd) || [];
+    const daySales = allSales?.filter(s => {
+      const saleTime = new Date(s.date).getTime(); // Convert to number
+      return saleTime >= dayStart && saleTime <= dayEnd;
+    }) || [];
+    
     const total = daySales.reduce((sum, s) => sum + s.total, 0);
 
     return {
@@ -65,7 +62,7 @@ export const useDashboardStats = () => {
     netProfit: totalProfit - totalExpense,
     lowStockCount: lowStockItems?.length || 0,
     isLoading: !salesToday || !expensesToday || !lowStockItems || !allSales,
-    recentSales: salesToday?.sort((a, b) => b.date - a.date).slice(0, 5) || [],
-    chartData // Export the real chart data
+    recentSales: salesToday?.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5) || [],
+    chartData
   };
 };
