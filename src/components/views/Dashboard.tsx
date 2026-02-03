@@ -1,14 +1,12 @@
 import React from 'react';
-import { ArrowUpRight, ArrowDownRight, Package } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { ArrowUpRight, ArrowDownRight, Package, TrendingUp, Wallet } from 'lucide-react';
+import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useDashboardStats } from '../../hooks/useDashboardStats';
 import { useLanguage } from '../../context/LanguageContext';
 import { formatCurrency, formatDate } from '../../lib/utils';
 
 const Dashboard: React.FC = () => {
   const { t, lang } = useLanguage();
-  
-  // Destructure chartData from the hook
   const { 
     totalSales, 
     totalProfit, 
@@ -20,72 +18,84 @@ const Dashboard: React.FC = () => {
     chartData 
   } = useDashboardStats();
 
-  if (isLoading) return <div className="p-4 text-center text-gray-500">{t('common.loading')}</div>;
+  if (isLoading) return <div className="p-4 text-center text-earth-600">{t('common.loading')}</div>;
 
   return (
-    <div className="pb-24 px-4 pt-6 space-y-6 max-w-2xl mx-auto">
+    <div className="space-y-6 pb-24 max-w-2xl mx-auto">
       
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">{t('dashboard.title')}</h1>
-        <span className="text-sm text-gray-500">{formatDate(new Date(), lang)}</span>
+      {/* Greeting */}
+      <div className="mb-2">
+        <h2 className="text-2xl font-bold text-earth-900">Good {new Date().getHours() < 12 ? 'Morning' : 'Evening'}</h2>
+        <p className="text-sm text-earth-600">Here's your business overview</p>
       </div>
 
-      {/* Main Stats Card */}
+      {/* Main Stats Card - Gradient */}
+      <div className="glass-card bg-gradient-to-br from-earth-600 to-earth-800 rounded-3xl p-6 text-white shadow-xl shadow-earth-900/20 relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-4 opacity-10">
+          <Wallet size={120} />
+        </div>
+        <p className="text-earth-100 text-sm font-medium mb-1 opacity-90">{t('dashboard.todaySales')}</p>
+        <h2 className="text-4xl font-bold tracking-tight mb-4">{formatCurrency(totalSales, lang)}</h2>
+        
+        <div className="flex gap-4">
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 flex-1 border border-white/10">
+            <p className="text-earth-100 text-xs mb-1">Profit</p>
+            <p className="font-bold text-green-300">{formatCurrency(totalProfit, lang)}</p>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 flex-1 border border-white/10">
+            <p className="text-earth-100 text-xs mb-1">Expense</p>
+            <p className="font-bold text-red-300">{formatCurrency(totalExpense, lang)}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions Grid */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="col-span-2 bg-gradient-to-r from-teal-600 to-teal-500 rounded-2xl p-6 text-white shadow-lg">
-          <p className="text-teal-100 text-sm font-medium mb-1">{t('dashboard.todaySales')}</p>
-          <h2 className="text-3xl font-bold">{formatCurrency(totalSales, lang)}</h2>
+        <div className="bg-white p-4 rounded-2xl border border-cream-200 shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+             <span className="text-xs font-bold text-earth-500 uppercase tracking-wider">Net Worth</span>
+             <TrendingUp className="text-earth-400" size={18} />
+          </div>
+          <p className={`text-xl font-bold ${netProfit >= 0 ? 'text-earth-800' : 'text-red-600'}`}>
+            {formatCurrency(netProfit, lang)}
+          </p>
         </div>
 
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 bg-green-100 rounded-md text-green-600"><ArrowUpRight size={16} /></div>
-            <span className="text-xs text-gray-500">{t('dashboard.todayProfit')}</span>
+        <div className="bg-white p-4 rounded-2xl border border-cream-200 shadow-sm relative overflow-hidden">
+          {lowStockCount > 0 && (
+            <div className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full m-3 animate-pulse" />
+          )}
+          <div className="flex items-center justify-between mb-2">
+             <span className="text-xs font-bold text-earth-500 uppercase tracking-wider">Low Stock</span>
+             <Package className={lowStockCount > 0 ? 'text-red-500' : 'text-earth-400'} size={18} />
           </div>
-          <p className="text-xl font-bold text-gray-800">{formatCurrency(totalProfit, lang)}</p>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 bg-red-100 rounded-md text-red-600"><ArrowDownRight size={16} /></div>
-            <span className="text-xs text-gray-500">{t('dashboard.todayExpense')}</span>
-          </div>
-          <p className="text-xl font-bold text-gray-800">{formatCurrency(totalExpense, lang)}</p>
+          <p className={`text-xl font-bold ${lowStockCount > 0 ? 'text-red-600' : 'text-earth-800'}`}>
+            {lowStockCount} <span className="text-xs font-normal text-earth-400">items</span>
+          </p>
         </div>
       </div>
-
-      {/* Low Stock Alert */}
-      {lowStockCount > 0 && (
-        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 flex items-center gap-3">
-          <div className="bg-orange-100 p-2 rounded-full text-orange-600">
-            <Package size={20} />
-          </div>
-          <div>
-            <p className="font-semibold text-orange-800 text-sm">{t('dashboard.stockAlert')}</p>
-            <p className="text-xs text-orange-600">{lowStockCount} items are running low</p>
-          </div>
-        </div>
-      )}
 
       {/* Chart Section */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-        <h3 className="font-bold text-gray-800 mb-4 text-sm">Weekly Trend</h3>
-        <div className="h-40 w-full">
+      <div className="bg-white p-5 rounded-2xl border border-cream-200 shadow-sm">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="font-bold text-earth-900">Weekly Trend</h3>
+          <span className="text-[10px] bg-cream-100 px-2 py-1 rounded-md text-earth-600 font-bold uppercase">7 Days</span>
+        </div>
+        <div className="h-48 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData}>
+            <BarChart data={chartData} barSize={20}>
               <XAxis 
                 dataKey="date" 
-                tick={{fontSize: 10, fill: '#9ca3af'}} 
+                tick={{fontSize: 10, fill: '#8B5E3C'}} 
                 axisLine={false} 
                 tickLine={false} 
               />
               <Tooltip 
-                cursor={{fill: 'transparent'}}
-                contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}}
+                cursor={{fill: '#F5F2EB'}}
+                contentStyle={{borderRadius: '12px', border: '1px solid #E6E0D6', boxShadow: '0 4px 12px rgba(0,0,0,0.05)'}}
                 formatter={(value: number) => [formatCurrency(value, lang), 'Sales']}
               />
-              <Bar dataKey="sales" fill="#0d9488" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="sales" fill="#8B5E3C" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -93,20 +103,27 @@ const Dashboard: React.FC = () => {
 
       {/* Recent Sales List */}
       <div>
-        <h3 className="font-bold text-gray-800 mb-3 px-1">{t('dashboard.recentSales')}</h3>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <h3 className="font-bold text-earth-900 mb-4 px-1 flex justify-between items-center">
+          {t('dashboard.recentSales')}
+        </h3>
+        <div className="space-y-3">
           {recentSales.length === 0 ? (
-             <div className="p-8 text-center text-gray-400 text-sm">No sales today</div>
+             <div className="p-10 text-center bg-white rounded-2xl border border-cream-200">
+               <p className="text-earth-400 font-medium">No transactions today</p>
+             </div>
           ) : (
             recentSales.map((sale) => (
-              <div key={sale.id} className="flex justify-between items-center p-4 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
+              <div key={sale.id} className="bg-white p-4 rounded-2xl border border-cream-200 shadow-sm flex justify-between items-center">
                 <div>
-                  <p className="font-medium text-gray-800">{sale.productName}</p>
-                  <p className="text-xs text-gray-500">{sale.quantity} pcs</p>
+                  <p className="font-bold text-earth-900">{sale.productName}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="bg-cream-100 text-earth-600 text-[10px] px-2 py-0.5 rounded font-bold">{sale.quantity} pcs</span>
+                    <span className="text-[10px] text-earth-400">{formatDate(sale.date, lang)}</span>
+                  </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-gray-800">{formatCurrency(sale.total, lang)}</p>
-                  <p className="text-xs text-green-600">+{formatCurrency(sale.profit, lang)}</p>
+                  <p className="font-bold text-earth-900">{formatCurrency(sale.total, lang)}</p>
+                  <p className="text-[10px] text-green-600 font-medium">+{formatCurrency(sale.profit, lang)}</p>
                 </div>
               </div>
             ))
