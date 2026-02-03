@@ -21,8 +21,8 @@ const MainLayout: React.FC = () => {
       case 'inventory': return <Inventory />;
       case 'sales': return <Sales />;
       case 'expenses': return <Expenses />;
-      case 'ledger': return <Ledger />;
-      case 'settings': return <Settings />;
+      case 'ledger': return <Ledger />; // NEW
+      case 'settings': return <Settings />; // NEW
       default: return <Dashboard />;
     }
   };
