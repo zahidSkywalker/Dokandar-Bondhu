@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, User, Phone, MapPin, CheckCircle, XCircle, Wallet } from 'lucide-react';
+import { Plus, User, Phone, MapPin, CheckCircle, Wallet } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
 import { useApp } from '../../context/AppContext';
@@ -21,6 +21,7 @@ const Ledger: React.FC = () => {
   
   const [formData, setFormData] = useState({ name: '', phone: '', address: '' });
 
+  // NOTE: Ensure 'db.customers' matches your db.ts table name (it should be 'customers')
   const customers = useLiveQuery(() => db.customers.orderBy('debt').reverse().toArray(), []);
 
   const handleAdd = async (e: React.FormEvent) => {
@@ -34,6 +35,7 @@ const Ledger: React.FC = () => {
 
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedCustomer) return;
     try {
       await updateCustomerDebt(selectedCustomer.id, -parseFloat(paymentAmount));
       setIsPayModalOpen(false);
@@ -55,7 +57,9 @@ const Ledger: React.FC = () => {
       </div>
 
       <div className="space-y-4">
-        {!customers ? <p>Loading...</p> : customers.length === 0 ? <p className="text-center text-gray-400 mt-10">No customers</p> : (
+        {!customers ? <p className="text-center p-4">Loading...</p> : customers.length === 0 ? (
+          <p className="text-center text-gray-400 mt-10">No customers yet</p>
+        ) : (
           customers.map((customer) => (
             <div key={customer.id} className={`p-5 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
               <div className="flex justify-between items-start mb-3">
