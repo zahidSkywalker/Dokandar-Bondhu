@@ -26,16 +26,22 @@ const Ledger: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [dbError, setDbError] = useState<string | null>(null);
 
-  // Fetch Data on Mount
+  // Safe Data Fetching (FIXED: Using IIFE to avoid scope issues)
   useEffect(() => {
     let isMounted = true;
 
-    const loadData = async () => {
+    (async () => {
       setLoading(true);
       setDbError(null);
+      
       try {
         // Use 'customers' (plural) property from db.ts
+        if (!db.customers) {
+          throw new Error("Database table 'customers' not found. Try clearing site data.");
+        }
+
         const allCustomers = await db.customers.orderBy('debt').reverse().toArray();
+        
         if (isMounted) {
           setCustomers(allCustomers);
           setLoading(false);
@@ -43,14 +49,13 @@ const Ledger: React.FC = () => {
       } catch (err: any) {
         console.error("LEDGER DB ERROR:", err);
         if (isMounted) {
-          setCustomers([]);
+          setCustomers([]); // Fallback to empty array on error
           setLoading(false);
           setDbError(err.message || "Database Error");
         }
       }
-    };
+    })();
 
-    loadData();
     return () => { isMounted = false; };
   }, []);
 
@@ -60,9 +65,12 @@ const Ledger: React.FC = () => {
       await addCustomer(formData);
       setIsModalOpen(false);
       setFormData({ name: '', phone: '', address: '' });
-      // Refresh list
-      const updated = await db.customers.toArray();
-      setCustomers(updated);
+      
+      // Force refresh manually to be safe
+      if (db.customers) {
+        const updated = await db.customers.toArray();
+        setCustomers(updated);
+      }
     } catch (err: any) { 
       alert("Error adding customer: " + err.message); 
     }
@@ -77,9 +85,12 @@ const Ledger: React.FC = () => {
       setIsPayModalOpen(false);
       setPaymentAmount('');
       setSelectedCustomer(null);
-      // Refresh list
-      const updated = await db.customers.toArray();
-      setCustomers(updated);
+      
+      // Force refresh manually
+      if (db.customers) {
+        const updated = await db.customers.toArray();
+        setCustomers(updated);
+      }
     } catch (err: any) { 
       alert("Error processing payment: " + err.message); 
     }
@@ -98,77 +109,78 @@ const Ledger: React.FC = () => {
         </button>
       </div>
 
+      {/* Error Display */}
       {dbError && (
         <div className="p-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900 rounded-xl flex flex-col items-center justify-center text-center mb-6">
           <AlertTriangle className="text-red-500 mb-2" size={48} />
           <p className="text-red-600 dark:text-red-400 font-bold text-lg">Database Error</p>
           <p className="text-red-500 dark:text-red-500 text-sm mt-1 max-w-md">{dbError}</p>
-          <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg font-bold flex items-center gap-2">
+          <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg font-bold flex items-center justify-center gap-2">
             <RefreshCw size={16}/> Refresh Page
           </button>
         </div>
       )}
 
-      {loading && !dbError ? (
-        <div className="flex justify-center items-center p-10">
-           <div className="w-8 h-8 border-4 border-earth-600 border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      )}
-
-      {!loading && !dbError && (
-        <div className="space-y-4">
-          {customers.length === 0 ? (
-            <p className={`text-center mt-10 ${theme === 'dark' ? 'text-gray-400' : 'text-earth-400'}`}>No customers yet. Add one to start.</p>
-          ) : (
-            customers.map((customer) => (
-              <div key={customer.id} className={`p-5 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
-                
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-earth-50 text-earth-600'}`}>
-                      <User size={20} />
-                    </div>
-                    <div>
-                      <h3 className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{customer.name}</h3>
-                      {customer.phone && (
-                        <p className={`text-xs flex items-center gap-1 ${theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}`}>
-                          <Phone size={12}/> {customer.phone}
-                        </p>
-                      )}
-                      {customer.address && (
-                        <p className={`text-xs flex items-center gap-1 ${theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}`}>
-                          <MapPin size={12}/> {customer.address}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className={`px-3 py-1 rounded-lg font-bold text-sm ${customer.debt > 0 ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'}`}>
-                    {customer.debt > 0 ? 'Due' : 'Cleared'}
-                  </div>
-                </div>
+      <div className="space-y-4">
+        {loading && !dbError ? (
+           <div className="flex justify-center items-center p-10">
+             <div className="w-8 h-8 border-4 border-earth-600 border-t-transparent rounded-full animate-spin"></div>
+           </div>
+        ) : customers.length === 0 ? (
+          <p className={`text-center mt-10 ${theme === 'dark' ? 'text-gray-400' : 'text-earth-400'}`}>No customers yet. Add one to start.</p>
+        ) : (
+          customers.map((customer) => (
+            <div key={customer.id} className={`p-5 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
               
-                <div className={`flex justify-between items-center p-3 rounded-xl ${theme === 'dark' ? 'bg-gray-700/50' : 'bg-earth-50'}`}>
-                   <span className={`text-xs font-bold uppercase ${theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}`}>Total Debt</span>
-                   <span className={`font-bold ${customer.debt > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-                     {formatCurrency(customer.debt || 0, lang)}
-                   </span>
+              {/* Info */}
+              <div className="flex justify-between items-start mb-3">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-xl ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-earth-50 text-earth-600'}`}>
+                    <User size={20} />
+                  </div>
+                  <div>
+                    <h3 className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{customer.name}</h3>
+                    {customer.phone && (
+                      <p className={`text-xs flex items-center gap-1 ${theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}`}>
+                        <Phone size={12}/> {customer.phone}
+                      </p>
+                    )}
+                    {customer.address && (
+                      <p className={`text-xs flex items-center gap-1 ${theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}`}>
+                        <MapPin size={12}/> {customer.address}
+                      </p>
+                    )}
+                  </div>
                 </div>
-
-                {customer.debt > 0 && (
-                  <button 
-                    onClick={() => { setSelectedCustomer(customer); setIsPayModalOpen(true); }}
-                    className="w-full mt-3 py-2 rounded-xl text-xs font-bold bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border border-green-100 dark:border-green-900 hover:bg-green-100 transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Wallet size={14}/> Receive Payment
-                  </button>
-                )}
+                
+                <div className={`px-3 py-1 rounded-lg font-bold text-sm ${customer.debt > 0 ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'}`}>
+                  {customer.debt > 0 ? 'Due' : 'Cleared'}
+                </div>
               </div>
-            ))
-          )}
-        </div>
-      )}
+              
+              {/* Total Debt */}
+              <div className={`flex justify-between items-center p-3 rounded-xl ${theme === 'dark' ? 'bg-gray-700/50' : 'bg-earth-50'}`}>
+                 <span className={`text-xs font-bold uppercase ${theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}`}>Total Debt</span>
+                 <span className={`font-bold ${customer.debt > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                   {formatCurrency(customer.debt || 0, lang)}
+                 </span>
+              </div>
 
+              {/* Action */}
+              {customer.debt > 0 && (
+                <button 
+                  onClick={() => { setSelectedCustomer(customer); setIsPayModalOpen(true); }}
+                  className="w-full mt-3 py-2 rounded-xl text-xs font-bold bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border border-green-100 dark:border-green-900 hover:bg-green-100 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Wallet size={14}/> Receive Payment
+                </button>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Add Customer Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Customer">
         <form onSubmit={handleAdd} className="space-y-2">
           <Input label="Name" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
@@ -179,6 +191,7 @@ const Ledger: React.FC = () => {
         </form>
       </Modal>
 
+      {/* Payment Modal */}
       <Modal isOpen={isPayModalOpen} onClose={() => setIsPayModalOpen(false)} title="Receive Payment">
         <form onSubmit={handlePayment} className="space-y-2">
           <div className={`p-4 rounded-xl mb-4 ${theme === 'dark' ? 'bg-gray-700' : 'bg-cream-100'}`}>
@@ -190,6 +203,7 @@ const Ledger: React.FC = () => {
           <Button variant="success" icon={<CheckCircle size={20}/>}>Confirm Payment</Button>
         </form>
       </Modal>
+
     </div>
   );
 };
