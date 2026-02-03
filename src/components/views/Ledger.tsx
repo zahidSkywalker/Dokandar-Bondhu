@@ -26,7 +26,7 @@ const Ledger: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [dbError, setDbError] = useState<string | null>(null);
 
-  // Safe Data Fetching (FIXED: Using IIFE to avoid scope issues)
+  // Safe Data Fetching (Using IIFE to prevent scope issues)
   useEffect(() => {
     let isMounted = true;
 
@@ -35,7 +35,7 @@ const Ledger: React.FC = () => {
       setDbError(null);
       
       try {
-        // Use 'customers' (plural) property from db.ts
+        // Explicit check for table existence
         if (!db.customers) {
           throw new Error("Database table 'customers' not found. Try clearing site data.");
         }
@@ -99,8 +99,9 @@ const Ledger: React.FC = () => {
   return (
     <div className={`pb-24 max-w-2xl mx-auto ${theme === 'dark' ? 'bg-gray-900 text-gray-100' : 'bg-cream-50 text-earth-900'}`}>
       
+      {/* Header - DYNAMIC TITLE */}
       <div className="flex justify-between items-center mb-6 mt-2">
-        <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>Baki Khata</h1>
+        <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{t('ledger.title')}</h1>
         <button 
           onClick={() => setIsModalOpen(true)}
           className={`p-3 rounded-2xl shadow-xl active:scale-95 transition-transform ${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-earth-800 text-white'}`}
@@ -123,16 +124,16 @@ const Ledger: React.FC = () => {
 
       <div className="space-y-4">
         {loading && !dbError ? (
-           <div className="flex justify-center items-center p-10">
+          <div className="flex justify-center items-center p-10">
              <div className="w-8 h-8 border-4 border-earth-600 border-t-transparent rounded-full animate-spin"></div>
-           </div>
+          </div>
         ) : customers.length === 0 ? (
           <p className={`text-center mt-10 ${theme === 'dark' ? 'text-gray-400' : 'text-earth-400'}`}>No customers yet. Add one to start.</p>
         ) : (
           customers.map((customer) => (
-            <div key={customer.id} className={`p-5 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
+            <div key={customer.id} className={`p-5 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}>
               
-              {/* Info */}
+              {/* Info Section */}
               <div className="flex justify-between items-start mb-3">
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-xl ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-earth-50 text-earth-600'}`}>
@@ -158,7 +159,7 @@ const Ledger: React.FC = () => {
                 </div>
               </div>
               
-              {/* Total Debt */}
+              {/* Total Debt Section */}
               <div className={`flex justify-between items-center p-3 rounded-xl ${theme === 'dark' ? 'bg-gray-700/50' : 'bg-earth-50'}`}>
                  <span className={`text-xs font-bold uppercase ${theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}`}>Total Debt</span>
                  <span className={`font-bold ${customer.debt > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
@@ -166,13 +167,13 @@ const Ledger: React.FC = () => {
                  </span>
               </div>
 
-              {/* Action */}
+              {/* Action Button */}
               {customer.debt > 0 && (
                 <button 
-                  onClick={() => { setSelectedCustomer(customer); setIsPayModalOpen(true); }}
-                  className="w-full mt-3 py-2 rounded-xl text-xs font-bold bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border border-green-100 dark:border-green-900 hover:bg-green-100 transition-colors flex items-center justify-center gap-2"
+                    onClick={() => { setSelectedCustomer(customer); setIsPayModalOpen(true); }}
+                    className="w-full mt-3 py-2 rounded-xl text-xs font-bold bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border border-green-100 dark:border-green-900 hover:bg-green-100 transition-colors flex items-center justify-center gap-2"
                 >
-                  <Wallet size={14}/> Receive Payment
+                  <Wallet size={14}/> {t('ledger.receivePayment')}
                 </button>
               )}
             </div>
@@ -181,24 +182,27 @@ const Ledger: React.FC = () => {
       </div>
 
       {/* Add Customer Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Customer">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={t('ledger.addCustomer')}>
         <form onSubmit={handleAdd} className="space-y-2">
-          <Input label="Name" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
-          <Input label="Phone" type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} />
-          <Input label="Address" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} />
+          <Input label={t('ledger.name')} required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
+          <Input label={t('ledger.phone')} type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} />
+          <Input label={t('ledger.address')} value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} />
           <div className="h-6" />
-          <Button icon={<Plus size={20}/>}>Save</Button>
+          <Button icon={<Plus size={20}/>}>{t('common.save')}</Button>
         </form>
       </Modal>
 
       {/* Payment Modal */}
-      <Modal isOpen={isPayModalOpen} onClose={() => setIsPayModalOpen(false)} title="Receive Payment">
+      <Modal isOpen={isPayModalOpen} onClose={() => setIsPayModalOpen(false)} title={t('ledger.receivePayment')}>
         <form onSubmit={handlePayment} className="space-y-2">
           <div className={`p-4 rounded-xl mb-4 ${theme === 'dark' ? 'bg-gray-700' : 'bg-cream-100'}`}>
-            <p className="text-xs uppercase font-bold text-earth-500 dark:text-gray-400 mb-1">Current Debt</p>
-            <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{formatCurrency(selectedCustomer?.debt || 0, lang)}</p>
+            <p className="text-xs uppercase font-bold text-earth-500 dark:text-gray-400 mb-1">{t('ledger.debt')}</p>
+            {/* FIX: Added safe default to 0 to prevent undefined error */}
+            <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>
+               {formatCurrency(selectedCustomer?.debt || 0, lang)}
+            </p>
           </div>
-          <Input label="Payment Amount" type="number" required value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} />
+          <Input label={t('common.save')} type="number" required value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} />
           <div className="h-6" />
           <Button variant="success" icon={<CheckCircle size={20}/>}>Confirm Payment</Button>
         </form>
