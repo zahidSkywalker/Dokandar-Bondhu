@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit, Trash2 } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Plus, Search, Trash2 } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
 import { useApp } from '../../context/AppContext';
@@ -7,10 +7,10 @@ import { useLanguage } from '../../context/LanguageContext';
 import Modal from '../ui/Modal';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
-import { formatCurrency } from '../../lib/utils';
+import { formatCurrency, toEnglishDigits } from '../../lib/utils';
 
 const Inventory: React.FC = () => {
-  const { t, lang, toEnglishDigits } = useLanguage();
+  const { t, lang } = useLanguage(); // Corrected: toEnglishDigits is NOT from useLanguage
   const { addProduct, deleteProduct } = useApp();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -92,7 +92,7 @@ const Inventory: React.FC = () => {
                 <div className={`mt-2 inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
                   product.stock < 10 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
                 }`}>
-                  Stock: {lang === 'bn' ? toEnglishDigits(product.stock.toString()) : product.stock} {product.unit}
+                  Stock: {product.stock} {product.unit}
                 </div>
               </div>
               <button onClick={() => deleteProduct(product.id!)} className="text-gray-400 hover:text-red-500 p-2">
