@@ -1,10 +1,10 @@
 import React from 'react';
-import { ArrowUpRight, ArrowDownRight, Package, TrendingUp, Wallet, AlertTriangle, ShoppingCart } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Package, TrendingUp, Wallet, AlertTriangle, ShoppingCart, Sun, Sunset, Moon, Star } from 'lucide-react';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useDashboardStats } from '../../hooks/useDashboardStats';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../context/ThemeContext';
-import { formatCurrency, formatDate, getGreetingIcon } from '../../lib/utils';
+import { formatCurrency, formatDate } from '../../lib/utils';
 
 const Dashboard: React.FC = () => {
   const { t, lang } = useLanguage();
@@ -27,9 +27,25 @@ const Dashboard: React.FC = () => {
     stockPredictions
   } = useDashboardStats();
 
-  const GreetingIcon = getGreetingIcon();
-
   if (isLoading) return <div className="p-4 text-center">Loading...</div>;
+
+  // Simple greeting text and icon logic (Internal)
+  const getGreetingText = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 17) return "Good Afternoon";
+    if (hour < 21) return "Good Evening";
+    return "Good Night";
+  };
+
+  const renderGreetingIcon = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return <Sun className="text-yellow-500 w-8 h-8" />;
+    if (hour < 14) return <Sun className="text-orange-400 w-8 h-8" />;
+    if (hour < 17) return <Sun className="text-orange-500 w-8 h-8" />;
+    if (hour < 21) return <Sunset className="text-purple-500 w-8 h-8" />;
+    return <Moon className="text-blue-300 w-7 h-7" />;
+  };
 
   const monthlyData = [
     { name: 'Sales', value: totalSalesMonth },
@@ -41,9 +57,9 @@ const Dashboard: React.FC = () => {
     <div className="space-y-6 pb-24 max-w-2xl mx-auto">
       {/* Greeting */}
       <div className="mb-2 animate-fade-in flex items-center gap-3">
-        <GreetingIcon className="text-yellow-500 w-8 h-8" />
+        {renderGreetingIcon()}
         <div>
-          <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{greeting}</h2>
+          <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{getGreetingText()}</h2>
           <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-earth-600'}`}>Here is your business overview</p>
         </div>
       </div>
@@ -66,7 +82,7 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Monthly Breakdown (New) */}
+      {/* Monthly Breakdown */}
       <div className={`p-5 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
         <div className="flex justify-between items-center mb-4">
           <h3 className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>Monthly Analysis</h3>
@@ -84,7 +100,7 @@ const Dashboard: React.FC = () => {
            </div>
         </div>
 
-        <div className={`p-4 rounded-xl mb-4 ${netMonthlyProfit >= 0 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'} border ${netMonthlyProfit >= 0 ? 'border-green-100 dark:border-green-900' : 'border-red-100 dark:border-red-900'} mb-4`}>
+        <div className={`p-4 rounded-xl ${netMonthlyProfit >= 0 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'} border ${netMonthlyProfit >= 0 ? 'border-green-100 dark:border-green-900' : 'border-red-100 dark:border-red-900'} mb-4`}>
           <p className={`text-xs font-bold mb-1 uppercase ${netMonthlyProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>Net Monthly Profit</p>
           <p className={`text-2xl font-bold ${netMonthlyProfit >= 0 ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
             {formatCurrency(netMonthlyProfit, lang)}
@@ -115,7 +131,7 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Stock Prediction Alert (Real Data) */}
+      {/* Stock Prediction Alert */}
       <div className={`p-5 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
         <h3 className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'} mb-4 flex items-center gap-2`}>
           <AlertTriangle className="text-yellow-500" size={18} /> Stock Prediction
@@ -177,13 +193,13 @@ const Dashboard: React.FC = () => {
         <div className="space-y-3">
           {recentSales.length === 0 ? (
              <div className={`p-10 text-center rounded-2xl border ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
-               <p className={theme === 'dark' ? 'text-gray-400 font-medium' : 'text-earth-400 font-medium'}>No transactions today</p>
+               <p className={theme === 'dark' ? 'text-gray-400' : 'text-earth-400 font-medium'}>No transactions today</p>
              </div>
           ) : (
             recentSales.map((sale) => (
               <div key={sale.id} className={`p-4 rounded-2xl border shadow-sm flex justify-between items-center ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
                 <div>
-                  <p className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{sale.productName}</p>
+                  <h3 className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{sale.productName}</h3>
                   <div className="flex items-center gap-2 mt-1">
                     <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-cream-100 text-earth-600'}`}>{sale.quantity} pcs</span>
                     <span className={`text-[10px] ${theme === 'dark' ? 'text-gray-500' : 'text-earth-400'}`}>{formatDate(sale.date, lang)}</span>
