@@ -45,6 +45,20 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
       category: "Category",
       amount: "Amount",
       note: "Note"
+    },
+    // NEW ADDED
+    ledger: {
+      title: "Ledger (Baki)",
+      addCustomer: "Add Customer",
+      name: "Name",
+      phone: "Phone",
+      address: "Address",
+      debt: "Debt",
+      receivePayment: "Receive Payment"
+    },
+    staff: {
+      title: "Staff",
+      addStaff: "Add Staff"
     }
   },
   bn: {
@@ -91,6 +105,20 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
       category: "খাত",
       amount: "টাকা",
       note: "নোট"
+    },
+    // NEW ADDED
+    ledger: {
+      title: "হিসাব (বাকি)",
+      addCustomer: "ক্রেতা যোগ",
+      name: "নাম",
+      phone: "ফোন",
+      address: "ঠিকানা",
+      debt: "বাকি",
+      receivePayment: "টাকা নিন"
+    },
+    staff: {
+      title: "কর্মী",
+      addStaff: "কর্মী যোগ"
     }
   }
 };
