@@ -38,10 +38,13 @@ const Dashboard: React.FC = () => {
   return (
     <div className="space-y-6 pb-24 max-w-2xl mx-auto">
       {/* Greeting */}
-      <div className="mb-2 animate-fade-in">
-        <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{greeting} 🌟</h2>
-        <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-earth-600'}`}>Here is your business overview</p>
-      </div>
+  <div className="mb-2 animate-fade-in flex items-center gap-3">
+    {getGreetingIcon()} {/* <--- ADD ICON HERE */}
+    <div>
+      <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{greeting}</h2>
+      <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-earth-600'}`}>Here is your business overview</p>
+    </div>
+  </div>
 
       {/* Main Stats Card */}
       <div className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'} bg-gradient-to-br from-earth-600 to-earth-800 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden`}>
