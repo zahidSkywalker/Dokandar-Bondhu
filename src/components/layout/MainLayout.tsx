@@ -21,24 +21,23 @@ const MainLayout: React.FC = () => {
       case 'inventory': return <Inventory />;
       case 'sales': return <Sales />;
       case 'expenses': return <Expenses />;
-      case 'ledger': return <Ledger />; // NEW
-      case 'settings': return <Settings />; // NEW
+      case 'ledger': return <Ledger />;
+      case 'settings': return <Settings />;
       default: return <Dashboard />;
     }
   };
 
   return (
-    <div className={`min-h-screen font-sans pb-20 transition-colors duration-300 ${theme === 'dark' ? 'bg-gray-900 text-gray-100' : 'bg-cream-50 text-earth-900'}`}>
-      
-      {/* Header */}
+    // ...
       <header className={`sticky top-0 z-30 border-b px-4 py-4 flex justify-between items-center ${theme === 'dark' ? 'bg-gray-800/90 border-gray-700 backdrop-blur-md' : 'bg-white/80 border-cream-200 backdrop-blur-md shadow-sm'}`}>
         <div>
           <h1 className={`font-bold text-xl tracking-tight ${theme === 'dark' ? 'text-white' : 'text-earth-800'}`}>{t('common.appName')}</h1>
           <p className={`text-xs font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-earth-600'}`}>Business Manager</p>
         </div>
         <div className="flex items-center gap-2">
+          {/* UPDATED BUTTON LOGIC BELOW */}
           <button 
-            onClick={() => setActiveTab('settings')}
+            onClick={() => setActiveTab(prev => prev === 'settings' ? 'dashboard' : 'settings')}
             className={`p-2 rounded-xl ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-earth-50 text-earth-600'}`}
           >
             <SettingsIcon size={20} />
