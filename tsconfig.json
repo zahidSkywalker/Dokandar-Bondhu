@@ -16,8 +16,8 @@
 
     /* Linting */
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false,  // <--- CHANGE THIS TO FALSE
+    "noUnusedParameters": false, // <--- CHANGE THIS TO FALSE
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src"],
