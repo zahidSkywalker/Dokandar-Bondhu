@@ -1,73 +1,97 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/db';
+import { MarketPrice } from '../types';
+import { syncMarketPrices, shouldSyncMarketPrices, isOnline } from '../services/marketService';
 
-export interface CommodityPrice {
-  id?: number;
-  name: string;
-  unit: string;
-  minPrice: number;
-  maxPrice: number;
-  date: string;
+interface UseMarketPricesReturn {
+  prices: MarketPrice[];
+  isLoading: boolean;
+  isSyncing: boolean;
+  lastUpdated: Date | undefined;
+  syncStatus: 'idle' | 'success' | 'error';
+  triggerSync: () => Promise<void>;
+  onlineStatus: boolean;
 }
 
-export const useMarketPrices = () => {
-  const [prices, setPrices] = useState<CommodityPrice[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [lastUpdate, setLastUpdate] = useState<string | null>(null);
-  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+export const useMarketPrices = (categoryFilter: string = 'all'): UseMarketPricesReturn => {
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [onlineStatus, setOnlineStatus] = useState(isOnline());
 
-  const workerRef = useRef<Worker | null>(null);
+  // 1. Live Query: Get prices from IndexedDB
+  // If category is 'all', return all. Otherwise filter by category.
+  const allPrices = useLiveQuery(() => db.marketPrices.toArray(), []);
+  
+  // 2. Client-side filtering for categories
+  const prices = allPrices ? (categoryFilter === 'all' 
+    ? allPrices 
+    : allPrices.filter(p => p.category === categoryFilter)) 
+  : [];
 
-  // Online / Offline listener
+  // Get last updated time
+  const lastUpdated = allPrices && allPrices.length > 0 
+    ? new Date(allPrices[0].dateFetched) 
+    : undefined;
+
+  // 3. Online/Offline Event Listeners
   useEffect(() => {
-    const updateStatus = () => setIsOnline(navigator.onLine);
-    window.addEventListener('online', updateStatus);
-    window.addEventListener('offline', updateStatus);
+    const handleOnline = () => setOnlineStatus(true);
+    const handleOffline = () => setOnlineStatus(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
     return () => {
-      window.removeEventListener('online', updateStatus);
-      window.removeEventListener('offline', updateStatus);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
-  // Init worker
+  // 4. Auto-sync logic on mount
   useEffect(() => {
-    workerRef.current = new Worker(
-      new URL('../workers/marketPrices.worker.ts', import.meta.url),
-      { type: 'module' }
-    );
-
-    workerRef.current.onmessage = async (event) => {
-      if (event.data.type === 'prices') {
-        setPrices(event.data.payload);
-        setLastUpdate(new Date().toISOString());
-        setIsLoading(false);
-
-        await db.marketPrices.clear();
-        await db.marketPrices.bulkPut(event.data.payload);
+    const initSync = async () => {
+      // Only check sync logic if we are online
+      if (onlineStatus) {
+        const needSync = await shouldSyncMarketPrices();
+        if (needSync) {
+          await triggerSync();
+        }
       }
     };
 
-    return () => {
-      workerRef.current?.terminate();
-    };
-  }, []);
+    initSync();
+  }, [onlineStatus]); // Re-run if online status changes
 
-  // Load cached data
-  useEffect(() => {
-    (async () => {
-      const cached = await db.marketPrices.toArray();
-      if (cached.length) {
-        setPrices(cached);
-        setLastUpdate(cached[0].date);
-      }
-    })();
-  }, []);
+  // 5. Manual Sync Trigger
+  const triggerSync = async () => {
+    if (!isOnline()) {
+      setSyncStatus('error');
+      return;
+    }
 
-  const refreshPrices = () => {
-    if (!workerRef.current) return;
-    setIsLoading(true);
-    workerRef.current.postMessage({ type: 'FETCH' });
+    setIsSyncing(true);
+    setSyncStatus('idle');
+    
+    const result = await syncMarketPrices();
+    
+    setIsSyncing(false);
+    if (result.success) {
+      setSyncStatus('success');
+      // Clear success message after 3 seconds
+      setTimeout(() => setSyncStatus('idle'), 3000);
+    } else {
+      setSyncStatus('error');
+    }
   };
 
-  return { prices, isLoading, lastUpdate, refreshPrices, isOnline };
+  return {
+    prices,
+    isLoading: !allPrices, // Loading initial data from DB
+    isSyncing,
+    lastUpdated,
+    syncStatus,
+    triggerSync,
+    onlineStatus
+  };
 };
