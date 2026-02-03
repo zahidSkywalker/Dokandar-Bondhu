@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Check } from 'lucide-react'; // Removed unused ShoppingCart
+import { Plus, Check, ShoppingCart } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
 import { useApp } from '../../context/AppContext';
@@ -7,13 +7,12 @@ import { useLanguage } from '../../context/LanguageContext';
 import Modal from '../ui/Modal';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
-import { formatCurrency, formatDate, toEnglishDigits } from '../../lib/utils'; // <--- ADDED formatDate
+import { formatCurrency, formatDate, toEnglishDigits } from '../../lib/utils';
 
 const Sales: React.FC = () => {
   const { t, lang } = useLanguage();
   const { addSale } = useApp();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
   const [productId, setProductId] = useState<string>('');
   const [quantity, setQuantity] = useState('');
 
@@ -30,7 +29,6 @@ const Sales: React.FC = () => {
   const handleSale = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProduct) return;
-
     try {
       await addSale({
         productId: selectedProduct.id!,
@@ -49,12 +47,12 @@ const Sales: React.FC = () => {
   };
 
   return (
-    <div className="pb-24 px-4 pt-6 max-w-2xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">{t('sales.title')}</h1>
+    <div className="pb-24 max-w-2xl mx-auto">
+      <div className="flex justify-between items-center mb-6 mt-2">
+        <h1 className="text-2xl font-bold text-earth-900">{t('sales.title')}</h1>
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="bg-teal-600 text-white p-3 rounded-full shadow-lg active:scale-95 transition-transform"
+          className="bg-earth-800 text-white p-3 rounded-2xl shadow-xl shadow-earth-900/30 active:scale-95 transition-transform"
         >
           <Plus size={24} />
         </button>
@@ -63,15 +61,18 @@ const Sales: React.FC = () => {
       <div className="space-y-4">
         {!recentSales ? <p>Loading...</p> : (
           recentSales.map((sale) => (
-            <div key={sale.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center">
-              <div>
-                <h3 className="font-bold text-gray-800">{sale.productName}</h3>
-                <p className="text-xs text-gray-500">
-                   {formatDate(sale.date, lang)} • {sale.quantity} pcs
-                </p>
+            <div key={sale.id} className="bg-white p-5 rounded-2xl border border-cream-200 shadow-sm flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                 <div className="bg-cream-100 p-2 rounded-xl text-earth-600">
+                    <ShoppingCart size={20} />
+                 </div>
+                 <div>
+                  <h3 className="font-bold text-earth-900">{sale.productName}</h3>
+                  <p className="text-xs text-earth-500">{formatDate(sale.date, lang)} • {sale.quantity} pcs</p>
+                </div>
               </div>
               <div className="text-right">
-                <p className="font-bold text-lg text-teal-700">{formatCurrency(sale.total, lang)}</p>
+                <p className="font-bold text-xl text-earth-800">{formatCurrency(sale.total, lang)}</p>
               </div>
             </div>
           ))
@@ -79,10 +80,10 @@ const Sales: React.FC = () => {
       </div>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={t('sales.newSale')}>
-        <form onSubmit={handleSale}>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t('sales.selectProduct')}</label>
+        <form onSubmit={handleSale} className="space-y-2">
+          <label className="block text-sm font-bold text-earth-700 mb-1">{t('sales.selectProduct')}</label>
           <select 
-            className="w-full mb-4 px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+            className="w-full mb-2 px-4 py-3 bg-white border border-cream-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-earth-200 text-earth-800"
             value={productId}
             onChange={(e) => setProductId(e.target.value)}
             required
@@ -94,14 +95,14 @@ const Sales: React.FC = () => {
           </select>
 
           {selectedProduct && (
-            <div className="bg-gray-50 p-3 rounded-lg mb-4 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Selling Price:</span>
-                <span className="font-bold">{formatCurrency(selectedProduct.sellPrice, lang)}</span>
+            <div className="bg-cream-50 p-4 rounded-xl mb-4 border border-cream-100">
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-earth-500">Selling Price:</span>
+                <span className="font-bold text-earth-800">{formatCurrency(selectedProduct.sellPrice, lang)}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Available Stock:</span>
-                <span className={`font-bold ${selectedProduct.stock < 5 ? 'text-red-500' : 'text-green-600'}`}>
+              <div className="flex justify-between text-sm">
+                <span className="text-earth-500">Available:</span>
+                <span className={`font-bold ${selectedProduct.stock < 5 ? 'text-red-500' : 'text-earth-700'}`}>
                   {selectedProduct.stock}
                 </span>
               </div>
@@ -118,9 +119,9 @@ const Sales: React.FC = () => {
           />
           
           {selectedProduct && quantity && (
-             <div className="mb-4 p-3 bg-teal-50 border border-teal-100 rounded-lg flex justify-between items-center">
-                <span className="text-teal-800 font-medium">Total:</span>
-                <span className="text-xl font-bold text-teal-700">
+             <div className="mb-4 p-4 bg-earth-800 rounded-xl flex justify-between items-center shadow-lg">
+                <span className="text-earth-100 font-medium">Total</span>
+                <span className="text-2xl font-bold text-white">
                   {formatCurrency(selectedProduct.sellPrice * parseInt(toEnglishDigits(quantity)), lang)}
                 </span>
              </div>
