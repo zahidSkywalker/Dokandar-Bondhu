@@ -66,7 +66,7 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Monthly Breakdown (New) */}
+      {/* Monthly Breakdown */}
       <div className={`p-5 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
         <div className="flex justify-between items-center mb-4">
           <h3 className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>Monthly Analysis</h3>
@@ -115,7 +115,7 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Stock Prediction Alert (Real Data) */}
+      {/* Stock Prediction Alert (Fixed JSX) */}
       <div className={`p-5 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
         <h3 className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'} mb-4 flex items-center gap-2`}>
           <AlertTriangle className="text-yellow-500" size={18} /> Stock Prediction
@@ -134,22 +134,22 @@ const Dashboard: React.FC = () => {
                .slice(0, 5)
                .map((product) => {
                   const isCritical = product.daysLeft < 3;
-                     return (
-                        <div key={product.id} className={`flex justify-between items-center p-3 rounded-lg border ${
-                          isCritical 
-                            ? 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900' 
-                            : 'bg-orange-50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900'
-                          }`}>
-                        <div className="flex items-center gap-2">
-                           <div className={`w-2 h-2 rounded-full ${isCritical ? 'bg-red-500' : 'bg-orange-500'}`} />
-                           <span className={`font-bold ${isCritical ? 'text-red-700 dark:text-red-300' : 'text-orange-700 dark:text-orange-300'}`}>
-                             {product.name}
-                           </span>
-                        </div>
-                        <span className={`text-xs font-bold ${isCritical ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'}`}>
-                           {product.daysLeft === 999 ? 'No Sales Data' : `${product.daysLeft} Days Left`}
-                        </span>
+                  // FIXED: Removed the extra closing </div> below
+                  return (
+                    <div key={product.id} className={`flex justify-between items-center p-3 rounded-lg border ${
+                      isCritical 
+                        ? 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900' 
+                        : 'bg-orange-50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900'
+                    }`}>
+                      <div className="flex items-center gap-2">
+                         <div className={`w-2 h-2 rounded-full ${isCritical ? 'bg-red-500' : 'bg-orange-500'}`} />
+                         <span className={`font-bold ${isCritical ? 'text-red-700 dark:text-red-300' : 'text-orange-700 dark:text-orange-300'}`}>
+                           {product.name}
+                         </span>
                       </div>
+                      <span className={`text-xs font-bold ${isCritical ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'}`}>
+                         {product.daysLeft === 999 ? 'No Sales Data' : `${product.daysLeft} Days Left`}
+                      </span>
                     </div>
                   );
                 })
