@@ -1,7 +1,7 @@
 import React from 'react';
 import { AppProvider } from './context/AppContext';
 import { LanguageProvider } from './context/LanguageContext';
-import MainLayout from './components/layout/MainLayout'; // We will create this in Phase 3
+import MainLayout from './components/layout/MainLayout';
 
 const App: React.FC = () => {
   return (
