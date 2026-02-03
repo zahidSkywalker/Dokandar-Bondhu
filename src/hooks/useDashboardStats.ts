@@ -4,13 +4,11 @@ import { startOfDay, endOfDay, subDays, format, startOfMonth, endOfMonth } from 
 import { getGreeting } from '../lib/utils';
 
 export const useDashboardStats = () => {
-  // --- Ranges (Using Numbers for safe comparison) ---
+  // --- Ranges (All defined as Numbers) ---
   const todayStart = startOfDay(new Date()).getTime();
   const todayEnd = endOfDay(new Date()).getTime();
-
   const monthStart = startOfMonth(new Date()).getTime();
   const monthEnd = endOfMonth(new Date()).getTime();
-
   const sevenDaysAgo = subDays(new Date(), 7).getTime();
 
   // --- Queries ---
@@ -42,21 +40,22 @@ export const useDashboardStats = () => {
   const totalExpenseMonth = expensesMonth?.reduce((sum, exp) => sum + exp.amount, 0) || 0;
   const totalSalesMonth = salesMonth?.reduce((sum, s) => sum + s.total, 0) || 0;
   const totalProfitMonth = salesMonth?.reduce((sum, s) => sum + s.profit, 0) || 0;
-  
-  // Net Monthly Profit = (Sales Profit) - (General Expenses + Inventory Expenses)
   const netMonthlyProfit = totalProfitMonth - (totalExpenseMonth + totalInventoryExpenseMonth);
 
   // Baki Khata Total
   const totalDebt = allCustomers?.reduce((sum, c) => sum + c.debt, 0) || 0;
 
-  // --- Stock Prediction Logic (Fixed: Returns Array, not Promise) ---
+  // --- Stock Prediction Logic (FIXED: All comparisons use Timestamps) ---
   let stockPredictions: any[] = [];
   
   if (allProducts && allSales) {
-    // 1. Filter sales to last 7 days
-    const recentSales = allSales.filter(s => s.date >= sevenDaysAgo);
+    // 1. Filter sales to last 7 days (Converting s.date to Number to compare with sevenDaysAgo Number)
+    const recentSales = allSales.filter(s => {
+      const saleTime = new Date(s.date).getTime();
+      return saleTime >= sevenDaysAgo;
+    });
 
-    // 2. Group by productId to get total sales volume
+    // 2. Group by productId
     const groupedSales = recentSales.reduce((acc, sale) => {
       acc[sale.productId] = (acc[sale.productId] || 0) + sale.quantity;
       return acc;
@@ -84,8 +83,9 @@ export const useDashboardStats = () => {
     const dayStart = startOfDay(d).getTime();
     const dayEnd = endOfDay(d).getTime();
     
+    // Filter sales for this day (Converting s.date to Number)
     const daySales = allSales?.filter(s => {
-      const saleTime = new Date(s.date).getTime(); // Convert to Number for comparison
+      const saleTime = new Date(s.date).getTime();
       return saleTime >= dayStart && saleTime <= dayEnd;
     }) || [];
     
@@ -112,9 +112,7 @@ export const useDashboardStats = () => {
 
     // Others
     totalDebt,
-    stockPredictions, // Safe Array type
-    
-    // State
+    stockPredictions, // Guaranteed Array
     isLoading: !salesToday || !expensesToday || !lowStockItems || !allSales || !allProducts,
     chartData,
     greeting: getGreeting()
