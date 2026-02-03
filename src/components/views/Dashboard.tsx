@@ -4,7 +4,7 @@ import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useDashboardStats } from '../../hooks/useDashboardStats';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../context/ThemeContext';
-import { formatCurrency, formatDate, getGreetingIcon } from '../../lib/utils'; // Import function, not JSX
+import { formatCurrency, formatDate, getGreetingIcon } from '../../lib/utils';
 
 const Dashboard: React.FC = () => {
   const { t, lang } = useLanguage();
@@ -27,7 +27,6 @@ const Dashboard: React.FC = () => {
     stockPredictions
   } = useDashboardStats();
 
-  // Instantiate icon component
   const GreetingIcon = getGreetingIcon();
 
   if (isLoading) return <div className="p-4 text-center">Loading...</div>;
@@ -42,7 +41,7 @@ const Dashboard: React.FC = () => {
     <div className="space-y-6 pb-24 max-w-2xl mx-auto">
       {/* Greeting */}
       <div className="mb-2 animate-fade-in flex items-center gap-3">
-        <GreetingIcon className="text-yellow-500 w-8 h-8" /> {/* RENDER IT HERE */}
+        <GreetingIcon className="text-yellow-500 w-8 h-8" />
         <div>
           <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{greeting}</h2>
           <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-earth-600'}`}>Here is your business overview</p>
@@ -85,7 +84,7 @@ const Dashboard: React.FC = () => {
            </div>
         </div>
 
-        <div className={`p-4 rounded-xl ${netMonthlyProfit >= 0 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'} border ${netMonthlyProfit >= 0 ? 'border-green-100 dark:border-green-900' : 'border-red-100 dark:border-red-900'} mb-4`}>
+        <div className={`p-4 rounded-xl mb-4 ${netMonthlyProfit >= 0 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'} border ${netMonthlyProfit >= 0 ? 'border-green-100 dark:border-green-900' : 'border-red-100 dark:border-red-900'} mb-4`}>
           <p className={`text-xs font-bold mb-1 uppercase ${netMonthlyProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>Net Monthly Profit</p>
           <p className={`text-2xl font-bold ${netMonthlyProfit >= 0 ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
             {formatCurrency(netMonthlyProfit, lang)}
@@ -95,14 +94,9 @@ const Dashboard: React.FC = () => {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-4">
-        <div 
-          onClick={() => window.location.hash = '#ledger'}
-          className={`p-4 rounded-2xl border shadow-sm cursor-pointer hover:opacity-90 ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}
-        >
+        <div onClick={() => window.location.hash = '#ledger'} className={`p-4 rounded-2xl border shadow-sm cursor-pointer hover:opacity-90 ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
           <div className="flex items-center justify-between mb-2">
-             <span className="text-xs font-bold uppercase text-earth-500 dark:text-gray-400">
-               {t('ledger.title')}
-             </span>
+             <span className="text-xs font-bold uppercase text-earth-500 dark:text-gray-400">{t('ledger.title')}</span>
              <Wallet className="text-earth-400 dark:text-gray-500" size={18} />
           </div>
           <p className={`text-xl font-bold ${totalDebt > 0 ? 'text-red-500' : (theme === 'dark' ? 'text-white' : 'text-earth-800')}`}>
@@ -134,19 +128,18 @@ const Dashboard: React.FC = () => {
            </div>
         ) : (
           <div className="space-y-3">
-             {/* Filter only low stock (less than 7 days) and sort by urgency */}
              {stockPredictions
-               .filter(p => p.daysLeft < 999) // Filter out items with 999 days (no sales)
+               .filter(p => p.daysLeft < 999)
                .sort((a, b) => a.daysLeft - b.daysLeft)
-               .slice(0, 5) // Show top 5 critical items
+               .slice(0, 5)
                .map((product) => {
                   const isCritical = product.daysLeft < 3;
                      return (
-                      <div key={product.id} className={`flex justify-between items-center p-3 rounded-lg border ${
-                        isCritical 
-                          ? 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900' 
-                          : 'bg-orange-50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900'
-                      }`}>
+                        <div key={product.id} className={`flex justify-between items-center p-3 rounded-lg border ${
+                          isCritical 
+                            ? 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900' 
+                            : 'bg-orange-50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900'
+                          }`}>
                         <div className="flex items-center gap-2">
                            <div className={`w-2 h-2 rounded-full ${isCritical ? 'bg-red-500' : 'bg-orange-500'}`} />
                            <span className={`font-bold ${isCritical ? 'text-red-700 dark:text-red-300' : 'text-orange-700 dark:text-orange-300'}`}>
