@@ -71,7 +71,7 @@ const Expenses: React.FC = () => {
         )}
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={t('expenses.addExpense)}>
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={t('expenses.addExpense')}>
         <form onSubmit={handleAdd}>
           <label className="block text-sm font-medium text-gray-700 mb-1">{t('expenses.category')}</label>
           <select 
