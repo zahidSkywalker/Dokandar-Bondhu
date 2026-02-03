@@ -27,7 +27,7 @@ const Dashboard: React.FC = () => {
     stockPredictions
   } = useDashboardStats();
 
-  // Instantiate the icon component
+  // Instantiate icon component
   const GreetingIcon = getGreetingIcon();
 
   if (isLoading) return <div className="p-4 text-center">Loading...</div>;
@@ -95,9 +95,14 @@ const Dashboard: React.FC = () => {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-4">
-        <div onClick={() => window.location.hash = '#ledger'} className={`p-4 rounded-2xl border shadow-sm cursor-pointer hover:opacity-90 ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
+        <div 
+          onClick={() => window.location.hash = '#ledger'}
+          className={`p-4 rounded-2xl border shadow-sm cursor-pointer hover:opacity-90 ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}
+        >
           <div className="flex items-center justify-between mb-2">
-             <span className="text-xs font-bold uppercase text-earth-500 dark:text-gray-400">Baki Khata</span>
+             <span className="text-xs font-bold uppercase text-earth-500 dark:text-gray-400">
+               {t('ledger.title')}
+             </span>
              <Wallet className="text-earth-400 dark:text-gray-500" size={18} />
           </div>
           <p className={`text-xl font-bold ${totalDebt > 0 ? 'text-red-500' : (theme === 'dark' ? 'text-white' : 'text-earth-800')}`}>
@@ -136,21 +141,22 @@ const Dashboard: React.FC = () => {
                .slice(0, 5) // Show top 5 critical items
                .map((product) => {
                   const isCritical = product.daysLeft < 3;
-                  return (
-                    <div key={product.id} className={`flex justify-between items-center p-3 rounded-lg border ${
-                      isCritical 
-                        ? 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900' 
-                        : 'bg-orange-50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900'
-                    }`}>
-                      <div className="flex items-center gap-2">
-                         <div className={`w-2 h-2 rounded-full ${isCritical ? 'bg-red-500' : 'bg-orange-500'}`} />
-                         <span className={`font-bold ${isCritical ? 'text-red-700 dark:text-red-300' : 'text-orange-700 dark:text-orange-300'}`}>
-                           {product.name}
-                         </span>
+                     return (
+                      <div key={product.id} className={`flex justify-between items-center p-3 rounded-lg border ${
+                        isCritical 
+                          ? 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900' 
+                          : 'bg-orange-50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900'
+                      }`}>
+                        <div className="flex items-center gap-2">
+                           <div className={`w-2 h-2 rounded-full ${isCritical ? 'bg-red-500' : 'bg-orange-500'}`} />
+                           <span className={`font-bold ${isCritical ? 'text-red-700 dark:text-red-300' : 'text-orange-700 dark:text-orange-300'}`}>
+                             {product.name}
+                           </span>
+                        </div>
+                        <span className={`text-xs font-bold ${isCritical ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'}`}>
+                           {product.daysLeft === 999 ? 'No Sales Data' : `${product.daysLeft} Days Left`}
+                        </span>
                       </div>
-                      <span className={`text-xs font-bold ${isCritical ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'}`}>
-                         {product.daysLeft === 999 ? 'No Sales Data' : `${product.daysLeft} Days Left`}
-                      </span>
                     </div>
                   );
                 })
