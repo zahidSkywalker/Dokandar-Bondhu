@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Search, Trash2 } from 'lucide-react';
+import { Plus, Search, Trash2, Package } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
 import { useApp } from '../../context/AppContext';
@@ -10,12 +10,11 @@ import Button from '../ui/Button';
 import { formatCurrency, toEnglishDigits } from '../../lib/utils';
 
 const Inventory: React.FC = () => {
-  const { t, lang } = useLanguage(); // Corrected: toEnglishDigits is NOT from useLanguage
+  const { t, lang } = useLanguage();
   const { addProduct, deleteProduct } = useApp();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Form State
   const [formData, setFormData] = useState({
     name: '',
     buyPrice: '',
@@ -51,51 +50,52 @@ const Inventory: React.FC = () => {
   };
 
   return (
-    <div className="pb-24 px-4 pt-6 max-w-2xl mx-auto">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">{t('inventory.title')}</h1>
+    <div className="pb-24 max-w-2xl mx-auto">
+      <div className="flex justify-between items-center mb-6 mt-2">
+        <h1 className="text-2xl font-bold text-earth-900">{t('inventory.title')}</h1>
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="bg-teal-600 text-white p-3 rounded-full shadow-lg active:scale-95 transition-transform"
+          className="bg-earth-800 text-white p-3 rounded-2xl shadow-xl shadow-earth-900/30 active:scale-95 transition-transform"
         >
           <Plus size={24} />
         </button>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-4">
-        <Search className="absolute left-3 top-3.5 text-gray-400 w-5 h-5" />
+      <div className="relative mb-6">
+        <Search className="absolute left-4 top-3.5 text-earth-400 w-5 h-5" />
         <input 
           type="text"
           placeholder={t('common.search')}
-          className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-teal-500"
+          className="w-full bg-white border border-cream-200 rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-earth-200 transition-all text-earth-800"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
-      {/* Product List */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         {!products ? (
-          <p className="text-center text-gray-500 mt-10">Loading...</p>
+          <p className="text-center text-earth-400 mt-10">Loading...</p>
         ) : products.length === 0 ? (
-           <p className="text-center text-gray-400 mt-10">{t('common.noData')}</p>
+           <div className="p-10 text-center bg-white rounded-2xl border border-cream-200">
+             <Package className="mx-auto text-earth-200 mb-3" size={48} />
+             <p className="text-earth-400 font-medium">{t('common.noData')}</p>
+           </div>
         ) : (
           products.map((product) => (
-            <div key={product.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center">
+            <div key={product.id} className="bg-white p-5 rounded-2xl border border-cream-200 shadow-sm flex justify-between items-center">
               <div>
-                <h3 className="font-bold text-gray-800">{product.name}</h3>
-                <p className="text-xs text-gray-500">
-                  Buy: {formatCurrency(product.buyPrice, lang)} | Sell: {formatCurrency(product.sellPrice, lang)}
+                <h3 className="font-bold text-earth-900 text-lg">{product.name}</h3>
+                <p className="text-xs text-earth-500 mt-1 font-medium">
+                  Buy: {formatCurrency(product.buyPrice, lang)} • Sell: {formatCurrency(product.sellPrice, lang)}
                 </p>
-                <div className={`mt-2 inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
-                  product.stock < 10 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
+                <div className={`mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold ${
+                  product.stock < 10 ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-green-50 text-green-600 border border-green-100'
                 }`}>
+                  <div className={`w-1.5 h-1.5 rounded-full ${product.stock < 10 ? 'bg-red-500' : 'bg-green-500'}`} />
                   Stock: {product.stock} {product.unit}
                 </div>
               </div>
-              <button onClick={() => deleteProduct(product.id!)} className="text-gray-400 hover:text-red-500 p-2">
+              <button onClick={() => deleteProduct(product.id!)} className="bg-cream-50 hover:bg-red-50 hover:text-red-500 text-earth-400 p-3 rounded-xl transition-colors">
                 <Trash2 size={18} />
               </button>
             </div>
@@ -103,16 +103,16 @@ const Inventory: React.FC = () => {
         )}
       </div>
 
-      {/* Add Product Modal */}
+      {/* Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={t('inventory.addProduct')}>
-        <form onSubmit={handleAdd}>
+        <form onSubmit={handleAdd} className="space-y-2">
           <Input 
             label={t('inventory.productName')} 
             required 
             value={formData.name} 
             onChange={(e) => setFormData({...formData, name: e.target.value})} 
           />
-          <div className="flex gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <Input 
               label={t('inventory.buyPrice')} 
               type="number" 
@@ -135,7 +135,7 @@ const Inventory: React.FC = () => {
             value={formData.stock} 
             onChange={(e) => setFormData({...formData, stock: e.target.value})} 
           />
-          <div className="flex gap-4">
+          <div className="grid grid-cols-2 gap-4">
              <Input 
               label={t('inventory.category')} 
               value={formData.category} 
@@ -147,8 +147,8 @@ const Inventory: React.FC = () => {
               onChange={(e) => setFormData({...formData, unit: e.target.value})} 
             />
           </div>
-          <div className="h-4" />
-          <Button>{t('common.save')}</Button>
+          <div className="h-6" />
+          <Button icon={<Plus size={20} />}>{t('common.save')}</Button>
         </form>
       </Modal>
     </div>
