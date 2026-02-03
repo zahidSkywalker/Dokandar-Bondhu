@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { Sun, SunDim, Sunset, Moon, Star } from 'lucide-react';
+import React from 'react'; // <--- CRITICAL: ADDED THIS IMPORT
 import { db } from '../db/db';
 
 // --- TAILWIND UTILS ---
@@ -57,16 +58,16 @@ export const getGreetingIcon = (): React.ReactElement => {
   if (hour < 12) {
     return <Sun className="text-yellow-500 w-8 h-8" />;
   } else if (hour < 14) { 
-    // Noon: Bright Sun
+    // Noon
     return <Sun className="text-orange-400 w-8 h-8" />;
   } else if (hour < 17) { 
-    // Afternoon: Dim Sun
+    // Afternoon
     return <SunDim className="text-orange-500 w-8 h-8" />;
   } else if (hour < 21) { 
-    // Evening: Sunset
+    // Evening
     return <Sunset className="text-purple-500 w-8 h-8" />;
   } else {
-    // Night: Moon + Star
+    // Night
     return (
       <div className="flex items-center gap-1 relative">
         <Moon className="text-blue-300 w-7 h-7" />
@@ -125,7 +126,6 @@ export const restoreDatabase = async (file: File) => {
         const data = JSON.parse(e.target?.result as string);
         
         await db.transaction('rw', db.tables, async () => {
-          // Clear existing data
           await db.products.clear();
           await db.sales.clear();
           await db.expenses.clear();
@@ -133,7 +133,6 @@ export const restoreDatabase = async (file: File) => {
           await db.staff.clear();
           await db.inventoryExpenses.clear();
 
-          // Restore data
           if (data.products) await db.products.bulkAdd(data.products);
           if (data.sales) await db.sales.bulkAdd(data.sales);
           if (data.expenses) await db.expenses.bulkAdd(data.expenses);
@@ -142,9 +141,7 @@ export const restoreDatabase = async (file: File) => {
           if (data.inventoryExpenses) await db.inventoryExpenses.bulkAdd(data.inventoryExpenses);
         });
         resolve(true);
-      } catch (err) {
-        reject(err);
-      }
+      } catch (err) { reject(err); }
     };
     reader.readAsText(file);
   });
