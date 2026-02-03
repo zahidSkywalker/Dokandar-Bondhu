@@ -1,24 +1,24 @@
 import React from 'react';
-import { ArrowUpRight, ArrowDownRight, Package, AlertCircle } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Package } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useDashboardStats } from '../../hooks/useDashboardStats';
 import { useLanguage } from '../../context/LanguageContext';
 import { formatCurrency, formatDate } from '../../lib/utils';
-import { subDays, format } from 'date-fns';
 
 const Dashboard: React.FC = () => {
   const { t, lang } = useLanguage();
-  const { totalSales, totalProfit, totalExpense, netProfit, lowStockCount, recentSales, isLoading } = useDashboardStats();
-
-  // Generate dummy chart data for last 7 days (In a real app, aggregate from DB)
-  // For production grade, we would hook this up to actual DB aggregation
-  const chartData = Array.from({ length: 7 }).map((_, i) => {
-    const d = subDays(new Date(), 6 - i);
-    return {
-      date: lang === 'bn' ? format(d, 'EEE') : format(d, 'EEE'),
-      sales: 0 // In full implementation, query db.sales.where('date').between(...)
-    };
-  });
+  
+  // Destructure chartData from the hook
+  const { 
+    totalSales, 
+    totalProfit, 
+    totalExpense, 
+    netProfit, 
+    lowStockCount, 
+    recentSales, 
+    isLoading, 
+    chartData 
+  } = useDashboardStats();
 
   if (isLoading) return <div className="p-4 text-center text-gray-500">{t('common.loading')}</div>;
 
@@ -74,10 +74,16 @@ const Dashboard: React.FC = () => {
         <div className="h-40 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData}>
-              <XAxis dataKey="date" tick={{fontSize: 10, fill: '#9ca3af'}} axisLine={false} tickLine={false} />
+              <XAxis 
+                dataKey="date" 
+                tick={{fontSize: 10, fill: '#9ca3af'}} 
+                axisLine={false} 
+                tickLine={false} 
+              />
               <Tooltip 
                 cursor={{fill: 'transparent'}}
                 contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}}
+                formatter={(value: number) => [formatCurrency(value, lang), 'Sales']}
               />
               <Bar dataKey="sales" fill="#0d9488" radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -93,7 +99,7 @@ const Dashboard: React.FC = () => {
              <div className="p-8 text-center text-gray-400 text-sm">No sales today</div>
           ) : (
             recentSales.map((sale) => (
-              <div key={sale.id} className="flex justify-between items-center p-4 border-b border-gray-50 last:border-0">
+              <div key={sale.id} className="flex justify-between items-center p-4 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
                 <div>
                   <p className="font-medium text-gray-800">{sale.productName}</p>
                   <p className="text-xs text-gray-500">{sale.quantity} pcs</p>
