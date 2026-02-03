@@ -1,6 +1,6 @@
 import React from 'react';
 import { ArrowUpRight, ArrowDownRight, Package, TrendingUp, Wallet, AlertTriangle, ShoppingCart } from 'lucide-react';
-import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useDashboardStats } from '../../hooks/useDashboardStats';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -21,6 +21,7 @@ const Dashboard: React.FC = () => {
     greeting,
     totalDebt,
     totalInventoryExpenseMonth,
+    totalExpenseMonth,
     totalSalesMonth,
     netMonthlyProfit,
     stockPredictions
@@ -128,7 +129,6 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Charts & Recent List */}
-      {/* ... (Reuse your existing Chart and Recent Sales section code here, just update colors for dark mode) ... */}
       <div className={`p-5 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
         <h3 className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'} mb-6`}>Weekly Trend</h3>
         <div className="h-48 w-full">
