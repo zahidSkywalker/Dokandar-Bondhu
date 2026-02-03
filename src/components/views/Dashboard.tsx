@@ -116,22 +116,47 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Stock Prediction Alert (New) */}
+      {/* Stock Prediction Alert (Real Data) */}
       <div className={`p-5 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
         <h3 className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'} mb-4 flex items-center gap-2`}>
           <AlertTriangle className="text-yellow-500" size={18} /> Stock Prediction
         </h3>
-        <div className="space-y-3">
-           {/* Showing top 2 critical items for brevity */}
-           <div className="flex justify-between items-center p-3 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900">
-             <span className="font-bold text-red-700 dark:text-red-300">Rice (Basmati)</span>
-             <span className="text-xs text-red-600 dark:text-red-400 font-bold">2 Days Left</span>
+        
+        {!stockPredictions || stockPredictions.length === 0 ? (
+           <div className="p-4 text-center text-gray-400 dark:text-gray-500">
+             <Package size={32} className="mx-auto mb-2 opacity-20" />
+             No stock data available.
            </div>
-           <div className="flex justify-between items-center p-3 rounded-lg bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900">
-             <span className="font-bold text-orange-700 dark:text-orange-300">Sugar</span>
-             <span className="text-xs text-orange-600 dark:text-orange-400 font-bold">5 Days Left</span>
-           </div>
-        </div>
+        ) : (
+          <div className="space-y-3">
+             {/* Filter only low stock (less than 7 days) and sort by urgency */}
+             {stockPredictions
+               .filter(p => p.daysLeft < 999) // Filter out items with 999 days (no sales)
+               .sort((a, b) => a.daysLeft - b.daysLeft)
+               .slice(0, 5) // Show top 5 critical items
+               .map((product) => {
+                  const isCritical = product.daysLeft < 3;
+                  return (
+                    <div key={product.id} className={`flex justify-between items-center p-3 rounded-lg border ${
+                      isCritical 
+                        ? 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900' 
+                        : 'bg-orange-50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900'
+                    }`}>
+                      <div className="flex items-center gap-2">
+                         <div className={`w-2 h-2 rounded-full ${isCritical ? 'bg-red-500' : 'bg-orange-500'}`} />
+                         <span className={`font-bold ${isCritical ? 'text-red-700 dark:text-red-300' : 'text-orange-700 dark:text-orange-300'}`}>
+                           {product.name}
+                         </span>
+                      </div>
+                      <span className={`text-xs font-bold ${isCritical ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'}`}>
+                         {product.daysLeft === 999 ? 'No Sales Data' : `${product.daysLeft} Days Left`}
+                      </span>
+                    </div>
+                  );
+                })
+             }
+          </div>
+        )}
       </div>
 
       {/* Charts & Recent List */}
