@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, ShoppingCart, Check } from 'lucide-react';
+import { Plus, Check } from 'lucide-react'; // Removed unused ShoppingCart
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
 import { useApp } from '../../context/AppContext';
@@ -7,14 +7,13 @@ import { useLanguage } from '../../context/LanguageContext';
 import Modal from '../ui/Modal';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
-import { formatCurrency, toEnglishDigits } from '../../lib/utils';
+import { formatCurrency, formatDate, toEnglishDigits } from '../../lib/utils'; // <--- ADDED formatDate
 
 const Sales: React.FC = () => {
   const { t, lang } = useLanguage();
   const { addSale } = useApp();
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // Form State
   const [productId, setProductId] = useState<string>('');
   const [quantity, setQuantity] = useState('');
 
@@ -61,7 +60,6 @@ const Sales: React.FC = () => {
         </button>
       </div>
 
-      {/* Recent Sales List */}
       <div className="space-y-4">
         {!recentSales ? <p>Loading...</p> : (
           recentSales.map((sale) => (
@@ -80,7 +78,6 @@ const Sales: React.FC = () => {
         )}
       </div>
 
-      {/* New Sale Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={t('sales.newSale')}>
         <form onSubmit={handleSale}>
           <label className="block text-sm font-medium text-gray-700 mb-1">{t('sales.selectProduct')}</label>
