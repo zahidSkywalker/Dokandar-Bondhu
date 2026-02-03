@@ -1,11 +1,11 @@
 export interface Product {
-  id?: number; // Auto-incremented by Dexie
+  id?: number;
   name: string;
-  nameBn?: string; // Optional Bangla name
+  nameBn?: string;
   buyPrice: number;
   sellPrice: number;
   stock: number;
-  unit: string; // e.g., 'pcs', 'kg', 'pkt'
+  unit: string;
   category: string;
   createdAt: Date;
   updatedAt: Date;
@@ -14,31 +14,62 @@ export interface Product {
 export interface Sale {
   id?: number;
   productId: number;
-  productName: string; // Denormalized for performance (avoiding constant joins)
+  productName: string;
   quantity: number;
-  buyPrice: number; // Stored to calculate profit even if product price changes later
+  buyPrice: number;
   sellPrice: number;
-  total: number; // sellPrice * quantity
-  profit: number; // (sellPrice - buyPrice) * quantity
+  total: number;
+  profit: number;
   date: Date;
+  customerId?: number; // For Baki Khata
+  staffId?: number; // For Employee Tracking
 }
 
 export interface Expense {
   id?: number;
-  category: string; // 'Rent', 'Electricity', 'Transport', 'Withdrawal'
+  category: string;
   amount: number;
   note?: string;
   date: Date;
 }
 
+// NEW: For tracking Inventory Buying Costs
+export interface InventoryExpense {
+  id?: number;
+  productId?: number;
+  description: string;
+  amount: number;
+  date: Date;
+}
+
+// NEW: For Baki Khata
+export interface Customer {
+  id?: number;
+  name: string;
+  phone?: string;
+  address?: string;
+  debt: number;
+  lastPaymentDate?: Date;
+  createdAt: Date;
+}
+
+// NEW: For Staff
+export interface Staff {
+  id?: number;
+  name: string;
+  role: string;
+  active: boolean;
+}
+
 export interface DailyStats {
-  date: string; // 'YYYY-MM-DD'
+  date: string;
   totalSales: number;
   totalProfit: number;
   totalExpense: number;
 }
 
 export type Language = 'en' | 'bn';
+export type Theme = 'light' | 'dark';
 
 export interface Translation {
   common: Record<string, string>;
@@ -46,4 +77,6 @@ export interface Translation {
   sales: Record<string, string>;
   inventory: Record<string, string>;
   expenses: Record<string, string>;
+  ledger: Record<string, string>;
+  staff: Record<string, string>;
 }
