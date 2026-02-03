@@ -34,28 +34,27 @@ export const useDashboardStats = () => {
     []
   );
 
-  // 5. Calculate Daily Totals
+  // 5. Live query for ALL sales (needed for the chart)
+  const allSales = useLiveQuery(() => db.sales.toArray(), []);
+
+  // 6. Calculate Daily Totals
   const totalSales = salesToday?.reduce((sum, sale) => sum + sale.total, 0) || 0;
   const totalProfit = salesToday?.reduce((sum, sale) => sum + sale.profit, 0) || 0;
   const totalExpense = expensesToday?.reduce((sum, exp) => sum + exp.amount, 0) || 0;
 
-  // 6. Real Chart Data Generation (Last 7 Days)
-  // We use a live query that depends on all sales (simplified for PWA scale)
-  const allSales = useLiveQuery(() => db.sales.toArray(), []);
-
+  // 7. Generate Real Chart Data (Last 7 Days)
   const chartData = Array.from({ length: 7 }).map((_, i) => {
     const d = subDays(new Date(), 6 - i);
     const dayStart = startOfDay(d).getTime();
     const dayEnd = endOfDay(d).getTime();
 
-    // Calculate actual sales for this specific day
+    // Calculate actual sales for this specific day from allSales
     const daySales = allSales?.filter(s => s.date >= dayStart && s.date <= dayEnd) || [];
     const total = daySales.reduce((sum, s) => sum + s.total, 0);
 
     return {
-      // Format date as Mon, Tue, Wed (or Bangla equivalent)
       date: format(d, 'EEE'),
-      sales: total // REAL DATA
+      sales: total
     };
   });
 
