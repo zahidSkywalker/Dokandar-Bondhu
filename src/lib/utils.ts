@@ -6,9 +6,40 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// ... (Keep existing formatCurrency, formatDate, toBanglaDigits, toEnglishDigits)
+// --- CORE FORMATTING ---
 
-// NEW: Get Real-time Greeting
+export const formatCurrency = (amount: number, lang: 'en' | 'bn' = 'en'): string => {
+  const symbol = '৳';
+  const value = lang === 'bn' ? toBanglaDigits(amount.toFixed(2)) : amount.toFixed(2);
+  return `${symbol} ${value}`;
+};
+
+export const formatDate = (date: Date, lang: 'en' | 'bn' = 'en'): string => {
+  const options: Intl.DateTimeFormatOptions = { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  };
+  return new Intl.DateTimeFormat(lang === 'bn' ? 'bn-BD' : 'en-US', options).format(date);
+};
+
+export const toBanglaDigits = (str: string | number): string => {
+  const banglaDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+  return str.toString().replace(/[0-9]/g, (digit) => banglaDigits[parseInt(digit)]);
+};
+
+export const toEnglishDigits = (str: string): string => {
+  const englishDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+  const banglaDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+  
+  return str.split('').map(char => {
+    const index = banglaDigits.indexOf(char);
+    return index !== -1 ? englishDigits[index] : char;
+  }).join('');
+};
+
+// --- GREETING ---
+
 export const getGreeting = (): string => {
   const hour = new Date().getHours();
   if (hour < 12) return "Good Morning";
@@ -17,10 +48,10 @@ export const getGreeting = (): string => {
   return "Good Night";
 };
 
-// NEW: Export Data to CSV
+// --- DATA EXPORT / BACKUP ---
+
 export const exportToCSV = async (data: any[], filename: string) => {
   if (data.length === 0) return;
-
   const headers = Object.keys(data[0]);
   const csvContent = [
     headers.join(','),
@@ -37,7 +68,6 @@ export const exportToCSV = async (data: any[], filename: string) => {
   document.body.removeChild(link);
 };
 
-// NEW: Backup Database
 export const backupDatabase = async () => {
   const backup = {
     products: await db.products.toArray(),
@@ -59,14 +89,12 @@ export const backupDatabase = async () => {
   document.body.removeChild(link);
 };
 
-// NEW: Restore Database
 export const restoreDatabase = async (file: File) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
         const data = JSON.parse(e.target?.result as string);
-        
         await db.transaction('rw', db.tables, async () => {
           await db.products.clear();
           await db.sales.clear();
@@ -83,9 +111,7 @@ export const restoreDatabase = async (file: File) => {
           if (data.inventoryExpenses) await db.inventoryExpenses.bulkAdd(data.inventoryExpenses);
         });
         resolve(true);
-      } catch (err) {
-        reject(err);
-      }
+      } catch (err) { reject(err); }
     };
     reader.readAsText(file);
   });
