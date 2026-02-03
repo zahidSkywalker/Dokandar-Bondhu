@@ -1,13 +1,15 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { db } from '../db/db';
 import { Sun, SunDim, Sunset, Moon, Star } from 'lucide-react';
+import { db } from '../db/db';
+
+// --- TAILWIND UTILS ---
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// --- CORE FORMATTING ---
+// --- FORMATTING UTILS ---
 
 export const formatCurrency = (amount: number, lang: 'en' | 'bn' = 'en'): string => {
   const symbol = '৳';
@@ -39,7 +41,7 @@ export const toEnglishDigits = (str: string): string => {
   }).join('');
 };
 
-// --- GREETING ---
+// --- GREETING UTILS ---
 
 export const getGreeting = (): string => {
   const hour = new Date().getHours();
@@ -48,18 +50,19 @@ export const getGreeting = (): string => {
   if (hour < 21) return "Good Evening";
   return "Good Night";
 };
-export const getGreetingIcon = () => {
+
+export const getGreetingIcon = (): React.ReactElement => {
   const hour = new Date().getHours();
   
   if (hour < 12) {
     return <Sun className="text-yellow-500 w-8 h-8" />;
-  } else if (hour < 14) {
+  } else if (hour < 14) { 
     // Noon: Bright Sun
     return <Sun className="text-orange-400 w-8 h-8" />;
-  } else if (hour < 17) {
+  } else if (hour < 17) { 
     // Afternoon: Dim Sun
     return <SunDim className="text-orange-500 w-8 h-8" />;
-  } else if (hour < 21) {
+  } else if (hour < 21) { 
     // Evening: Sunset
     return <Sunset className="text-purple-500 w-8 h-8" />;
   } else {
@@ -72,7 +75,8 @@ export const getGreetingIcon = () => {
     );
   }
 };
-// --- DATA EXPORT / BACKUP ---
+
+// --- DATA EXPORT / BACKUP UTILS ---
 
 export const exportToCSV = async (data: any[], filename: string) => {
   if (data.length === 0) return;
@@ -119,7 +123,9 @@ export const restoreDatabase = async (file: File) => {
     reader.onload = async (e) => {
       try {
         const data = JSON.parse(e.target?.result as string);
+        
         await db.transaction('rw', db.tables, async () => {
+          // Clear existing data
           await db.products.clear();
           await db.sales.clear();
           await db.expenses.clear();
@@ -127,6 +133,7 @@ export const restoreDatabase = async (file: File) => {
           await db.staff.clear();
           await db.inventoryExpenses.clear();
 
+          // Restore data
           if (data.products) await db.products.bulkAdd(data.products);
           if (data.sales) await db.sales.bulkAdd(data.sales);
           if (data.expenses) await db.expenses.bulkAdd(data.expenses);
@@ -135,7 +142,9 @@ export const restoreDatabase = async (file: File) => {
           if (data.inventoryExpenses) await db.inventoryExpenses.bulkAdd(data.inventoryExpenses);
         });
         resolve(true);
-      } catch (err) { reject(err); }
+      } catch (err) {
+        reject(err);
+      }
     };
     reader.readAsText(file);
   });
