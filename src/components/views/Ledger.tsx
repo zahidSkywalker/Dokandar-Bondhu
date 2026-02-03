@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, User, Phone, MapPin, CheckCircle, Wallet } from 'lucide-react';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
 import { useApp } from '../../context/AppContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -19,8 +18,24 @@ const Ledger: React.FC = () => {
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const [paymentAmount, setPaymentAmount] = useState('');  
   const [formData, setFormData] = useState({ name: '', phone: '', address: '' });
+  
+  // Using useEffect to fetch data manually to ensure it loads even if hook has issues
+  const [customers, setCustomers] = useState<any[]>([]);
 
-  const customers = useLiveQuery(() => db.customers.orderBy('debt').reverse().toArray(), []);
+  useEffect(() => {
+    const loadCustomers = async () => {
+      try {
+        const allCustomers = await db.customers.orderBy('debt').reverse().toArray();
+        setCustomers(allCustomers);
+      } catch (err) {
+        console.error("Error loading customers:", err);
+        setCustomers([]); // Fallback to empty array
+      }
+    };
+    loadCustomers();
+    
+    // Re-fetch on mount (optional: can setup interval if needed, but for now manual is fine)
+  }, []); // Empty dependency array = run once on mount (or add logic to re-run when active tab changes)
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +43,12 @@ const Ledger: React.FC = () => {
       await addCustomer(formData);
       setIsModalOpen(false);
       setFormData({ name: '', phone: '', address: '' });
-    } catch (err) { alert("Error adding customer"); }
+      // Refresh list manually
+      const updated = await db.customers.toArray();
+      setCustomers(updated);
+    } catch (err) { 
+      alert("Error adding customer"); 
+    }
   };
 
   const handlePayment = async (e: React.FormEvent) => {
@@ -39,11 +59,16 @@ const Ledger: React.FC = () => {
       setIsPayModalOpen(false);
       setPaymentAmount('');
       setSelectedCustomer(null);
-    } catch (err) { alert("Error processing payment"); }
+      // Refresh list manually
+      const updated = await db.customers.orderBy('debt').reverse().toArray();
+      setCustomers(updated);
+    } catch (err) { 
+      alert("Error processing payment"); 
+    }
   };
 
   return (
-    <div className={`pb-24 max-w-2xl mx-auto min-h-screen ${theme === 'dark' ? 'bg-gray-900 text-gray-100' : 'bg-cream-50 text-earth-900'}`}>
+    <div className={`pb-24 max-w-2xl mx-auto ${theme === 'dark' ? 'bg-gray-900 text-gray-100' : 'bg-cream-50 text-earth-900'}`}>
       
       <div className="flex justify-between items-center mb-6 mt-2">
         <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>Baki Khata</h1>
@@ -133,7 +158,6 @@ const Ledger: React.FC = () => {
           <Button variant="success" icon={<CheckCircle size={20}/>}>Confirm Payment</Button>
         </form>
       </Modal>
-
     </div>
   );
 };
