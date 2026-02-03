@@ -33,7 +33,6 @@ export interface Expense {
   date: Date;
 }
 
-// NEW: For tracking Inventory Buying Costs
 export interface InventoryExpense {
   id?: number;
   productId?: number;
@@ -42,7 +41,6 @@ export interface InventoryExpense {
   date: Date;
 }
 
-// NEW: For Baki Khata
 export interface Customer {
   id?: number;
   name: string;
@@ -53,7 +51,6 @@ export interface Customer {
   createdAt: Date;
 }
 
-// NEW: For Staff
 export interface Staff {
   id?: number;
   name: string;
@@ -79,4 +76,17 @@ export interface Translation {
   expenses: Record<string, string>;
   ledger: Record<string, string>;
   staff: Record<string, string>;
+  market: Record<string, string>; // NEW
+}
+
+// NEW: Market Price Interface
+export interface MarketPrice {
+  id?: number;
+  nameEn: string;
+  nameBn: string;
+  unit: string;
+  minPrice: number;
+  maxPrice: number;
+  category: string; // e.g., 'Rice', 'Vegetables', 'Spices'
+  dateFetched: Date;
 }
