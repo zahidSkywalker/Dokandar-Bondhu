@@ -4,9 +4,7 @@ import { MarketPrice } from '../types';
 // TCB Official Daily Price Page
 const TCB_TARGET_URL = 'https://tcb.gov.bd/site/view/daily-market-price';
 
-// ==========================================
-// FIX 1: Better CORS Proxy for encoding support
-// ==========================================
+// FIX: Better CORS Proxy for encoding support
 const PROXY_URL = 'https://corsproxy.io/?';
 
 // Helper to check network status
@@ -24,13 +22,12 @@ const parseTCBHtml = (htmlText: string): Omit<MarketPrice, 'id' | 'dateFetched'>
   const prices: Omit<MarketPrice, 'id' | 'dateFetched'>[] = [];
 
   rows.forEach((row) => {
-    // FIX 2: Select both TD (data) and TH (headers) just in case
     const cells = Array.from(row.querySelectorAll('td, th'));
     
-    if (cells.length < 2) return; // Skip empty rows
+    if (cells.length < 2) return; 
 
-    // Clean text from cells
-    const cellTexts = cells.map(c => c.innerText.trim()).filter(t => t !== '');
+    // FIX 1: Cast to HTMLElement to access innerText
+    const cellTexts = cells.map(c => (c as HTMLElement).innerText.trim()).filter(t => t !== '');
 
     if (cellTexts.length < 2) return;
 
@@ -40,23 +37,23 @@ const parseTCBHtml = (htmlText: string): Omit<MarketPrice, 'id' | 'dateFetched'>
 
     // Skip headers
     if (nameRaw === 'Commodity' || nameRaw === 'পণ্যের নাম' || nameRaw === 'পণ্য') return;
-    if (nameRaw.includes('তারিখ')) return; // Skip date rows if any
+    if (nameRaw.includes('তারিখ')) return; 
 
     // Safe Bangla Digit Conversion
     const banglaDigits = '০১২৩৪৫৬৭৮৯';
     const englishDigits = '0123456789';
     
-    const cleanPrice = priceRaw.replace(/[০-৯]/g, (d) => {
+    // FIX 2: Explicitly type parameter 'd' as string
+    const cleanPrice = priceRaw.replace(/[০-৯]/g, (d: string) => {
       const index = banglaDigits.indexOf(d);
       return index !== -1 ? englishDigits[index] : d;
     });
 
-    // FIX 3: Better Regex for Price (handles "120" or "120-130" or "120-125" or ranges)
+    // Regex for Price
     const priceMatch = cleanPrice.match(/(\d+)\s*[-–]\s*(\d+)/) || cleanPrice.match(/(\d+)/);
 
     if (priceMatch) {
       const minPrice = parseInt(priceMatch[1]);
-      // If there is a range, take the second part, else just the single price
       const maxPrice = priceMatch[2] ? parseInt(priceMatch[2]) : minPrice;
 
       // Determine Category
@@ -79,7 +76,7 @@ const parseTCBHtml = (htmlText: string): Omit<MarketPrice, 'id' | 'dateFetched'>
     }
   });
 
-  console.log(`Parser found ${prices.length} items from HTML.`); // Debug log
+  console.log(`Parser found ${prices.length} items from HTML.`); 
   return prices;
 };
 
@@ -95,7 +92,6 @@ export const syncMarketPrices = async (): Promise<{ success: boolean; count: num
     // Fetch using the robust proxy
     const response = await fetch(PROXY_URL + encodeURIComponent(TCB_TARGET_URL), {
       method: 'GET',
-      // Headers are handled by the proxy, but we can try to send generic ones
       headers: {
         'X-Requested-With': 'XMLHttpRequest'
       },
@@ -105,7 +101,7 @@ export const syncMarketPrices = async (): Promise<{ success: boolean; count: num
 
     const htmlText = await response.text();
     
-    console.log("HTML Length fetched:", htmlText.length); // Debug: Check if we got data
+    console.log("HTML Length fetched:", htmlText.length); 
 
     const parsedData = parseTCBHtml(htmlText);
 
