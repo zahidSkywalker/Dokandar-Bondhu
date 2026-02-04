@@ -68,6 +68,28 @@ export interface DailyStats {
 export type Language = 'en' | 'bn';
 export type Theme = 'light' | 'dark';
 
+// Define the structure for the Market section specifically
+interface MarketTranslation {
+  title: string;
+  subtitle: string;
+  source: string;
+  categories: {
+    all: string;
+    rice: string;
+    vegetables: string;
+    spices: string;
+    meat: string;
+    fruits: string;
+    essentials: string;
+  };
+  priceRange: string;
+  unit: string;
+  emptyState: string;
+  syncSuccess: string;
+  syncError: string;
+  syncInProgress: string;
+}
+
 export interface Translation {
   common: Record<string, string>;
   dashboard: Record<string, string>;
@@ -76,17 +98,5 @@ export interface Translation {
   expenses: Record<string, string>;
   ledger: Record<string, string>;
   staff: Record<string, string>;
-  market: Record<string, string>; // NEW
-}
-
-// NEW: Market Price Interface
-export interface MarketPrice {
-  id?: number;
-  nameEn: string;
-  nameBn: string;
-  unit: string;
-  minPrice: number;
-  maxPrice: number;
-  category: string; // e.g., 'Rice', 'Vegetables', 'Spices'
-  dateFetched: Date;
+  market: MarketTranslation; // FIXED: Use specific type instead of generic Record
 }
