@@ -246,18 +246,32 @@ export const RAW_DATA = {
 };
 
 /**
- * Helper to map your JSON data to App's MarketPrice interface
- * Logic:
- * 1. Iterate through Categories
- * 2. Flatten 'items' arrays into a single list
- * 3. Map Name/Price to App Interface
+ * Helper to normalize category names to match UI Filter keys
+ * "Rice & Cereals" -> "rice"
+ * "Meat & Fish" -> "meat"
+ * "Fruits" -> "fruits"
+ * "Daily Essentials" -> "essentials"
+ */
+const normalizeCategoryKey = (categoryName: string): string => {
+  const key = categoryName.toLowerCase();
+  if (key.includes('rice') || key.includes('cereals')) return 'rice';
+  if (key.includes('meat') || key.includes('fish')) return 'meat';
+  if (key.includes('fruit')) return 'fruits';
+  if (key.includes('essentials') || key.includes('daily')) return 'essentials';
+  
+  // Fallback: return lowercase version of name (works for vegetables, spices)
+  return key;
+};
+
+/**
+ * Helper to map your JSON data to App's MarketPrice interface.
  */
 export const getMarketPrices = (): Omit<MarketPrice, 'id' | 'dateFetched'>[] => {
   let allItems: Omit<MarketPrice, 'id' | 'dateFetched'>[] = [];
 
   RAW_DATA.categories.forEach(cat => {
-    // Map Category Names to keys (rice, vegetables, spices, meat)
-    const catName = cat.category.en.toLowerCase();
+    // FIX: Normalize the category key to ensure it matches UI filters
+    const categoryKey = normalizeCategoryKey(cat.category.en);
     
     // Map Items
     cat.items.forEach(item => {
@@ -265,9 +279,9 @@ export const getMarketPrices = (): Omit<MarketPrice, 'id' | 'dateFetched'>[] => 
         nameEn: item.name.en,
         nameBn: item.name.bn,
         unit: item.unit,
-        minPrice: item.price_range?.min || item.price || 0, // Fallback to 'price' if minPrice doesn't exist
+        minPrice: item.price_range?.min || item.price || 0,
         maxPrice: item.price_range?.max || item.price || 0,
-        category: catName // 'rice', 'vegetables', 'spices', 'meat'
+        category: categoryKey // <--- THIS IS THE FIX
       });
     });
   });
