@@ -1,41 +1,39 @@
 import { db } from '../db/db';
 import { MarketPrice } from '../types';
 
-// TCB Official Daily Price Page (Target URL)
-const TCB_PRICE_URL = 'https://tcb.gov.bd/site/view/daily-market-price';
+// TCB Official Daily Price Page
+const TCB_TARGET_URL = 'https://tcb.gov.bd/site/view/daily-market-price';
+
+// ==========================================
+// FIX: Use CORS Proxy to bypass TCB Security
+// ==========================================
+const PROXY_URL = 'https://api.allorigins.win/raw?url=';
 
 // Helper to check network status
 export const isOnline = (): boolean => navigator.onLine;
 
 /**
  * Parses the HTML content from TCB to extract market data.
- * NOTE: This parser looks for standard table structures. 
- * If TCB changes their HTML layout, this logic needs updating.
  */
 const parseTCBHtml = (htmlText: string): Omit<MarketPrice, 'id' | 'dateFetched'>[] => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(htmlText, 'text/html');
-  const rows = Array.from(doc.querySelectorAll('table tr')); // Select all table rows
+  const rows = Array.from(doc.querySelectorAll('table tr')); 
   
   const prices: Omit<MarketPrice, 'id' | 'dateFetched'>[] = [];
   const today = new Date();
 
-  // Skip header rows, start from index 1 typically. 
-  // We rely on content detection to skip empty/headers.
   rows.forEach((row) => {
     const cells = Array.from(row.querySelectorAll('td'));
-    if (cells.length < 3) return; // Not a data row
+    if (cells.length < 3) return; 
 
-    // Extracting text and cleaning
-    // Common TCB structure: Name | Variety/Type | Unit | Price Range
     const nameRaw = cells[0].innerText.trim();
-    const unitRaw = cells[cells.length - 2]?.innerText.trim() || 'kg'; // Unit usually 2nd to last
-    const priceRaw = cells[cells.length - 1]?.innerText.trim(); // Price usually last
+    const unitRaw = cells[cells.length - 2]?.innerText.trim() || 'kg'; 
+    const priceRaw = cells[cells.length - 1]?.innerText.trim(); 
 
     if (!nameRaw || nameRaw === 'Commodity' || nameRaw === 'পণ্যের নাম') return;
 
-    // --- FIXED: Safe Bangla Digit Conversion ---
-    // Using indexOf to satisfy strict TypeScript index types
+    // Safe Bangla Digit Conversion
     const banglaDigits = '০১২৩৪৫৬৭৮৯';
     const englishDigits = '0123456789';
     
@@ -43,7 +41,6 @@ const parseTCBHtml = (htmlText: string): Omit<MarketPrice, 'id' | 'dateFetched'>
       const index = banglaDigits.indexOf(d);
       return index !== -1 ? englishDigits[index] : d;
     });
-    // -------------------------------------------
 
     const priceMatch = cleanPrice.match(/(\d+)\s*[-–]\s*(\d+)/);
 
@@ -51,7 +48,6 @@ const parseTCBHtml = (htmlText: string): Omit<MarketPrice, 'id' | 'dateFetched'>
       const minPrice = parseInt(priceMatch[1]);
       const maxPrice = parseInt(priceMatch[2]);
 
-      // Determine Category (Simple heuristic)
       let category = 'essentials';
       const nameLower = nameRaw.toLowerCase();
       if (nameLower.includes('চাল') || nameLower.includes('rice') || nameLower.includes('গম')) category = 'rice';
@@ -61,7 +57,7 @@ const parseTCBHtml = (htmlText: string): Omit<MarketPrice, 'id' | 'dateFetched'>
       else if (nameLower.includes('ফল') || nameLower.includes('fruit')) category = 'fruits';
 
       prices.push({
-        nameEn: nameRaw, // Ideally we map this later, for now we keep original text
+        nameEn: nameRaw, 
         nameBn: nameRaw,
         unit: unitRaw,
         minPrice,
@@ -76,7 +72,7 @@ const parseTCBHtml = (htmlText: string): Omit<MarketPrice, 'id' | 'dateFetched'>
 
 /**
  * Main Sync Function
- * Fetches data from TCB, parses it, and updates Dexie.
+ * Fetches data via Proxy, parses it, and updates Dexie.
  */
 export const syncMarketPrices = async (): Promise<{ success: boolean; count: number; message: string }> => {
   if (!isOnline()) {
@@ -84,17 +80,16 @@ export const syncMarketPrices = async (): Promise<{ success: boolean; count: num
   }
 
   try {
-    // 1. Fetch
-    const response = await fetch(TCB_PRICE_URL, {
+    // 1. Fetch using CORS Proxy
+    // We use allorigins.win to bypass the browser blocking TCB
+    const response = await fetch(PROXY_URL + encodeURIComponent(TCB_TARGET_URL), {
       method: 'GET',
       headers: {
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        // The proxy handles standard headers
       },
-      // Note: Without a backend proxy, browser might block this due to CORS if TCB doesn't allow it.
-      // If CORS fails, catch block handles it.
     });
 
-    if (!response.ok) throw new Error('Network response was not ok');
+    if (!response.ok) throw new Error('Proxy network response was not ok');
 
     const htmlText = await response.text();
 
@@ -102,15 +97,14 @@ export const syncMarketPrices = async (): Promise<{ success: boolean; count: num
     const parsedData = parseTCBHtml(htmlText);
 
     if (parsedData.length === 0) {
-      return { success: false, count: 0, message: 'No data found on source page.' };
+      return { success: false, count: 0, message: 'No data found on source page. TCB might be down.' };
     }
 
-    // 3. Update Database (Clear old, add new)
-    // We mark them with today's date
+    // 3. Update Database
     const dataWithDate = parsedData.map(item => ({ ...item, dateFetched: new Date() }));
 
     await db.transaction('rw', db.marketPrices, async () => {
-      await db.marketPrices.clear(); // Simple strategy: replace today's list
+      await db.marketPrices.clear();
       await db.marketPrices.bulkAdd(dataWithDate);
     });
 
@@ -118,28 +112,25 @@ export const syncMarketPrices = async (): Promise<{ success: boolean; count: num
 
   } catch (error) {
     console.error('Sync Error:', error);
-    // Fallback for CORS issues or parsing errors
     return { 
       success: false, 
       count: 0, 
-      message: error instanceof TypeError && error.message.includes('fetch') 
-        ? 'Connection blocked by Browser (CORS) or Network.' 
-        : 'Failed to parse data.' 
+      message: 'Connection failed. Try again or check if TCB website is accessible.' 
     };
   }
 };
 
 /**
- * Determines if a sync is needed (Last sync > 24 hours ago or no data exists)
+ * Determines if a sync is needed
  */
 export const shouldSyncMarketPrices = async (): Promise<boolean> => {
   const latestPrice = await db.marketPrices.orderBy('dateFetched').last();
   
-  if (!latestPrice) return true; // No data, sync needed
+  if (!latestPrice) return true; 
 
   const lastSync = new Date(latestPrice.dateFetched);
   const now = new Date();
   const diffInHours = (now.getTime() - lastSync.getTime()) / (1000 * 60 * 60);
 
-  return diffInHours >= 24; // Sync if 24 hours have passed
+  return diffInHours >= 24; 
 };
