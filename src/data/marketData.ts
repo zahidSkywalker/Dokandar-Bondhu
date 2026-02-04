@@ -289,9 +289,7 @@ items: [
   { id: 1043, name: { en: "Melon", bn: "খরমুজ" }, unit: "kg", price: 70, price_range: { min: 60, max: 80 } },
   { id: 1044, name: { en: "Persimmon", bn: "পার্সিমন" }, unit: "kg", price: 480, price_range: { min: 440, max: 540 } },
 
-  { id: 1045, name: { en: "Sapodilla", bn: "সফেদা" }, unit: "kg", price: 160, price_range: { min: 140, max: 180 } }
-   // --- Additional Fruits (Extended) ---
-
+  { id: 1045, name: { en: "Sapodilla", bn: "সফেদা" }, unit: "kg", price: 160, price_range: { min: 140, max: 180 } },
 { id: 1046, name: { en: "Blackberry", bn: "ব্ল্যাকবেরি" }, unit: "kg", price: 750, price_range: { min: 700, max: 850 } },
 { id: 1047, name: { en: "Raspberry", bn: "রাস্পবেরি" }, unit: "kg", price: 820, price_range: { min: 780, max: 900 } },
 { id: 1048, name: { en: "Mulberry", bn: "তুঁত ফল" }, unit: "kg", price: 240, price_range: { min: 220, max: 280 } },
