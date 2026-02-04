@@ -1,158 +1,113 @@
+🏪 Dokandar Bondhu
 
-```markdown
-<div align="center">
+The Ultimate Digital Assistant for Bangladeshi Retailers
 
-# 🏪 Dokandar Bondhu
+ReactTypeScriptVitePWA
 
-### *The Ultimate Digital Assistant for Bangladeshi Retailers*
+Manage Sales • Track Debt (Baki Khata) • Monitor Market Prices • Offline First
 
-[![React](https://img.shields.io/badge/React-18.2.0-blue?style=for-the-badge&logo=react)](https://reactjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0.2-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-4.4.0-646CFF?style=for-the-badge&logo=vite)](https://vitejs.dev/)
-[![PWA](https://img.shields.io/badge/PWA-Offline_Ready-5A0FCB?style=for-the-badge&logo=pwa)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps)
+✨ Overview
 
-**Manage Sales • Track Debt (Baki Khata) • Monitor Market Prices • Offline First**
+Dokandar Bondhu (Shopkeeper's Friend) is a beautifully crafted, bilingual (English & Bangla) Progressive Web App (PWA) designed specifically for the unique needs of Bangladeshi shopkeepers.
 
-</div>
+It combines the simplicity of a digital ledger with the power of inventory analytics, all wrapped in a "Cream & Earth" themed interface that feels professional yet familiar. Built to operate seamlessly without a backend server, it offers a 100% offline-first experience, ensuring business continuity even in areas with poor connectivity.
 
----
+🚀 Key Features
 
-## ✨ Overview
+📊 Business Intelligence Dashboard
 
-**Dokandar Bondhu** (Shopkeeper's Friend) is a beautifully designed, bilingual (English & Bangla) Progressive Web App (PWA) tailored for small and medium-sized businesses in Bangladesh.
+Real-Time Analytics: Visualize today's sales, profit, and net income at a glance.
+Stock Prediction Engine: An intelligent algorithm that analyzes the last 7 days of sales to predict how many days of stock are left for each product.
+Visual Trends: Interactive charts (Recharts) showing weekly sales performance.
+Quick Actions: One-tap access to sales, ledger, and low-stock alerts.
+📈 Market Intelligence (Live Simulation)
 
-Built to function flawlessly in environments with unstable internet, it serves as a complete digital ledger and inventory manager right in your pocket.
+211+ Commodities: A comprehensive database covering Rice, Vegetables, Spices, Meat, Fish, Fruits, and Daily Essentials.
+Price Ranges: Displays both Minimum and Maximum retail market prices (e.g., ৳120 - ৳130).
+Simulated Updates: Features a "Live Market" experience where prices fluctuate slightly on sync to simulate real-world volatility without needing complex external APIs.
+Offline Data: The entire market database is embedded within the app, ensuring instant access with zero loading times.
+👥 Baki Khata (Ledger Management)
 
----
+Debt Tracking: A specialized ledger system for managing customer credits (Baki Khata) and debts.
+Customer Directory: Maintain profiles for your regular customers.
+Payment Logging: Easily record payments to clear dues, automatically updating the outstanding balance.
+📦 Inventory Management
 
-## 🚀 Key Features
+Smart Stock Control: Add, edit, and delete products with ease.
+Visual Alerts: Immediate visual cues (color-coded) for items running low on stock.
+Cost Analysis: Track buying price vs. selling price to calculate per-item profit.
+💰 Expense & Finance
 
-### 📊 Business Management
-*   **Smart Dashboard:** Real-time insights into daily sales, profit, and expenses with beautiful charts.
-*   **Inventory Tracking:** Keep track of stock levels with low-stock alerts and predictive analytics.
-*   **Expense Management:** Categorize and track daily expenses to calculate net profit accurately.
+Dual Expense Tracking: Differentiate between "General Expenses" (Rent, Electricity) and "Inventory Expenses" (Transport for goods).
+Accurate Profit Calculation: Automatically deducts expenses from gross sales to provide the true Net Profit.
+🌐 Universal Accessibility
 
-### 👥 Baki Khata (Ledger)
-*   **Debt Tracking:** A specialized feature for managing customer debts (Baki Khata).
-*   **Payment Logging:** Easily record payments to clear dues.
-*   **Customer Profiles:** Maintain a directory of your regular customers.
+Full Bilingual Support: Switch between English and Bangla instantly, including digit conversion (e.g., ১২৩).
+Dark Mode: A robust dark theme ("Midnight Earth") for comfortable use at night.
+Data Freedom: Backup and Restore your entire database as JSON files, ensuring you never lose your business data.
+🛠 Tech Stack & Architecture
 
-### 📉 Market Prices (Live Simulation)
-*   **200+ Commodities:** Access prices for Rice, Vegetables, Spices, Meat, and more.
-*   **Dual Language:** Prices and categories available in both English and Bangla.
-*   **Offline Data:** Market data is stored locally and updates automatically to ensure you never miss a price change.
+This project is built with modern web technologies to ensure performance, scalability, and zero-dependency deployment.
 
-### 🌐 Universal Access
-*   **Bilingual UI:** Switch seamlessly between English and Bangla.
-*   **Dark Mode:** Easy-on-the-eyes interface for late-night accounting.
-*   **PWA:** Install the app on your phone for a native app experience.
+Core: React 18.2.0 + TypeScript 5.0
+Build Tool: Vite 4.4 (Lightning fast HMR and builds)
+Styling: Tailwind CSS 3.3 (Custom "Cream & Mocha" Design System)
+State Management: React Context API
+Database: Dexie.js (IndexedDB Wrapper) - Enables Offline-First capability.
+Charts: Recharts 2.8
+Icons: Lucide React
+Utilities: date-fns, clsx, tailwind-merge
+🧱 Architecture Highlights
 
----
+No Backend Required: The app uses a purely client-side architecture.
+Simulated API: A custom service layer (marketService.ts) simulates network latency and price fluctuations using a local JSON dataset (marketData.ts), eliminating CORS and connectivity issues.
+Responsive UI: Mobile-first design optimized for various screen sizes with bottom navigation.
+📸 App Showcase
 
-## 🛠 Tech Stack & Architecture
+DashboardTrack your daily performance with stock prediction alerts.Dashboard
 
-This project is built with modern web technologies to ensure performance, scalability, and maintainability.
+Market PricesAccess the database of 211 commodities with price ranges.Market
 
-*   **Frontend Framework:** `React 18` + `TypeScript`
-*   **Build Tool:** `Vite`
-*   **Styling:** `Tailwind CSS` (Custom "Earth" Theme)
-*   **State Management:** React Context API
-*   **Database:** `Dexie.js` (IndexedDB Wrapper) for offline storage.
-*   **Icons:** `Lucide React`
-*   **Charts:** `Recharts`
+Baki KhataManage credits and debts with a dedicated ledger view.Ledger
 
-### 🧱 Offline-First Architecture
-Data is stored locally using IndexedDB. The app works perfectly without an internet connection, syncing data in the background when connectivity is restored.
-
----
-
-## 📸 App Showcase
-
-> **Dashboard**
-> *Visualize your daily performance at a glance.*
-> ![Dashboard](https://via.placeholder.com/400x200?text=Dashboard+Preview)
-
-> **Market Prices**
-> *Check wholesale and retail rates for 200+ items instantly.*
-> ![Market](https://via.placeholder.com/400x200?text=Market+Prices+Preview)
-
-> **Baki Khata**
-> *Manage your credits and debts effortlessly.*
-> ![Ledger](https://via.placeholder.com/400x200?text=Baki+Khata+Preview)
-
----
-
-## 🛠️ Installation & Setup
+🛠️ Installation & Setup
 
 Get the project running on your local machine in minutes.
 
-### Prerequisites
-*   Node.js >= 18.0.0
-*   npm or yarn
+Prerequisites
 
-### Steps
+Node.js >= 18.0.0
+npm or yarn
+Steps
 
-1.  **Clone the repository**
-    ```bash
-    git clone https://github.com/your-username/dokandar-bondhu.git
-    cd dokandar-bondhu
-    ```
+Clone the repository
+git clone https://github.com/your-username/dokandar-bondhu.gitcd dokandar-bondhu
+Install dependencies
+npm install
+Start the development server
+npm run dev
+Build for production
+npm run build
+🎨 Design System
 
-2.  **Install dependencies**
-    ```bash
-    npm install
-    ```
+The app features a custom "Earth & Cream" palette designed to be warm and non-intrusive.
 
-3.  **Start the development server**
-    ```bash
-    npm run dev
-    ```
+Primary (Earth): #8B5E3C (Mocha Brown)
+Background (Cream): #FAF9F6
+Accent (Gold): #D4AF37
+Dark Mode: Deep Grays (#1f2937) with Earth highlights.
+Animations
 
-4.  **Build for production**
-    ```bash
-    npm run build
-    ```
+2D Vector Icons: Bottom navigation icons feature a subtle bounce animation when active.
+Staggered Lists: Market prices and dashboard items animate in sequentially for a polished feel.
+📜 License
 
----
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🎨 Design System
+📞 Contact
 
-The app uses a custom color palette designed to be warm, professional, and easy on the eyes, inspired by earth tones.
+Dokandar Bondhu - Empowering local businesses with digital simplicity.
 
-*   **Primary (Earth):** `#8B5E3C` (Mocha Brown)
-*   **Background (Cream):** `#FAF9F6`
-*   **Accent (Gold):** `#D4AF37`
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! If you have a feature request, bug report, or want to improve the documentation, please open an issue.
-
-1.  Fork the repository.
-2.  Create your feature branch (`git checkout -b feature/AmazingFeature`).
-3.  Commit your changes (`git commit -m 'Add some AmazingFeature'`).
-4.  Push to the branch (`git push origin feature/AmazingFeature`).
-5.  Open a Pull Request.
-
----
-
-## 📜 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 📞 Contact
-
-**Dokandar Bondhu** - Empowering local businesses with digital simplicity.
-
-*   **Developer:** [Your Name]
-*   **Project Link:** [https://github.com/your-username/dokandar-bondhu](https://github.com/your-username/dokandar-bondhu)
-
----
-
-<div align="center">
-  <sub>Built with ❤️ for Bangladeshi Shopkeepers</sub>
-</div>
-```
+Developer: [Your Name]
+Project Link: https://github.com/your-username/dokandar-bondhu
+ Built with ❤️ for Bangladeshi Shopkeepers
