@@ -3,6 +3,7 @@ import {
   RefreshCw, 
   Wifi, 
   WifiOff, 
+  Signal, // NEW: Icon for Cellular data
   Clock, 
   Package, 
   ChevronRight,
@@ -19,6 +20,7 @@ const Market: React.FC = () => {
   const { theme } = useTheme();
   const [activeCategory, setActiveCategory] = useState('all');
 
+  // Destructure connectionType from hook
   const {
     prices,
     isLoading,
@@ -26,10 +28,11 @@ const Market: React.FC = () => {
     lastUpdated,
     syncStatus,
     triggerSync,
-    onlineStatus
+    onlineStatus,
+    connectionType 
   } = useMarketPrices(activeCategory);
 
-  // Category Keys for mapping
+  // ... (Categories and formatLastUpdated functions remain the same) ...
   const categories = [
     { key: 'all', label: t('market.categories.all') },
     { key: 'rice', label: t('market.categories.rice') },
@@ -45,6 +48,19 @@ const Market: React.FC = () => {
     return new Intl.DateTimeFormat(lang === 'bn' ? 'bn-BD' : 'en-US', {
       month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
     }).format(date);
+  };
+
+  // Helper to determine icon based on connectionType
+  const getConnectionIcon = () => {
+    if (!onlineStatus) return <WifiOff size={12} />;
+    if (connectionType === 'wifi') return <Wifi size={12} />;
+    return <Signal size={12} />; // Defaults to Cellular signal for 4G/3G
+  };
+
+  const getConnectionText = () => {
+    if (!onlineStatus) return t('common.offline');
+    if (connectionType === 'wifi') return 'Wi-Fi';
+    return 'Mobile Data'; // Specific text for cellular
   };
 
   return (
@@ -69,8 +85,8 @@ const Market: React.FC = () => {
                 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
                 : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
             }`}>
-              {onlineStatus ? <Wifi size={12} /> : <WifiOff size={12} />}
-              {onlineStatus ? t('common.online') : t('common.offline')}
+              {getConnectionIcon()} {/* CHANGED: Dynamic Icon */}
+              {getConnectionText()} {/* CHANGED: Dynamic Text */}
             </div>
             
             <button 
