@@ -1,8 +1,6 @@
 // api/market-prices.ts
-// This code runs on the Vercel Server (Node.js environment)
-
 export default async function handler(req: any, res: any) {
-  // Allow CORS for your PWA
+  // CORS Headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
@@ -19,44 +17,65 @@ export default async function handler(req: any, res: any) {
   try {
     const TCB_URL = 'https://tcb.gov.bd/site/view/daily-market-price';
     
-    // 1. Fetch from TCB (Direct connection, no proxy needed on server)
+    console.log("Fetching TCB..."); // Debug Log
+
     const response = await fetch(TCB_URL, {
       method: 'GET',
+      // TCB might block if User-Agent looks too robotic
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
       },
     });
 
     if (!response.ok) {
-      return res.status(500).json({ error: 'Failed to fetch from TCB' });
+      throw new Error(`TCB Status: ${response.status}`);
     }
 
-    const htmlText = await response.text();
-
-    // 2. Parse Logic (Same logic we used in frontend, but now on server)
-    // We need to import Cheerio or use native DOMParser?
-    // Since we are on Node.js, we can't use 'DOMParser'.
-    // We should use 'cheerio' or simple Regex for now to keep it zero-dependency?
-    // Let's use Regex to be simple and fast without installing new libs.
+    let htmlText = await response.text();
     
-    const rows = htmlText.split('<tr');
+    // FIX 1: Normalize HTML (Remove newlines and extra spaces)
+    // TCB HTML often has newlines inside <td> tags which breaks Regex
+    htmlText = htmlText.replace(/\n/g, ' ').replace(/\s+/g, ' ');
+    
+    // We only care about the table body to avoid huge string processing
+    const tableBody = htmlText.match(/<tbody>(.*?)<\/tbody>/s)?.[1];
+    
+    if (!tableBody) {
+      throw new Error("Could not find table body on TCB page.");
+    }
+
+    const rows = tableBody.split('<tr');
     const prices: any[] = [];
 
-    rows.forEach((row) => {
-      if (!row.includes('<td')) return;
+    // Skip header row (index 0) and loop data
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (!row.includes('<td')) continue;
 
-      // Extract cell content using Regex (Simple scraper)
-      const cellMatches = row.match(/<td[^>]*>(.*?)<\/td>/gs);
-      if (!cellMatches || cellMatches.length < 2) return;
+      // FIX 2: Better Regex for extracting cells
+      // It looks for <td ...> content </td>
+      // Using global flag 'g' to find all occurrences
+      const cellRegex = /<td[^>]*>(.*?)<\/td>/g;
+      let match;
+      const cellValues = [];
+
+      while ((match = cellRegex.exec(row)) !== null) {
+        cellValues.push(match[1]);
+      }
+
+      if (cellValues.length < 2) continue;
 
       const cleanText = (html: string) => html.replace(/<[^>]*>?/gm, '').trim();
       
-      const nameRaw = cleanText(cellMatches[0]);
-      const priceRaw = cleanText(cellMatches[cellMatches.length - 1]);
-      const unitRaw = cleanText(cellMatches[cellMatches.length - 2]) || 'kg';
+      const nameRaw = cleanText(cellValues[0]);
+      // Price is usually last column, Unit is second to last
+      const priceRaw = cleanText(cellValues[cellValues.length - 1]);
+      const unitRaw = cleanText(cellValues[cellValues.length - 2]) || 'kg';
 
-      // Skip headers
-      if (nameRaw === 'Commodity' || nameRaw === 'পণ্যের নাম') return;
+      // Skip header/footer rows
+      if (nameRaw === 'Commodity' || nameRaw === 'পণ্যের নাম' || nameRaw === '') continue;
 
       // Bangla Digit Conversion
       const banglaDigits = '০১২৩৪৫৬৭৮৯';
@@ -81,13 +100,24 @@ export default async function handler(req: any, res: any) {
           dateFetched: new Date().toISOString()
         });
       }
-    });
+    }
 
-    // 3. Return Data
+    if (prices.length === 0) {
+      throw new Error("Parsed 0 prices from TCB page. Parser logic might need update.");
+    }
+
+    console.log(`Success: Parsed ${prices.length} items.`);
+
     res.status(200).json({ success: true, data: prices });
 
-  } catch (error) {
-    console.error("API Error:", error);
-    res.status(500).json({ success: false, error: 'Internal Server Error' });
+  } catch (error: any) {
+    // FIX 3: Send the REAL error message back to frontend
+    console.error("Server Error:", error.message); // This goes to Vercel Logs
+    
+    // Return the specific error message so we can debug in Frontend
+    res.status(500).json({ 
+      success: false, 
+      error: error.message || "Unknown Error" 
+    });
   }
 }
