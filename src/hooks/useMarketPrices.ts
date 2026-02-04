@@ -12,15 +12,16 @@ interface UseMarketPricesReturn {
   syncStatus: 'idle' | 'success' | 'error';
   triggerSync: () => Promise<void>;
   onlineStatus: boolean;
+  connectionType: string; // NEW: e.g. '4g', 'wifi', 'cellular'
 }
 
 export const useMarketPrices = (categoryFilter: string = 'all'): UseMarketPricesReturn => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [onlineStatus, setOnlineStatus] = useState(isOnline());
+  const [connectionType, setConnectionType] = useState<string>('unknown'); // NEW STATE
 
   // 1. Live Query: Get prices from IndexedDB
-  // If category is 'all', return all. Otherwise filter by category.
   const allPrices = useLiveQuery(() => db.marketPrices.toArray(), []);
   
   // 2. Client-side filtering for categories
@@ -34,17 +35,51 @@ export const useMarketPrices = (categoryFilter: string = 'all'): UseMarketPrices
     ? new Date(allPrices[0].dateFetched) 
     : undefined;
 
-  // 3. Online/Offline Event Listeners
+  // 3. Online/Offline & Network Type Listeners
   useEffect(() => {
-    const handleOnline = () => setOnlineStatus(true);
-    const handleOffline = () => setOnlineStatus(false);
+    const handleOnline = () => {
+      setOnlineStatus(true);
+      updateConnectionInfo();
+    };
+    
+    const handleOffline = () => {
+      setOnlineStatus(false);
+      setConnectionType('offline');
+    };
+
+    // NEW: Function to update connection type (Mobile vs Wifi)
+    const updateConnectionInfo = () => {
+      // Cast to any because NetworkInformation API is experimental/extended
+      const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+      if (connection) {
+        // effectiveType usually returns '4g', '3g', '2g', 'slow-2g'
+        // type returns 'cellular', 'wifi', 'ethernet'
+        const type = connection.type || connection.effectiveType || 'unknown';
+        setConnectionType(type);
+      } else {
+        setConnectionType('online'); // Fallback if API not supported
+      }
+    };
+
+    // Initial check
+    if (isOnline()) {
+      updateConnectionInfo();
+    }
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+    
+    // Listen for network type changes (e.g. Wifi -> Data)
+    if ((navigator as any).connection) {
+      (navigator as any).connection.addEventListener('change', updateConnectionInfo);
+    }
 
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      if ((navigator as any).connection) {
+        (navigator as any).connection.removeEventListener('change', updateConnectionInfo);
+      }
     };
   }, []);
 
@@ -61,7 +96,7 @@ export const useMarketPrices = (categoryFilter: string = 'all'): UseMarketPrices
     };
 
     initSync();
-  }, [onlineStatus]); // Re-run if online status changes
+  }, [onlineStatus]); 
 
   // 5. Manual Sync Trigger
   const triggerSync = async () => {
@@ -87,11 +122,12 @@ export const useMarketPrices = (categoryFilter: string = 'all'): UseMarketPrices
 
   return {
     prices,
-    isLoading: !allPrices, // Loading initial data from DB
+    isLoading: !allPrices,
     isSyncing,
     lastUpdated,
     syncStatus,
     triggerSync,
-    onlineStatus
+    onlineStatus,
+    connectionType // NEW: Return connection type
   };
 };
