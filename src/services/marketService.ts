@@ -4,15 +4,24 @@ import { MarketPrice } from '../types';
 // TCB Official Daily Price Page
 const TCB_TARGET_URL = 'https://tcb.gov.bd/site/view/daily-market-price';
 
-// FIX: Better CORS Proxy for encoding support
-const PROXY_URL = 'https://corsproxy.io/?';
+// ==========================================
+// FIX: Multiple Proxy List for Reliability
+// If one fails, the app tries the next one automatically.
+// ==========================================
+const PROXY_LIST = [
+  // Proxy 1: AllOrigins (Returns JSON wrapper, good for encoding)
+  { url: 'https://api.allorigins.win/get?url=', type: 'json' },
+  // Proxy 2: Corsproxy.io (Direct passthrough)
+  { url: 'https://corsproxy.io/?', type: 'direct' },
+  // Proxy 3: ThingProxy (Backup)
+  { url: 'https://thingproxy.freeboard.io/fetch/', type: 'direct' }
+];
 
 // Helper to check network status
 export const isOnline = (): boolean => navigator.onLine;
 
 /**
  * Parses HTML content.
- * STRATEGY: First non-empty column = Name, Last non-empty column = Price.
  */
 const parseTCBHtml = (htmlText: string): Omit<MarketPrice, 'id' | 'dateFetched'>[] => {
   const parser = new DOMParser();
@@ -26,14 +35,14 @@ const parseTCBHtml = (htmlText: string): Omit<MarketPrice, 'id' | 'dateFetched'>
     
     if (cells.length < 2) return; 
 
-    // FIX 1: Cast to HTMLElement to access innerText
+    // Cast to HTMLElement to access innerText
     const cellTexts = cells.map(c => (c as HTMLElement).innerText.trim()).filter(t => t !== '');
 
     if (cellTexts.length < 2) return;
 
-    const nameRaw = cellTexts[0]; // First column is always Name
-    const priceRaw = cellTexts[cellTexts.length - 1]; // Last column is always Price
-    const unitRaw = cellTexts[cellTexts.length - 2] || 'kg'; // Second to last is usually Unit
+    const nameRaw = cellTexts[0]; 
+    const priceRaw = cellTexts[cellTexts.length - 1]; 
+    const unitRaw = cellTexts[cellTexts.length - 2] || 'kg'; 
 
     // Skip headers
     if (nameRaw === 'Commodity' || nameRaw === 'পণ্যের নাম' || nameRaw === 'পণ্য') return;
@@ -43,7 +52,7 @@ const parseTCBHtml = (htmlText: string): Omit<MarketPrice, 'id' | 'dateFetched'>
     const banglaDigits = '০১২৩৪৫৬৭৮৯';
     const englishDigits = '0123456789';
     
-    // FIX 2: Explicitly type parameter 'd' as string
+    // Explicitly type parameter 'd' as string
     const cleanPrice = priceRaw.replace(/[০-৯]/g, (d: string) => {
       const index = banglaDigits.indexOf(d);
       return index !== -1 ? englishDigits[index] : d;
@@ -81,53 +90,75 @@ const parseTCBHtml = (htmlText: string): Omit<MarketPrice, 'id' | 'dateFetched'>
 };
 
 /**
- * Main Sync Function
+ * Main Sync Function with Multi-Proxy Fallback
  */
 export const syncMarketPrices = async (): Promise<{ success: boolean; count: number; message: string }> => {
   if (!isOnline()) {
     return { success: false, count: 0, message: 'No internet connection' };
   }
 
-  try {
-    // Fetch using the robust proxy
-    const response = await fetch(PROXY_URL + encodeURIComponent(TCB_TARGET_URL), {
-      method: 'GET',
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-    });
+  let lastError: any = null;
 
-    if (!response.ok) throw new Error('Proxy network response was not ok');
+  // Try proxies one by one
+  for (const proxy of PROXY_LIST) {
+    try {
+      const targetUrl = proxy.url + encodeURIComponent(TCB_TARGET_URL);
+      
+      const response = await fetch(targetUrl, {
+        method: 'GET',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+      });
 
-    const htmlText = await response.text();
-    
-    console.log("HTML Length fetched:", htmlText.length); 
+      if (!response.ok) throw new Error(`Proxy (${proxy.url}) returned ${response.status}`);
 
-    const parsedData = parseTCBHtml(htmlText);
+      let htmlText = '';
 
-    if (parsedData.length === 0) {
-      console.error("Parsing failed: 0 items found.");
-      return { success: false, count: 0, message: 'Could not read data. TCB page structure might have changed.' };
+      // Handle different proxy response types
+      if (proxy.type === 'json') {
+        const jsonData = await response.json();
+        htmlText = jsonData.contents; // AllOrigins wraps content in "contents"
+      } else {
+        htmlText = await response.text();
+      }
+
+      // Validate that we got actual TCB content (and not an error page)
+      if (!htmlText.includes('পণ্যের নাম') && !htmlText.includes('Commodity')) {
+        throw new Error('Proxy returned invalid TCB page.');
+      }
+      
+      console.log(`Success using Proxy: ${proxy.url}`);
+
+      const parsedData = parseTCBHtml(htmlText);
+
+      if (parsedData.length === 0) {
+        throw new Error('Parsing failed or TCB page empty.');
+      }
+
+      // Update Database
+      const dataWithDate = parsedData.map(item => ({ ...item, dateFetched: new Date() }));
+
+      await db.transaction('rw', db.marketPrices, async () => {
+        await db.marketPrices.clear();
+        await db.marketPrices.bulkAdd(dataWithDate);
+      });
+
+      return { success: true, count: parsedData.length, message: 'Updated successfully' };
+
+    } catch (error) {
+      console.error(`Failed with proxy ${proxy.url}:`, error);
+      lastError = error;
+      // Continue to next proxy in the list
     }
-
-    // Update Database
-    const dataWithDate = parsedData.map(item => ({ ...item, dateFetched: new Date() }));
-
-    await db.transaction('rw', db.marketPrices, async () => {
-      await db.marketPrices.clear();
-      await db.marketPrices.bulkAdd(dataWithDate);
-    });
-
-    return { success: true, count: parsedData.length, message: 'Updated successfully' };
-
-  } catch (error) {
-    console.error('Sync Error:', error);
-    return { 
-      success: false, 
-      count: 0, 
-      message: 'Connection failed. Please try again.' 
-    };
   }
+
+  // If all proxies failed
+  return { 
+    success: false, 
+    count: 0, 
+    message: 'All connection attempts failed. TCB site might be blocking proxies or down.' 
+  };
 };
 
 /**
