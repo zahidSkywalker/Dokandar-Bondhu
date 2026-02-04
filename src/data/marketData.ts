@@ -232,21 +232,161 @@ export const RAW_DATA = {
     },
     {
       category: { en: "Fruits", bn: "ফলমূল" },
-      items: [
-        { id: 1001, name: { en: "Banana", bn: "কলা" }, unit: "kg", price: 65, price_range: { min: 60, max: 70 } },
-        { id: 1002, name: { en: "Mango", bn: "আম" }, unit: "kg", price: 120, price_range: { min: 110, max: 130 } },
-        { id: 1003, name: { en: "Watermelon", bn: "তরমুজ" }, unit: "kg", price: 45, price_range: { min: 40, max: 50 } }
-      ]
-    },
+items: [
+  { id: 1001, name: { en: "Banana", bn: "কলা" }, unit: "kg", price: 65, price_range: { min: 60, max: 70 } },
+  { id: 1002, name: { en: "Mango", bn: "আম" }, unit: "kg", price: 120, price_range: { min: 110, max: 130 } },
+  { id: 1003, name: { en: "Watermelon", bn: "তরমুজ" }, unit: "kg", price: 45, price_range: { min: 40, max: 50 } },
+
+  { id: 1004, name: { en: "Papaya", bn: "পেঁপে" }, unit: "kg", price: 45, price_range: { min: 40, max: 50 } },
+  { id: 1005, name: { en: "Pineapple", bn: "আনারস" }, unit: "kg", price: 60, price_range: { min: 55, max: 70 } },
+  { id: 1006, name: { en: "Guava", bn: "পেয়ারা" }, unit: "kg", price: 70, price_range: { min: 60, max: 80 } },
+  { id: 1007, name: { en: "Jackfruit", bn: "কাঁঠাল" }, unit: "kg", price: 55, price_range: { min: 45, max: 65 } },
+  { id: 1008, name: { en: "Litchi", bn: "লিচু" }, unit: "kg", price: 220, price_range: { min: 200, max: 250 } },
+  { id: 1009, name: { en: "Orange (Local)", bn: "কমলা (দেশি)" }, unit: "kg", price: 180, price_range: { min: 160, max: 200 } },
+  { id: 1010, name: { en: "Orange (Imported)", bn: "কমলা (আমদানিকৃত)" }, unit: "kg", price: 260, price_range: { min: 240, max: 280 } },
+
+  { id: 1011, name: { en: "Apple (Local)", bn: "আপেল (দেশি)" }, unit: "kg", price: 170, price_range: { min: 150, max: 190 } },
+  { id: 1012, name: { en: "Apple (Imported)", bn: "আপেল (আমদানিকৃত)" }, unit: "kg", price: 280, price_range: { min: 260, max: 320 } },
+  { id: 1013, name: { en: "Grapes (Green)", bn: "আঙুর (সবুজ)" }, unit: "kg", price: 320, price_range: { min: 300, max: 350 } },
+  { id: 1014, name: { en: "Grapes (Black)", bn: "আঙুর (কালো)" }, unit: "kg", price: 340, price_range: { min: 320, max: 370 } },
+  { id: 1015, name: { en: "Pear", bn: "নাশপাতি" }, unit: "kg", price: 260, price_range: { min: 240, max: 290 } },
+  { id: 1016, name: { en: "Pomegranate", bn: "ডালিম" }, unit: "kg", price: 420, price_range: { min: 380, max: 460 } },
+
+  { id: 1017, name: { en: "Coconut (Green)", bn: "ডাব" }, unit: "piece", price: 55, price_range: { min: 45, max: 65 } },
+  { id: 1018, name: { en: "Coconut (Dry)", bn: "নারিকেল" }, unit: "piece", price: 90, price_range: { min: 80, max: 110 } },
+  { id: 1019, name: { en: "Dates (Fresh)", bn: "খেজুর (তাজা)" }, unit: "kg", price: 350, price_range: { min: 320, max: 400 } },
+  { id: 1020, name: { en: "Dates (Dry)", bn: "শুকনা খেজুর" }, unit: "kg", price: 420, price_range: { min: 380, max: 480 } },
+
+  { id: 1021, name: { en: "Strawberry", bn: "স্ট্রবেরি" }, unit: "kg", price: 550, price_range: { min: 500, max: 600 } },
+  { id: 1022, name: { en: "Cherry", bn: "চেরি" }, unit: "kg", price: 950, price_range: { min: 900, max: 1100 } },
+  { id: 1023, name: { en: "Blueberry", bn: "ব্লুবেরি" }, unit: "kg", price: 1600, price_range: { min: 1400, max: 1800 } },
+
+  { id: 1024, name: { en: "Kiwi", bn: "কিউই" }, unit: "kg", price: 420, price_range: { min: 390, max: 460 } },
+  { id: 1025, name: { en: "Dragon Fruit", bn: "ড্রাগন ফল" }, unit: "kg", price: 320, price_range: { min: 280, max: 360 } },
+  { id: 1026, name: { en: "Avocado", bn: "অ্যাভোকাডো" }, unit: "kg", price: 520, price_range: { min: 480, max: 580 } },
+  { id: 1027, name: { en: "Peach", bn: "পিচ" }, unit: "kg", price: 360, price_range: { min: 330, max: 400 } },
+  { id: 1028, name: { en: "Plum", bn: "আলুবোখারা (তাজা)" }, unit: "kg", price: 380, price_range: { min: 350, max: 420 } },
+
+  { id: 1029, name: { en: "Custard Apple", bn: "আতা ফল" }, unit: "kg", price: 220, price_range: { min: 200, max: 250 } },
+  { id: 1030, name: { en: "Star Fruit", bn: "কামরাঙ্গা" }, unit: "kg", price: 85, price_range: { min: 75, max: 95 } },
+  { id: 1031, name: { en: "Indian Gooseberry", bn: "আমলকি" }, unit: "kg", price: 90, price_range: { min: 80, max: 100 } },
+  { id: 1032, name: { en: "Wood Apple", bn: "বেল" }, unit: "kg", price: 75, price_range: { min: 65, max: 85 } },
+  { id: 1033, name: { en: "Tamarind (Fresh)", bn: "তেঁতুল (তাজা)" }, unit: "kg", price: 100, price_range: { min: 90, max: 120 } },
+
+  { id: 1034, name: { en: "Jujube", bn: "বরই" }, unit: "kg", price: 95, price_range: { min: 85, max: 110 } },
+  { id: 1035, name: { en: "Palm Fruit", bn: "তাল" }, unit: "piece", price: 25, price_range: { min: 20, max: 30 } },
+  { id: 1036, name: { en: "Fig", bn: "ডুমুর" }, unit: "kg", price: 260, price_range: { min: 230, max: 300 } },
+
+  { id: 1037, name: { en: "Ripe Banana (Sabri)", bn: "সবরি কলা" }, unit: "kg", price: 75, price_range: { min: 65, max: 85 } },
+  { id: 1038, name: { en: "Plantain", bn: "কাঁচা কলা" }, unit: "kg", price: 55, price_range: { min: 45, max: 65 } },
+
+  { id: 1039, name: { en: "Sweet Lime", bn: "মোসাম্বি" }, unit: "kg", price: 150, price_range: { min: 130, max: 170 } },
+  { id: 1040, name: { en: "Pomelo", bn: "জাম্বুরা" }, unit: "kg", price: 85, price_range: { min: 75, max: 95 } },
+
+  { id: 1041, name: { en: "Rambutan", bn: "রাম্বুটান" }, unit: "kg", price: 420, price_range: { min: 380, max: 480 } },
+  { id: 1042, name: { en: "Longan", bn: "লংগান" }, unit: "kg", price: 450, price_range: { min: 420, max: 520 } },
+
+  { id: 1043, name: { en: "Melon", bn: "খরমুজ" }, unit: "kg", price: 70, price_range: { min: 60, max: 80 } },
+  { id: 1044, name: { en: "Persimmon", bn: "পার্সিমন" }, unit: "kg", price: 480, price_range: { min: 440, max: 540 } },
+
+  { id: 1045, name: { en: "Sapodilla", bn: "সফেদা" }, unit: "kg", price: 160, price_range: { min: 140, max: 180 } }
+   // --- Additional Fruits (Extended) ---
+
+{ id: 1046, name: { en: "Blackberry", bn: "ব্ল্যাকবেরি" }, unit: "kg", price: 750, price_range: { min: 700, max: 850 } },
+{ id: 1047, name: { en: "Raspberry", bn: "রাস্পবেরি" }, unit: "kg", price: 820, price_range: { min: 780, max: 900 } },
+{ id: 1048, name: { en: "Mulberry", bn: "তুঁত ফল" }, unit: "kg", price: 240, price_range: { min: 220, max: 280 } },
+{ id: 1049, name: { en: "Passion Fruit", bn: "প্যাশন ফল" }, unit: "kg", price: 420, price_range: { min: 380, max: 480 } },
+{ id: 1050, name: { en: "Soursop", bn: "সাওয়ারসপ" }, unit: "kg", price: 380, price_range: { min: 350, max: 420 } },
+
+{ id: 1051, name: { en: "Sugar Apple", bn: "শরিফা" }, unit: "kg", price: 210, price_range: { min: 190, max: 240 } },
+{ id: 1052, name: { en: "Indian Fig (Cactus Fruit)", bn: "নাগফল" }, unit: "kg", price: 300, price_range: { min: 270, max: 340 } },
+{ id: 1053, name: { en: "Breadfruit", bn: "ব্রেডফ্রুট" }, unit: "kg", price: 180, price_range: { min: 160, max: 210 } },
+
+{ id: 1054, name: { en: "Karonda", bn: "করমচা" }, unit: "kg", price: 110, price_range: { min: 95, max: 130 } },
+{ id: 1055, name: { en: "Monkey Jack", bn: "লটকন" }, unit: "kg", price: 140, price_range: { min: 120, max: 160 } },
+{ id: 1056, name: { en: "Indian Plum", bn: "জাম" }, unit: "kg", price: 90, price_range: { min: 80, max: 110 } },
+{ id: 1057, name: { en: "Rose Apple", bn: "জামরুল" }, unit: "kg", price: 85, price_range: { min: 75, max: 100 } },
+
+{ id: 1058, name: { en: "Velvet Apple", bn: "গাব" }, unit: "kg", price: 170, price_range: { min: 150, max: 200 } },
+{ id: 1059, name: { en: "Bilimbi", bn: "বিলিম্বি" }, unit: "kg", price: 120, price_range: { min: 100, max: 140 } },
+{ id: 1060, name: { en: "Hog Plum", bn: "আমড়া" }, unit: "kg", price: 95, price_range: { min: 85, max: 110 } },
+
+{ id: 1061, name: { en: "Bael Fruit", bn: "বেল ফল" }, unit: "kg", price: 70, price_range: { min: 60, max: 85 } },
+{ id: 1062, name: { en: "Indian Almond", bn: "কাঠবাদাম" }, unit: "kg", price: 260, price_range: { min: 230, max: 300 } },
+
+{ id: 1063, name: { en: "Santol", bn: "সাঁতল" }, unit: "kg", price: 190, price_range: { min: 170, max: 220 } },
+{ id: 1064, name: { en: "Langsat", bn: "লাংসাট" }, unit: "kg", price: 430, price_range: { min: 400, max: 480 } },
+
+{ id: 1065, name: { en: "Star Apple", bn: "স্টার আপেল" }, unit: "kg", price: 360, price_range: { min: 330, max: 400 } },
+{ id: 1066, name: { en: "Salak (Snake Fruit)", bn: "সালাক" }, unit: "kg", price: 520, price_range: { min: 480, max: 600 } },
+
+{ id: 1067, name: { en: "Mangosteen", bn: "ম্যাংগোস্টিন" }, unit: "kg", price: 480, price_range: { min: 450, max: 540 } },
+{ id: 1068, name: { en: "Durian", bn: "ডুরিয়ান" }, unit: "kg", price: 850, price_range: { min: 800, max: 950 } },
+
+{ id: 1069, name: { en: "Tangerine", bn: "ট্যাংগারিন" }, unit: "kg", price: 240, price_range: { min: 220, max: 270 } },
+{ id: 1070, name: { en: "Blood Orange", bn: "ব্লাড অরেঞ্জ" }, unit: "kg", price: 380, price_range: { min: 350, max: 420 } },
+
+{ id: 1071, name: { en: "Golden Apple", bn: "গোল্ডেন আপেল" }, unit: "kg", price: 310, price_range: { min: 280, max: 350 } },
+{ id: 1072, name: { en: "Mini Banana", bn: "চিনি কলা" }, unit: "kg", price: 90, price_range: { min: 80, max: 105 } },
+
+{ id: 1073, name: { en: "Sweet Tamarind", bn: "মিষ্টি তেঁতুল" }, unit: "kg", price: 140, price_range: { min: 120, max: 160 } },
+{ id: 1074, name: { en: "Young Coconut Flesh", bn: "ডাবের শাঁস" }, unit: "kg", price: 220, price_range: { min: 200, max: 260 } },
+
+{ id: 1075, name: { en: "Imported Fig", bn: "আমদানিকৃত ডুমুর" }, unit: "kg", price: 520, price_range: { min: 480, max: 580 } },
+{ id: 1076, name: { en: "Imported Pear (Chinese)", bn: "চাইনিজ নাশপাতি" }, unit: "kg", price: 300, price_range: { min: 270, max: 340 } }
+  ]
+  },
     {
       category: { en: "Daily Essentials", bn: "নিত্যপ্রয়োজনীয়" },
-      items: [
-        { id: 1004, name: { en: "Sugar", bn: "চিনি" }, unit: "kg", price: 130, price_range: { min: 120, max: 140 } },
-        { id: 1005, name: { en: "Salt", bn: "লবণ" }, unit: "kg", price: 35, price_range: { min: 30, max: 40 } },
-        { id: 1006, name: { en: "Tea Leaves", bn: "চা পাতা" }, unit: "kg", price: 320, price_range: { min: 300, max: 350 } },
-        { id: 1007, name: { en: "Milk (Cow)", bn: "গরুর দুধ" }, unit: "liter", price: 80, price_range: { min: 75, max: 85 } },
-        { id: 1008, name: { en: "Egg (Chicken)", bn: "মুরগির ডিম" }, unit: "dozen", price: 135, price_range: { min: 130, max: 140 } }
-      ]
+items: [
+  { id: 1004, name: { en: "Sugar", bn: "চিনি" }, unit: "kg", price: 130, price_range: { min: 120, max: 140 } },
+  { id: 1005, name: { en: "Salt", bn: "লবণ" }, unit: "kg", price: 35, price_range: { min: 30, max: 40 } },
+  { id: 1006, name: { en: "Tea Leaves", bn: "চা পাতা" }, unit: "kg", price: 320, price_range: { min: 300, max: 350 } },
+  { id: 1007, name: { en: "Milk (Cow)", bn: "গরুর দুধ" }, unit: "liter", price: 80, price_range: { min: 98, max: 138 } },
+  { id: 1008, name: { en: "Egg (Chicken)", bn: "মুরগির ডিম" }, unit: "dozen", price: 135, price_range: { min: 130, max: 140 } },
+  { id: 1009, name: { en: "Rice (Local)", bn: "চাল (স্থানীয়)" }, unit: "kg", price: 65, price_range: { min: 60, max: 70 } },
+  { id: 1010, name: { en: "Atta (Wheat Flour)", bn: "গমের আটা" }, unit: "kg", price: 40, price_range: { min: 38, max: 45 } },
+  { id: 1011, name: { en: "Mustard Oil", bn: "সরিষা তেল" }, unit: "liter", price: 220, price_range: { min: 200, max: 240 } },
+  { id: 1012, name: { en: "Soybean Oil", bn: "সয়াবিন তেল" }, unit: "liter", price: 200, price_range: { min: 185, max: 220 } },
+  { id: 1013, name: { en: "Coconut Oil", bn: "নারিকেল তেল" }, unit: "liter", price: 500, price_range: { min: 480, max: 550 } },
+  { id: 1014, name: { en: "Vegetable Oil (Blend)", bn: "ভেজিটেবল তেল" }, unit: "liter", price: 210, price_range: { min: 195, max: 230 } },
+  { id: 1015, name: { en: "Chili Powder", bn: "মরিচ গুঁড়ো" }, unit: "kg", price: 260, price_range: { min: 240, max: 280 } },
+  { id: 1016, name: { en: "Turmeric Powder", bn: "হলুদ গুঁড়ো" }, unit: "kg", price: 200, price_range: { min: 180, max: 220 } },
+  { id: 1017, name: { en: "Coriander Powder", bn: "ধনে গুঁড়ো" }, unit: "kg", price: 230, price_range: { min: 210, max: 250 } },
+  { id: 1018, name: { en: "Cumin Seeds", bn: "জিরা" }, unit: "kg", price: 280, price_range: { min: 260, max: 300 } },
+  { id: 1019, name: { en: "Lentil (Masoor)", bn: "মসুর ডাল" }, unit: "kg", price: 120, price_range: { min: 110, max: 130 } },
+  { id: 1020, name: { en: "Lentil (Moong)", bn: "মুগ ডাল" }, unit: "kg", price: 150, price_range: { min: 140, max: 160 } },
+  { id: 1021, name: { en: "Chickpeas", bn: "ছোলা" }, unit: "kg", price: 140, price_range: { min: 130, max: 150 } },
+  { id: 1022, name: { en: "Kidney Beans", bn: "রাজমা" }, unit: "kg", price: 160, price_range: { min: 150, max: 170 } },
+  { id: 1023, name: { en: "Green Gram", bn: "সবুজ মুগ" }, unit: "kg", price: 145, price_range: { min: 135, max: 155 } },
+  { id: 1024, name: { en: "Potato", bn: "আলু" }, unit: "kg", price: 35, price_range: { min: 30, max: 40 } },
+  { id: 1025, name: { en: "Onion", bn: "পেঁয়াজ" }, unit: "kg", price: 60, price_range: { min: 50, max: 70 } },
+  { id: 1026, name: { en: "Garlic", bn: "রসুন" }, unit: "kg", price: 120, price_range: { min: 110, max: 130 } },
+  { id: 1027, name: { en: "Ginger", bn: "আদা" }, unit: "kg", price: 150, price_range: { min: 140, max: 160 } },
+  { id: 1028, name: { en: "Tomato", bn: "টমেটো" }, unit: "kg", price: 80, price_range: { min: 70, max: 90 } },
+  { id: 1029, name: { en: "Green Chili", bn: "কাঁচা মরিচ" }, unit: "kg", price: 120, price_range: { min: 100, max: 140 } },
+  { id: 1030, name: { en: "Cucumber", bn: "শসা" }, unit: "kg", price: 40, price_range: { min: 35, max: 45 } },
+  { id: 1031, name: { en: "Eggplant / Brinjal", bn: "বেগুন" }, unit: "kg", price: 50, price_range: { min: 45, max: 60 } },
+  { id: 1032, name: { en: "Lady Finger", bn: "ভেন্ডাই" }, unit: "kg", price: 60, price_range: { min: 55, max: 65 } },
+  { id: 1033, name: { en: "Green Beans", bn: "ফল কলাই" }, unit: "kg", price: 70, price_range: { min: 65, max: 80 } },
+  { id: 1034, name: { en: "Pumpkin", bn: "কুমড়া" }, unit: "kg", price: 45, price_range: { min: 40, max: 50 } },
+  { id: 1035, name: { en: "Spinach", bn: "पालक / শাক" }, unit: "kg", price: 30, price_range: { min: 25, max: 35 } },
+  { id: 1036, name: { en: "Moringa Leaves", bn: "সহজ লতা (মরিঙ্গা)" }, unit: "kg", price: 55, price_range: { min: 50, max: 60 } },
+  { id: 1037, name: { en: "Banana (Per dozen)", bn: "কলা (ডজন)" }, unit: "dozen", price: 90, price_range: { min: 80, max: 100 } },
+  { id: 1038, name: { en: "Apples (Local)", bn: "আপেল (দেশী)" }, unit: "kg", price: 160, price_range: { min: 150, max: 170 } },
+  { id: 1039, name: { en: "Mango (Seasonal)", bn: "আম (ঋতুস্রাব)" }, unit: "kg", price: 180, price_range: { min: 160, max: 200 } },
+  { id: 1040, name: { en: "Lemon", bn: "লেবু" }, unit: "kg", price: 150, price_range: { min: 140, max: 160 } },
+  { id: 1041, name: { en: "Bread (Loaf)", bn: "রুটি / ব্রেড" }, unit: "loaf", price: 40, price_range: { min: 35, max: 45 } },
+  { id: 1042, name: { en: "Biscuits (Pack)", bn: "বিস্কুট (প্যাকেট)" }, unit: "pack", price: 35, price_range: { min: 30, max: 40 } },
+  { id: 1043, name: { en: "Jam", bn: "জ্যাম" }, unit: "jar", price: 150, price_range: { min: 130, max: 170 } },
+  { id: 1044, name: { en: "Honey", bn: "মধু" }, unit: "jar", price: 400, price_range: { min: 350, max: 450 } },
+  { id: 1045, name: { en: "Salted Fish (Dry)", bn: "শুঁটকি" }, unit: "kg", price: 650, price_range: { min: 600, max: 700 } },
+  { id: 1046, name: { en: "Puffed Rice (Muri)", bn: "মুড়ি" }, unit: "kg", price: 130, price_range: { min: 120, max: 140 } },
+  { id: 1047, name: { en: "Flattened Rice (Chire)", bn: "চিঁড়ে" }, unit: "kg", price: 140, price_range: { min: 130, max: 150 } },
+  { id: 1048, name: { en: "Soap (Bar)", bn: "সাবান (বার)" }, unit: "piece", price: 35, price_range: { min: 30, max: 40 } },
+  { id: 1049, name: { en: "Detergent Powder", bn: "ডিটারজেন্ট গুঁড়ো" }, unit: "kg", price: 120, price_range: { min: 110, max: 130 } },
+  { id: 1050, name: { en: "Toothpaste", bn: "টুথপেস্ট" }, unit: "tube", price: 100, price_range: { min: 90, max: 110 } }
+]
     }
   ]
 };
