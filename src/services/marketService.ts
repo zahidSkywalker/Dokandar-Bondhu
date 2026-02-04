@@ -2,8 +2,6 @@ import { db } from '../db/db';
 import { MarketPrice } from '../types';
 
 // TCB Official Daily Price Page (Target URL)
-// Note: Direct client-side scraping may face CORS restrictions. 
-// In a production environment, you might need a CORS proxy if TCB blocks the request.
 const TCB_PRICE_URL = 'https://tcb.gov.bd/site/view/daily-market-price';
 
 // Helper to check network status
@@ -36,9 +34,17 @@ const parseTCBHtml = (htmlText: string): Omit<MarketPrice, 'id' | 'dateFetched'>
 
     if (!nameRaw || nameRaw === 'Commodity' || nameRaw === 'পণ্যের নাম') return;
 
-    // Parse Price Range (e.g., "120-130" or "১২০-১৩০")
-    // Remove Bangla digits first for calculation
-    const cleanPrice = priceRaw.replace(/[০-৯]/g, (d) => '০১২৩৪৫৬৭৮৯'[d]);
+    // --- FIXED: Safe Bangla Digit Conversion ---
+    // Using indexOf to satisfy strict TypeScript index types
+    const banglaDigits = '০১২৩৪৫৬৭৮৯';
+    const englishDigits = '0123456789';
+    
+    const cleanPrice = priceRaw.replace(/[০-৯]/g, (d) => {
+      const index = banglaDigits.indexOf(d);
+      return index !== -1 ? englishDigits[index] : d;
+    });
+    // -------------------------------------------
+
     const priceMatch = cleanPrice.match(/(\d+)\s*[-–]\s*(\d+)/);
 
     if (priceMatch) {
