@@ -5,15 +5,16 @@ import { MarketPrice } from '../types';
 const TCB_TARGET_URL = 'https://tcb.gov.bd/site/view/daily-market-price';
 
 // ==========================================
-// FIX: Use CORS Proxy to bypass TCB Security
+// FIX 1: Better CORS Proxy for encoding support
 // ==========================================
-const PROXY_URL = 'https://api.allorigins.win/raw?url=';
+const PROXY_URL = 'https://corsproxy.io/?';
 
 // Helper to check network status
 export const isOnline = (): boolean => navigator.onLine;
 
 /**
- * Parses the HTML content from TCB to extract market data.
+ * Parses HTML content.
+ * STRATEGY: First non-empty column = Name, Last non-empty column = Price.
  */
 const parseTCBHtml = (htmlText: string): Omit<MarketPrice, 'id' | 'dateFetched'>[] => {
   const parser = new DOMParser();
@@ -21,17 +22,25 @@ const parseTCBHtml = (htmlText: string): Omit<MarketPrice, 'id' | 'dateFetched'>
   const rows = Array.from(doc.querySelectorAll('table tr')); 
   
   const prices: Omit<MarketPrice, 'id' | 'dateFetched'>[] = [];
-  const today = new Date();
 
   rows.forEach((row) => {
-    const cells = Array.from(row.querySelectorAll('td'));
-    if (cells.length < 3) return; 
+    // FIX 2: Select both TD (data) and TH (headers) just in case
+    const cells = Array.from(row.querySelectorAll('td, th'));
+    
+    if (cells.length < 2) return; // Skip empty rows
 
-    const nameRaw = cells[0].innerText.trim();
-    const unitRaw = cells[cells.length - 2]?.innerText.trim() || 'kg'; 
-    const priceRaw = cells[cells.length - 1]?.innerText.trim(); 
+    // Clean text from cells
+    const cellTexts = cells.map(c => c.innerText.trim()).filter(t => t !== '');
 
-    if (!nameRaw || nameRaw === 'Commodity' || nameRaw === 'পণ্যের নাম') return;
+    if (cellTexts.length < 2) return;
+
+    const nameRaw = cellTexts[0]; // First column is always Name
+    const priceRaw = cellTexts[cellTexts.length - 1]; // Last column is always Price
+    const unitRaw = cellTexts[cellTexts.length - 2] || 'kg'; // Second to last is usually Unit
+
+    // Skip headers
+    if (nameRaw === 'Commodity' || nameRaw === 'পণ্যের নাম' || nameRaw === 'পণ্য') return;
+    if (nameRaw.includes('তারিখ')) return; // Skip date rows if any
 
     // Safe Bangla Digit Conversion
     const banglaDigits = '০১২৩৪৫৬৭৮৯';
@@ -42,12 +51,15 @@ const parseTCBHtml = (htmlText: string): Omit<MarketPrice, 'id' | 'dateFetched'>
       return index !== -1 ? englishDigits[index] : d;
     });
 
-    const priceMatch = cleanPrice.match(/(\d+)\s*[-–]\s*(\d+)/);
+    // FIX 3: Better Regex for Price (handles "120" or "120-130" or "120-125" or ranges)
+    const priceMatch = cleanPrice.match(/(\d+)\s*[-–]\s*(\d+)/) || cleanPrice.match(/(\d+)/);
 
     if (priceMatch) {
       const minPrice = parseInt(priceMatch[1]);
-      const maxPrice = parseInt(priceMatch[2]);
+      // If there is a range, take the second part, else just the single price
+      const maxPrice = priceMatch[2] ? parseInt(priceMatch[2]) : minPrice;
 
+      // Determine Category
       let category = 'essentials';
       const nameLower = nameRaw.toLowerCase();
       if (nameLower.includes('চাল') || nameLower.includes('rice') || nameLower.includes('গম')) category = 'rice';
@@ -67,12 +79,12 @@ const parseTCBHtml = (htmlText: string): Omit<MarketPrice, 'id' | 'dateFetched'>
     }
   });
 
+  console.log(`Parser found ${prices.length} items from HTML.`); // Debug log
   return prices;
 };
 
 /**
  * Main Sync Function
- * Fetches data via Proxy, parses it, and updates Dexie.
  */
 export const syncMarketPrices = async (): Promise<{ success: boolean; count: number; message: string }> => {
   if (!isOnline()) {
@@ -80,27 +92,29 @@ export const syncMarketPrices = async (): Promise<{ success: boolean; count: num
   }
 
   try {
-    // 1. Fetch using CORS Proxy
-    // We use allorigins.win to bypass the browser blocking TCB
+    // Fetch using the robust proxy
     const response = await fetch(PROXY_URL + encodeURIComponent(TCB_TARGET_URL), {
       method: 'GET',
+      // Headers are handled by the proxy, but we can try to send generic ones
       headers: {
-        // The proxy handles standard headers
+        'X-Requested-With': 'XMLHttpRequest'
       },
     });
 
     if (!response.ok) throw new Error('Proxy network response was not ok');
 
     const htmlText = await response.text();
+    
+    console.log("HTML Length fetched:", htmlText.length); // Debug: Check if we got data
 
-    // 2. Parse
     const parsedData = parseTCBHtml(htmlText);
 
     if (parsedData.length === 0) {
-      return { success: false, count: 0, message: 'No data found on source page. TCB might be down.' };
+      console.error("Parsing failed: 0 items found.");
+      return { success: false, count: 0, message: 'Could not read data. TCB page structure might have changed.' };
     }
 
-    // 3. Update Database
+    // Update Database
     const dataWithDate = parsedData.map(item => ({ ...item, dateFetched: new Date() }));
 
     await db.transaction('rw', db.marketPrices, async () => {
@@ -115,7 +129,7 @@ export const syncMarketPrices = async (): Promise<{ success: boolean; count: num
     return { 
       success: false, 
       count: 0, 
-      message: 'Connection failed. Try again or check if TCB website is accessible.' 
+      message: 'Connection failed. Please try again.' 
     };
   }
 };
