@@ -3,7 +3,7 @@ import {
   RefreshCw, 
   Wifi, 
   WifiOff, 
-  Signal, // NEW: Icon for Cellular data
+  Signal, 
   Clock, 
   Package, 
   ChevronRight,
@@ -20,7 +20,6 @@ const Market: React.FC = () => {
   const { theme } = useTheme();
   const [activeCategory, setActiveCategory] = useState('all');
 
-  // Destructure connectionType from hook
   const {
     prices,
     isLoading,
@@ -32,7 +31,6 @@ const Market: React.FC = () => {
     connectionType 
   } = useMarketPrices(activeCategory);
 
-  // ... (Categories and formatLastUpdated functions remain the same) ...
   const categories = [
     { key: 'all', label: t('market.categories.all') },
     { key: 'rice', label: t('market.categories.rice') },
@@ -50,17 +48,16 @@ const Market: React.FC = () => {
     }).format(date);
   };
 
-  // Helper to determine icon based on connectionType
   const getConnectionIcon = () => {
     if (!onlineStatus) return <WifiOff size={12} />;
     if (connectionType === 'wifi') return <Wifi size={12} />;
-    return <Signal size={12} />; // Defaults to Cellular signal for 4G/3G
+    return <Signal size={12} />;
   };
 
   const getConnectionText = () => {
     if (!onlineStatus) return t('common.offline');
     if (connectionType === 'wifi') return 'Wi-Fi';
-    return 'Mobile Data'; // Specific text for cellular
+    return 'Mobile Data';
   };
 
   return (
@@ -78,15 +75,14 @@ const Market: React.FC = () => {
             </p>
           </div>
           
-          {/* Sync & Status Button */}
           <div className="flex items-center gap-2">
             <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold ${
               onlineStatus 
                 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
                 : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
             }`}>
-              {getConnectionIcon()} {/* CHANGED: Dynamic Icon */}
-              {getConnectionText()} {/* CHANGED: Dynamic Text */}
+              {getConnectionIcon()}
+              {getConnectionText()}
             </div>
             
             <button 
@@ -129,7 +125,7 @@ const Market: React.FC = () => {
         </div>
       </div>
 
-      {/* Category Filter (Horizontal Scroll) */}
+      {/* Category Filter */}
       <div className={`flex gap-2 overflow-x-auto pb-4 no-scrollbar mb-2 ${theme === 'dark' ? 'scrollbar-thumb-gray-700' : 'scrollbar-thumb-earth-200'}`}>
         {categories.map((cat) => (
           <button
@@ -150,7 +146,7 @@ const Market: React.FC = () => {
         ))}
       </div>
 
-      {/* Content List */}
+      {/* Content List with SIMULTANEOUS ANIMATION */}
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
@@ -166,12 +162,19 @@ const Market: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-3">
-          {prices.map((item) => (
+          {prices.map((item, index) => (
             <div 
               key={item.id} 
-              className={`p-4 rounded-2xl border shadow-sm flex justify-between items-center transition-all active:scale-[0.99] ${
+              // ==========================================
+              // ANIMATION LOGIC:
+              // 1. Initial opacity 0
+              // 2. Animation delay based on index (100ms per item)
+              // 3. animate-slide-up-fade class handles the motion
+              // ==========================================
+              className={`p-4 rounded-2xl border shadow-sm flex justify-between items-center transition-all active:scale-[0.99] opacity-0 animate-slide-up-fade ${
                 theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'
               }`}
+              style={{ animationDelay: `${index * 100}ms` }} // Staggered delay
             >
               <div className="flex-1">
                 <h3 className={`font-bold text-base mb-1 ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>
@@ -194,6 +197,7 @@ const Market: React.FC = () => {
                    {t('market.priceRange')}
                 </div>
                 <div className={`text-lg font-bold text-earth-700 dark:text-earth-300`}>
+                  {/* Displaying Min/Max Range from your JSON */}
                   {formatCurrency(item.minPrice, lang)} - {formatCurrency(item.maxPrice, lang)}
                 </div>
               </div>
