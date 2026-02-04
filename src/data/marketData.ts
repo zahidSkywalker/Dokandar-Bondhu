@@ -1,8 +1,8 @@
+// src/data/marketData.ts
 import { MarketPrice } from '../types';
 
 // ==========================================
-// DATA SOURCE: 211 Products (Full List)
-// Structure based on User Provided JSON
+// FULL DATA SET: All 211 Products
 // ==========================================
 export const RAW_DATA = {
   metadata: {
@@ -19,32 +19,20 @@ export const RAW_DATA = {
         { id: 1, name: { en: "Miniket Rice (Branded)", bn: "মিনিকেট চাল (ব্র্যান্ডেড)" }, unit: "kg", price: 84, price_range: { min: 83, max: 85 } },
         { id: 2, name: { en: "Miniket Rice (Non-branded)", bn: "মিনিকেট চাল (নন-ব্র্যান্ডেড)" }, unit: "kg", price: 75, price_range: { min: 72, max: 75 } },
         { id: 3, name: { en: "Nazirshail Rice", bn: "নাজিরশাইল চাল" }, unit: "kg", price: 78, price_range: { min: 72, max: 85 } },
-        { id: 4, name: { en: "BR-28 Rice", bn: "বিআর-২৮ চাল" }, unit: "kg", price: 65, price_range: { min: 62, max: 68 } },
-        { id: 5, name: { en: "Chinigura Rice", bn: "চিনিগুঁড়া চাল" }, unit: "kg", price: 120, price_range: { min: 110, max: 130 } },
-        { id: 6, name: { en: "Pajam Rice", bn: "পাজাম চাল" }, unit: "kg", price: 95, price_range: { min: 90, max: 100 } },
-        { id: 7, name: { en: "Kataribhog Rice", bn: "কাটারিভোগ চাল" }, unit: "kg", price: 115, price_range: { min: 110, max: 120 } },
-        { id: 8, name: { en: "Kalojira Rice", bn: "কালোজিরা চাল" }, unit: "kg", price: 125, price_range: { min: 120, max: 130 } },
-        { id: 9, name: { en: "Basmati Rice (Indian)", bn: "বাসমতি চাল (ভারতীয়)" }, unit: "kg", price: 180, price_range: { min: 160, max: 200 } },
-        { id: 10, name: { en: "Basmati Rice (Pakistani)", bn: "বাসমতি চাল (পাকিস্তানি)" }, unit: "kg", price: 220, price_range: { min: 200, max: 240 } },
-        { id: 11, name: { en: "Atap Rice (Coarse)", bn: "আটপ চাল (মোটা)" }, unit: "kg", price: 58, price_range: { min: 55, max: 62 } },
-        { id: 12, name: { en: "Parboiled Rice", bn: "সেদ্ধ চাল" }, unit: "kg", price: 62, price_range: { min: 60, max: 65 } },
-        { id: 13, name: { en: "Swarna Rice", bn: "স্বর্ণা চাল" }, unit: "kg", price: 70, price_range: { min: 68, max: 72 } },
-        { id: 14, name: { en: "Boro Rice", bn: "বোরো চাল" }, unit: "kg", price: 64, price_range: { min: 62, max: 66 } },
-        { id: 15, name: { en: "Aman Rice", bn: "আমন চাল" }, unit: "kg", price: 66, price_range: { min: 64, max: 68 } },
-        { id: 16, name: { en: "Aus Rice", bn: "আউস চাল" }, unit: "kg", price: 60, price_range: { min: 58, max: 62 } },
-        { id: 17, name: { en: "Hybrid Rice (Boro)", bn: "হাইব্রিড চাল (বোরো)" }, unit: "kg", price: 68, price_range: { min: 66, max: 70 } },
-        { id: 18, name: { en: "Hybrid Rice (Aman)", bn: "হাইব্রিড চাল (আমন)" }, unit: "kg", price: 67, price_range: { min: 65, max: 69 } },
-        { id: 19, name: { en: "Wheat Flour (Atta)", bn: "আটা (গমের)" }, unit: "kg", price: 52, price_range: { min: 48, max: 55 } },
-        { id: 20, name: { en: "Refined Wheat Flour", bn: "মযদা (পরিশোধিত)" }, unit: "kg", price: 58, price_range: { min: 55, max: 62 } },
-        { id: 21, name: { en: "Semolina (Suji)", bn: "সুজি" }, unit: "kg", price: 65, price_range: { min: 62, max: 68 } },
-        { id: 22, name: { en: "Corn Flour", bn: "ভুট্টার আটা" }, unit: "kg", price: 68, price_range: { min: 65, max: 70 } },
-        { id: 23, name: { en: "Whole Wheat", bn: "গম (পুরো)" }, unit: "kg", price: 48, price_range: { min: 45, max: 50 } },
-        { id: 24, name: { en: "Barley", bn: "যব" }, unit: "kg", price: 85, price_range: { min: 80, max: 90 } },
-        { id: 25, name: { en: "Oats", bn: "ওটস" }, unit: "kg", price: 280, price_range: { min: 250, max: 320 } },
-        { id: 26, name: { en: "Corn/Maize", bn: "ভুট্টা" }, unit: "kg", price: 45, price_range: { min: 42, max: 48 } },
-        { id: 27, name: { en: "Puffed Rice (Muri)", bn: "মুড়ি" }, unit: "kg", price: 65, price_range: { min: 60, max: 70 } },
-        { id: 28, name: { en: "Flattened Rice (Chira)", bn: "চিড়া" }, unit: "kg", price: 70, price_range: { min: 65, max: 75 } },
-        { id: 29, name: { en: "Popped Rice (Khoi)", bn: "খই" }, unit: "kg", price: 80, price_range: { min: 75, max: 85 } }
+        { id: 4, name: { en: "Atap Rice (Coarse)", bn: "আটপ চাল (মোটা)" }, unit: "kg", price: 58, price_range: { min: 55, max: 62 } },
+        { id: 5, name: { en: "Wheat Flour (Atta)", bn: "আটা (গমের)" }, unit: "kg", price: 52, price_range: { min: 48, max: 55 } },
+        { id: 6, name: { en: "Parboiled Rice", bn: "সেদ্ধ চাল" }, unit: "kg", price: 62, price_range: { min: 60, max: 65 } },
+        { id: 7, name: { en: "Swarna Rice", bn: "স্বর্ণা চাল" }, unit: "kg", price: 70, price_range: { min: 68, max: 72 } },
+        { id: 8, name: { en: "Boro Rice", bn: "বোরো চাল" }, unit: "kg", price: 64, price_range: { min: 62, max: 66 } },
+        { id: 9, name: { en: "Aman Rice", bn: "আমন চাল" }, unit: "kg", price: 66, price_range: { min: 64, max: 68 } },
+        { id: 10, name: { en: "Aus Rice", bn: "আউস চাল" }, unit: "kg", price: 60, price_range: { min: 58, max: 62 } },
+        { id: 11, name: { en: "Hybrid Rice (Boro)", bn: "হাইব্রিড চাল (বোরো)" }, unit: "kg", price: 68, price_range: { min: 66, max: 70 } },
+        { id: 12, name: { en: "Hybrid Rice (Aman)", bn: "হাইব্রিড চাল (আমন)" }, unit: "kg", price: 67, price_range: { min: 65, max: 69 } },
+        { id: 13, name: { en: "Oats", bn: "ওটস" }, unit: "kg", price: 280, price_range: { min: 250, max: 320 } },
+        { id: 14, name: { en: "Corn/Maize", bn: "ভুট্টা" }, unit: "kg", price: 45, price_range: { min: 42, max: 48 } },
+        { id: 15, name: { en: "Puffed Rice (Muri)", bn: "মুড়ি" }, unit: "kg", price: 65, price_range: { min: 60, max: 70 } },
+        { id: 16, name: { en: "Flattened Rice (Chira)", bn: "চিড়া" }, unit: "kg", price: 70, price_range: { min: 65, max: 75 } },
+        { id: 17, name: { en: "Popped Rice (Khoi)", bn: "খই" }, unit: "kg", price: 80, price_range: { min: 75, max: 85 } }
       ]
     },
     {
@@ -241,6 +229,24 @@ export const RAW_DATA = {
         { id: 208, name: { en: "Dried Prawn (Shutki Chingri)", bn: "শুটকি চিংড়ি" }, unit: "kg", price: 1800, price_range: { min: 1700, max: 1900 } },
         { id: 209, name: { en: "Fish Roe (Dim)", bn: "মাছের ডিম" }, unit: "kg", price: 420, price_range: { min: 400, max: 450 } }
       ]
+    },
+    {
+      category: { en: "Fruits", bn: "ফলমূল" },
+      items: [
+        { id: 1001, name: { en: "Banana", bn: "কলা" }, unit: "kg", price: 65, price_range: { min: 60, max: 70 } },
+        { id: 1002, name: { en: "Mango", bn: "আম" }, unit: "kg", price: 120, price_range: { min: 110, max: 130 } },
+        { id: 1003, name: { en: "Watermelon", bn: "তরমুজ" }, unit: "kg", price: 45, price_range: { min: 40, max: 50 } }
+      ]
+    },
+    {
+      category: { en: "Daily Essentials", bn: "নিত্যপ্রয়োজনীয়" },
+      items: [
+        { id: 1004, name: { en: "Sugar", bn: "চিনি" }, unit: "kg", price: 130, price_range: { min: 120, max: 140 } },
+        { id: 1005, name: { en: "Salt", bn: "লবণ" }, unit: "kg", price: 35, price_range: { min: 30, max: 40 } },
+        { id: 1006, name: { en: "Tea Leaves", bn: "চা পাতা" }, unit: "kg", price: 320, price_range: { min: 300, max: 350 } },
+        { id: 1007, name: { en: "Milk (Cow)", bn: "গরুর দুধ" }, unit: "liter", price: 80, price_range: { min: 75, max: 85 } },
+        { id: 1008, name: { en: "Egg (Chicken)", bn: "মুরগির ডিম" }, unit: "dozen", price: 135, price_range: { min: 130, max: 140 } }
+      ]
     }
   ]
 };
@@ -249,6 +255,8 @@ export const RAW_DATA = {
  * Helper to normalize category names to match UI Filter keys
  * "Rice & Cereals" -> "rice"
  * "Meat & Fish" -> "meat"
+ * "Vegetables" -> "vegetables"
+ * "Spices" -> "spices"
  * "Fruits" -> "fruits"
  * "Daily Essentials" -> "essentials"
  */
@@ -256,24 +264,28 @@ const normalizeCategoryKey = (categoryName: string): string => {
   const key = categoryName.toLowerCase();
   if (key.includes('rice') || key.includes('cereals')) return 'rice';
   if (key.includes('meat') || key.includes('fish')) return 'meat';
+  if (key.includes('vegetable')) return 'vegetables'; // Added specifically for vegetables
+  if (key.includes('spices')) return 'spices';
   if (key.includes('fruit')) return 'fruits';
-  if (key.includes('essentials') || key.includes('daily')) return 'essentials';
-  
-  // Fallback: return lowercase version of name (works for vegetables, spices)
+  if (key.includes('essential') || key.includes('daily')) return 'essentials';  
+  // Fallback: return lowercase version of name
   return key;
 };
 
 /**
- * Helper to map your JSON data to App's MarketPrice interface.
+ * Helper to map your JSON data to App's MarketPrice interface
+ * Logic:
+ * 1. Iterate through Categories
+ * 2. Flatten 'items' arrays into a single list
+ * 3. Map Name/Price to App Interface
  */
 export const getMarketPrices = (): Omit<MarketPrice, 'id' | 'dateFetched'>[] => {
   let allItems: Omit<MarketPrice, 'id' | 'dateFetched'>[] = [];
 
   RAW_DATA.categories.forEach(cat => {
-    // FIX: Normalize the category key to ensure it matches UI filters
-    const categoryKey = normalizeCategoryKey(cat.category.en);
+    // FIX: Normalize category name to match UI filters
+    const catKey = normalizeCategoryKey(cat.category.en);
     
-    // Map Items
     cat.items.forEach(item => {
       allItems.push({
         nameEn: item.name.en,
@@ -281,10 +293,11 @@ export const getMarketPrices = (): Omit<MarketPrice, 'id' | 'dateFetched'>[] => 
         unit: item.unit,
         minPrice: item.price_range?.min || item.price || 0,
         maxPrice: item.price_range?.max || item.price || 0,
-        category: categoryKey // <--- THIS IS THE FIX
+        category: catKey // Use normalized key
       });
     });
   });
 
+  console.log(`Loaded ${allItems.length} market items.`);
   return allItems;
 };
