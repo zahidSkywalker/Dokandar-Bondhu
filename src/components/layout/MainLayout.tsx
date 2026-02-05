@@ -6,7 +6,6 @@ import Sales from '../views/Sales';
 import Expenses from '../views/Expenses';
 import Ledger from '../views/Ledger';
 import Settings from '../views/Settings';
-import Market from '../views/Market'; // NEW IMPORT
 import { useLanguage } from '../../context/LanguageContext';
 import { Settings as SettingsIcon, Moon, Sun } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
@@ -23,46 +22,59 @@ const MainLayout: React.FC = () => {
       case 'sales': return <Sales />;
       case 'expenses': return <Expenses />;
       case 'ledger': return <Ledger />;
-      case 'market': return <Market />; // NEW CASE
       case 'settings': return <Settings />;
       default: return <Dashboard />;
     }
   };
 
   return (
-    <div className={`min-h-screen font-sans pb-20 transition-colors duration-300 ${theme === 'dark' ? 'bg-gray-900 text-gray-100' : 'bg-cream-50 text-earth-900'}`}>
+    <div className={`min-h-screen font-sans pb-20 transition-colors duration-300 ${theme === 'dark' ? 'bg-slate-950 text-slate-200' : 'bg-slate-50 text-slate-900'}`}>
       
       {/* Header */}
-      <header className={`sticky top-0 z-30 border-b px-4 py-4 flex justify-between items-center ${theme === 'dark' ? 'bg-gray-800/90 border-gray-700 backdrop-blur-md' : 'bg-white/80 border-cream-200 backdrop-blur-md shadow-sm'}`}>
+      <header className={`
+        sticky top-0 z-30 border-b px-4 py-3.5 flex justify-between items-center backdrop-blur-md transition-colors duration-300
+        ${theme === 'dark' ? 'bg-slate-900/80 border-slate-800 text-white' : 'bg-white/80 border-slate-200 text-slate-800'}
+      `}>
         <div>
-          <h1 className={`font-bold text-xl tracking-tight ${theme === 'dark' ? 'text-white' : 'text-earth-800'}`}>{t('common.appName')}</h1>
-          <p className={`text-xs font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-earth-600'}`}>Business Manager</p>
+          <h1 className="font-bold text-xl tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+            <span className="w-2 h-6 bg-primary-600 rounded-full"></span>
+            {t('common.appName')}
+          </h1>
+          <p className={`text-xs font-medium ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} ml-4`}>Business Manager</p>
         </div>
         <div className="flex items-center gap-2">
           <button 
             onClick={() => setActiveTab(prev => prev === 'settings' ? 'dashboard' : 'settings')}
-            className={`p-2 rounded-xl ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-earth-50 text-earth-600'}`}
+            className={`p-2 rounded-xl transition-colors ${theme === 'dark' ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-600'}`}
           >
             <SettingsIcon size={20} />
           </button>
           
           <button 
             onClick={toggleLang}
-            className={`text-xs px-3 py-1.5 rounded-full font-bold border transition-colors ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-earth-50 border-earth-100 text-earth-800'}`}
+            className={`text-xs px-3 py-1.5 rounded-full font-semibold border transition-all duration-200 ${
+              theme === 'dark' 
+                ? 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700' 
+                : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+            }`}
           >
             {lang === 'en' ? 'বাংলা' : 'English'}
           </button>
           
           <button 
             onClick={toggleTheme}
-            className={`p-2 rounded-xl ${theme === 'dark' ? 'bg-gray-700 text-yellow-400' : 'bg-earth-50 text-earth-600'}`}
+            className={`p-2 rounded-xl transition-all duration-200 ${
+              theme === 'dark' 
+                ? 'bg-slate-800 text-amber-400 hover:bg-slate-700' 
+                : 'bg-amber-50 text-amber-600 hover:bg-amber-100'
+            }`}
           >
-            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </button>
         </div>
       </header>
 
-      <main className="animate-fade-in px-4 pt-4">
+      <main className="animate-fade-in px-4 pt-4 max-w-2xl mx-auto">
         {renderContent()}
       </main>
 
