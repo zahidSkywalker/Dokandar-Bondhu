@@ -1,18 +1,15 @@
 import React from 'react';
-import { ArrowUpRight, ArrowDownRight, Package, TrendingUp, Wallet, AlertTriangle, ShoppingCart, Activity, Award, Calendar } from 'lucide-react';
-import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts'; // Added missing imports
+import { ArrowUpRight, ArrowDownRight, Package, TrendingUp, Wallet, AlertTriangle, ShoppingCart, TrendingDown } from 'lucide-react';
+import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useDashboardStats } from '../../hooks/useDashboardStats';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../context/ThemeContext';
 import { formatCurrency, formatDate, getGreetingIcon } from '../../lib/utils';
-import Badge from '../ui/Badge';
 
 const Dashboard: React.FC = () => {
   const { t, lang } = useLanguage();
   const { theme } = useTheme();
-  const GreetingIcon = getGreetingIcon();
-
-  const {
+  const { 
     totalSales, 
     totalProfit, 
     totalExpense, 
@@ -28,27 +25,12 @@ const Dashboard: React.FC = () => {
     totalSalesMonth,
     netMonthlyProfit,
     stockPredictions,
-    analyzeProfitability
+    // NEW: Feature 5
+    salesGrowth,
+    profitInsights
   } = useDashboardStats();
 
-  // Reusable Card Component (Moved inside to avoid import errors)
-  const InsightCard: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode; type?: 'success' | 'warning' }> = ({ title, icon, children, type = 'success' }) => (
-    <div className={`p-5 rounded-2xl border shadow-sm ${type === 'warning' ? 'bg-orange-50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900' : 'bg-white dark:bg-gray-800 border-cream-200 dark:border-gray-700'}`}>
-      <div className="flex items-start gap-4">
-        <div className={`p-3 rounded-full ${type === 'warning' ? 'bg-orange-100 dark:bg-orange-900/20' : 'bg-earth-50 dark:bg-earth-900/20'}`}>
-          {icon}
-        </div>
-        <div className="flex-1">
-          <h4 className={`font-bold text-base ${type === 'warning' ? 'text-orange-700 dark:text-orange-300' : 'text-earth-700 dark:text-earth-200'}`}>
-            {title}
-          </h4>
-          <div className={`text-sm ${type === 'warning' ? 'text-orange-600 dark:text-orange-400' : 'text-gray-600 dark:text-gray-400'}`}>
-            {children}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  const GreetingIcon = getGreetingIcon();
 
   if (isLoading) return <div className="p-4 text-center">Loading...</div>;
 
@@ -58,26 +40,27 @@ const Dashboard: React.FC = () => {
     { name: 'Inventory Cost', value: totalInventoryExpenseMonth },
   ];
 
-  // Helper to get prediction details
-  const getPrediction = (productId: number) => {
-    const prediction = stockPredictions.find(p => p.productId === productId);
-    if (!prediction) return { alertLevel: 'normal', daysLeft: 999, daysLeftText: 'No Data' };
-    return {
-      ...prediction,
-      alertLevel: prediction.alertLevel || 'normal',
-      daysLeftText: prediction.daysLeft === 999 ? 'No Sales Data' : `${prediction.daysLeft} Days Left`
-    };
-  };
-
   return (
     <div className="space-y-6 pb-24 max-w-2xl mx-auto">
       {/* Greeting */}
-      <div className="mb-2 animate-fade-in flex items-center gap-3">
-        <GreetingIcon className="text-yellow-500 w-8 h-8" />
-        <div>
-          <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{greeting}</h2>
-          <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-earth-600'}`}>Here is your business overview</p>
+      <div className="mb-2 animate-fade-in flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <GreetingIcon className="text-yellow-500 w-8 h-8" />
+          <div>
+            <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{greeting}</h2>
+            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-earth-600'}`}>Here is your business overview</p>
+          </div>
         </div>
+        
+        {/* NEW: Growth Indicator (Feature 5) */}
+        {salesGrowth !== 0 && (
+          <div className={`flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full ${
+            salesGrowth > 0 ? 'bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-400' : 'bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400'
+          }`}>
+            {salesGrowth > 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+            {Math.abs(salesGrowth).toFixed(1)}% vs Yest.
+          </div>
+        )}
       </div>
 
       {/* Main Stats Card */}
@@ -98,6 +81,45 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* NEW: Profit Insights (Feature 5) */}
+      {profitInsights && (
+        <div className={`p-5 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
+          <h3 className={`font-bold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>
+            <TrendingUp className="text-blue-500" size={18} /> Profit Insights
+          </h3>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs font-bold text-earth-500 dark:text-gray-400 mb-2 uppercase">Top Performers (30d)</p>
+              <div className="space-y-2">
+                {profitInsights.top5.slice(0, 3).map((p, i) => (
+                  <div key={i} className="flex justify-between text-xs items-center">
+                    <span className="truncate w-24 font-medium text-gray-700 dark:text-gray-300">{p.name}</span>
+                    <span className="font-bold text-green-600 dark:text-green-400">
+                      {formatCurrency(p.totalProfit, lang)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div>
+              <p className="text-xs font-bold text-earth-500 dark:text-gray-400 mb-2 uppercase">Needs Attention</p>
+              <div className="space-y-2">
+                {profitInsights.bottom5.slice(0, 3).map((p, i) => (
+                  <div key={i} className="flex justify-between text-xs items-center">
+                    <span className="truncate w-24 font-medium text-gray-700 dark:text-gray-300">{p.name}</span>
+                    <span className="font-bold text-orange-600 dark:text-orange-400">
+                      {formatCurrency(p.totalProfit, lang)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Monthly Breakdown */}
       <div className={`p-5 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
         <div className="flex justify-between items-center mb-4">
@@ -116,7 +138,7 @@ const Dashboard: React.FC = () => {
            </div>
         </div>
 
-        <div className={`p-4 rounded-xl mb-4 ${netMonthlyProfit >= 0 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'} border ${netMonthlyProfit >= 0 ? 'border-green-100 dark:border-green-900' : 'border-red-100 dark:border-red-900'}`}>
+        <div className={`p-4 rounded-xl mb-4 ${netMonthlyProfit >= 0 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'} border ${netMonthlyProfit >= 0 ? 'border-green-100 dark:border-green-900' : 'border-red-100 dark:border-red-900'} mb-4`}>
           <p className={`text-xs font-bold mb-1 uppercase ${netMonthlyProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>Net Monthly Profit</p>
           <p className={`text-2xl font-bold ${netMonthlyProfit >= 0 ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
             {formatCurrency(netMonthlyProfit, lang)}
@@ -142,7 +164,7 @@ const Dashboard: React.FC = () => {
              <Package className={lowStockCount > 0 ? 'text-red-500' : 'text-earth-400 dark:text-gray-500'} size={18} />
           </div>
           <p className={`text-xl font-bold ${lowStockCount > 0 ? 'text-red-600' : (theme === 'dark' ? 'text-white' : 'text-earth-800')}`}>
-            {lowStockCount} <span className="text-xs font-normal"> items</span>
+            {lowStockCount} <span className="text-xs font-normal">items</span>
           </p>
         </div>
       </div>
@@ -164,12 +186,10 @@ const Dashboard: React.FC = () => {
                .filter(p => p.daysLeft < 999)
                .sort((a, b) => a.daysLeft - b.daysLeft)
                .slice(0, 5)
-               .map((item) => {
-                  const prediction = getPrediction(item.productId);
-                  const isCritical = prediction.daysLeft < 3;
-                  
+               .map((product) => {
+                  const isCritical = product.daysLeft < 3;
                   return (
-                    <div key={item.id} className={`flex justify-between items-center p-3 rounded-lg border ${
+                    <div key={product.id} className={`flex justify-between items-center p-3 rounded-lg border ${
                       isCritical 
                         ? 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900' 
                         : 'bg-orange-50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900'
@@ -177,11 +197,11 @@ const Dashboard: React.FC = () => {
                       <div className="flex items-center gap-2">
                          <div className={`w-2 h-2 rounded-full ${isCritical ? 'bg-red-500' : 'bg-orange-500'}`} />
                          <span className={`font-bold ${isCritical ? 'text-red-700 dark:text-red-300' : 'text-orange-700 dark:text-orange-300'}`}>
-                           {prediction.productName}
+                           {product.name}
                          </span>
                       </div>
                       <span className={`text-xs font-bold ${isCritical ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'}`}>
-                         {prediction.daysLeft === 999 ? 'No Sales Data' : `${prediction.daysLeft} Days Left`}
+                         {product.daysLeft === 999 ? 'No Sales Data' : `${product.daysLeft} Days Left`}
                       </span>
                     </div>
                   );
