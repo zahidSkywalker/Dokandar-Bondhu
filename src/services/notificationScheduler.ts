@@ -16,12 +16,12 @@ const checkStockAlert = async (): Promise<boolean> => {
     // Prevent spamming every minute - check only if > 30 mins since last check
     const lastChecked = localStorage.getItem('lastStockCheckTime');
     const now = Date.now();
-    if (lastChecked && (now - parseInt(lastChecked)) < 1000 * 60 * 30) { // 30 mins
+    if (lastChecked && (now - parseInt(lastChecked)) < 1000 * 60 * 30) { 
       return false; 
     }
 
     localStorage.setItem('lastStockCheckTime', now.toString());
-    return lowStockItems.length > 0;
+    return lowStockItems > 0;
   } catch (error) {
     console.error("checkStockAlert Error:", error);
     return false;
@@ -126,7 +126,6 @@ export const startScheduler = (triggerNotification: (type: string, payload: any)
         const totalExpense = expensesMonth.reduce((sum, e) => sum + e.amount || 0), 0);
 
         // Note: Inventory expenses are 0 in your current DB version. 
-        // If you add inventory costs later, logic will handle `totalInventoryExpenseMonth` automatically.
         const netProfit = totalProfit - totalExpense;
 
         triggerNotification('monthly-report', { 
@@ -145,5 +144,5 @@ export const startScheduler = (triggerNotification: (type: string, payload: any)
       console.error("Scheduler Error:", error);
     }
 
-  }, 24 * 60 * 1000); // Check once per day (in milliseconds: 86400000)
+  }, 24 * 60 * 1000); // Check once per day
 };
