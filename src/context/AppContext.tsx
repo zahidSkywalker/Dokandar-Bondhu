@@ -1,36 +1,56 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { db } from '../db/db';
-import { Product, Sale, Expense, Customer, Staff, InventoryExpense } from '../types';
+import { 
+  Product, 
+  Sale, 
+  Expense, 
+  Customer, 
+  Staff, 
+  InventoryExpense, 
+  MarketPrice, 
+  Supplier, 
+  StockPrediction 
+} from '../types';
 
+// Extended Context Interface
 interface AppContextType {
-  // Products
+  // --- Products ---
   addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   updateProduct: (id: number, product: Partial<Product>) => Promise<void>;
   deleteProduct: (id: number) => Promise<void>;
   
-  // Sales
+  // --- Sales ---
   addSale: (sale: Omit<Sale, 'id' | 'total' | 'profit'>) => Promise<void>;
   deleteSale: (id: number) => Promise<void>;
   
-  // Expenses
+  // --- Expenses ---
   addExpense: (expense: Omit<Expense, 'id'>) => Promise<void>;
   deleteExpense: (id: number) => Promise<void>;
 
-  // NEW: Inventory Expenses
+  // --- NEW: Inventory Expenses ---
   addInventoryExpense: (expense: Omit<InventoryExpense, 'id'>) => Promise<void>;
 
-  // NEW: Customers (Baki Khata)
+  // --- NEW: Customers (Baki Khata) ---
   addCustomer: (customer: Omit<Customer, 'id' | 'debt' | 'createdAt'>) => Promise<void>;
-  updateCustomerDebt: (customerId: number, amount: number) => Promise<void>; // + or -
+  updateCustomerDebt: (customerId: number, amount: number) => Promise<void>;
   
-  // NEW: Staff
+  // --- NEW: Staff ---
   addStaff: (staff: Omit<Staff, 'id' | 'active'>) => Promise<void>;
+
+  // --- NEW: Market Prices ---
+  syncMarketPrices: (data: Omit<MarketPrice, 'id' | 'dateFetched'>[]) => Promise<void>;
+
+  // --- NEW: Suppliers ---
+  addSupplier: (supplier: Omit<Supplier, 'id'>) => Promise<void>;
+
+  // --- NEW: Notification Trigger ---
+  triggerNotification: (type: string, payload?: any) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-
+  
   // --- Products (Existing) ---
   const addProduct = async (productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
@@ -49,7 +69,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     catch (error) { throw new Error("Could not delete product."); }
   };
 
-  // --- Sales (Updated with Customer/Staff) ---
+  // --- Sales (Updated for Baki Khata) ---
   const addSale = async (saleData: Omit<Sale, 'id' | 'total' | 'profit'>) => {
     if (saleData.quantity <= 0) throw new Error("Quantity must be positive");
 
@@ -68,7 +88,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         // Add Sale
         await db.sales.add({ ...saleData, total, profit });
 
-        // Add Debt if Baki Khata
+        // Add Debt if Baki Khata (Customer Linked)
         if (saleData.customerId) {
           const customer = await db.customers.get(saleData.customerId);
           if (customer) {
@@ -76,9 +96,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           }
         }
       });
-    } catch (error) {
-      throw error; 
-    }
+    } catch (error) { throw error; }
   };
 
   const deleteSale = async (id: number) => {
@@ -88,7 +106,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       await db.transaction('rw', db.products, db.sales, db.customers, async () => {
         const product = await db.products.get(sale.productId);
         if (product) await db.products.update(product.id!, { stock: product.stock + sale.quantity });
-        // Reverse Debt (optional logic, usually refunds are rare in khata)
+        // Reverse Debt (Optional logic)
         await db.sales.delete(id);
       });
     } catch (error) { throw new Error("Could not delete sale."); }
@@ -118,7 +136,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const updateCustomerDebt = async (customerId: number, amount: number) => {
-    // If amount is negative, they are paying. If positive, adding debt.
     try {
       await db.transaction('rw', db.customers, async () => {
         const customer = await db.customers.get(customerId);
@@ -140,13 +157,46 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     catch (error) { throw new Error("Could not add staff."); }
   };
 
+  // --- NEW: Market Prices (Sync) ---
+  const syncMarketPrices = async (data: Omit<MarketPrice, 'id' | 'dateFetched'>[]) => {
+    try {
+      const dataWithDate = data.map(item => ({ ...item, dateFetched: new Date() }));
+
+      await db.transaction('rw', db.marketPrices, async () => {
+        await db.marketPrices.clear(); // Clear old
+        await db.marketPrices.bulkAdd(dataWithDate); // Add new
+      });
+    } catch (error) {
+      throw new Error("Failed to sync market prices.");
+    }
+  };
+
+  // --- NEW: Suppliers ---
+  const addSupplier = async (supplierData: Omit<Supplier, 'id'>) => {
+    try { await db.suppliers.add({ ...supplierData }); } 
+    catch (error) { throw new Error("Could not add supplier."); }
+  };
+
+  // --- NEW: Notification Trigger ---
+  const triggerNotification = async (type: string, payload?: any) => {
+    console.log(`[AppContext] Triggered Notification: ${type}`, payload);
+    // In a real app with a UI list, we would update a state here.
+    // Since this is a conceptual "Serverless" PWA, we assume the UI listens to the hook `usePushNotifications`.
+    // However, to keep the Context in charge of *dispatching*:
+    // We just log it here for now, or could integrate with a local DB notification log if we had one.
+    // The logic in `notificationScheduler.ts` calls this method.
+  };
+
   const value: AppContextType = {
     addProduct, updateProduct, deleteProduct,
     addSale, deleteSale,
     addExpense, deleteExpense,
     addInventoryExpense,
     addCustomer, updateCustomerDebt,
-    addStaff
+    addStaff,
+    syncMarketPrices,
+    addSupplier,
+    triggerNotification
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
