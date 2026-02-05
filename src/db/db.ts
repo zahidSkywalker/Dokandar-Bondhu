@@ -13,7 +13,8 @@ class DokandarDB extends Dexie {
   suppliers!: Table<Supplier>; // NEW: For Feature 3
   // Optional: For caching daily stats calculation
   dailyStats!: Table<any>;
-
+  // NEW: Supplier Store
+  suppliers!: Table<Supplier>;
   constructor() {
     super('DokandarBondhuDB');
     
