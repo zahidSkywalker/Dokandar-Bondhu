@@ -1,4 +1,6 @@
-import { AppContextType } from '../context/AppContext';
+import { db } from '../db/db';
+// Note: We import 'db' directly because 'AppContextType' doesn't expose the database object. 
+// We only need the trigger function signature for type safety.
 
 // Business Rules Configuration
 const RULES = {
@@ -8,62 +10,72 @@ const RULES = {
 
 /**
  * Helper to check stock status
+ * Directly accesses db.products to avoid type errors
  */
-const checkStockAlert = async (getContext: () => AppContextType): Promise<boolean> => {
-  const { db } = getContext();
-  const lowStockItems = await db.products.where('stock').below(RULES.STOCK_LOW_THRESHOLD).toArray();
+const checkStockAlert = async (): Promise<boolean> => {
+  try {
+    const lowStockItems = await db.products.where('stock').below(RULES.STOCK_LOW_THRESHOLD).toArray();
   
-  // Prevent spamming every minute - check only if > 30 mins since last check
-  const lastChecked = localStorage.getItem('lastStockCheckTime');
-  const now = Date.now();
-  if (lastChecked && (now - parseInt(lastChecked)) < 1000 * 60 * 30) { // 30 mins
-    return false; 
-  }
+    // Prevent spamming - check only if > 30 mins since last check
+    const lastChecked = localStorage.getItem('lastStockCheckTime');
+    const now = Date.now();
+    if (lastChecked && (now - parseInt(lastChecked)) < 1000 * 60 * 30) { // 30 mins
+      return false; 
+    }
 
-  localStorage.setItem('lastStockCheckTime', now.toString());
-  return lowStockItems.length > 0;
+    localStorage.setItem('lastStockCheckTime', now.toString());
+    return lowStockItems.length > 0;
+  } catch (error) {
+    console.error("checkStockAlert Error:", error);
+    return false;
+  }
 };
 
 /**
  * Helper to check if any payment is due today (Simplified)
+ * Directly accesses db.customers to avoid type errors
  */
-const checkDuePayments = async (getContext: () => AppContextType): Promise<boolean> => {
-  const { db } = getContext();
-  const allCustomers = await db.customers.toArray();
-  const today = new Date().toDateString(); // "YYYY-MM-DD"
+const checkDuePayments = async (): Promise<boolean> => {
+  try {
+    const allCustomers = await db.customers.toArray();
+    const today = new Date().toDateString(); // "YYYY-MM-DD"
 
-  // Find customers with debt
-  const debtors = allCustomers.filter(c => c.debt > 0 && (
-    c.name.includes(today) || 
-    c.debt.toString().includes(today)
-  ));
+    // Find customers with debt
+    const debtors = allCustomers.filter(c => c.debt > 0 && (
+      c.name.includes(today) || 
+      c.debt.toString().includes(today)
+    ));
 
-  return debtors.length > 0;
+    return debtors.length > 0;
+  } catch (error) {
+    console.error("checkDuePayments Error:", error);
+    return false;
+  }
 };
 
 /**
  * Main Scheduler Logic
  * Checks Business Rules (Low Stock, Due Payments) and generates reports.
+ * 
+ * @param triggerNotification - Passed in from AppContext to dispatch notifications
  */
-export const startScheduler = (getContext: () => AppContextType) => {
+export const startScheduler = (triggerNotification: (type: string, payload: any) => Promise<void>) => {
   console.log("🕵 Starting Notification Scheduler (Business Logic Loop)...");
 
   setInterval(async () => {
     try {
-      const context = getContext();
-
       // --- 1. Check Low Stock ---
-      const isLowStock = await checkStockAlert(context);
+      const isLowStock = await checkStockAlert();
       if (isLowStock) {
         const lowestStock = await db.products.where('stock').below(RULES.STOCK_LOW_THRESHOLD).first();
         if (lowestStock) {
           const lowestName = lowestStock.name;
-          context.triggerNotification('stock-alert', { title: 'Low Stock', body: `${lowestName} stock is running low!`, icon: 'https://cdn-icons-png.flaticon.com/512/567423.png', tag: 'stock-alert' });
+          triggerNotification('stock-alert', { title: 'Low Stock', body: `${lowestName} stock is running low!`, icon: 'https://cdn-icons-png.flaticon.com/512/567423.png', tag: 'stock-alert' });
         }
       }
 
       // --- 2. Check Due Payments ---
-      const isDueDate = await checkDuePayments(context);
+      const isDueDate = await checkDuePayments();
       if (isDueDate) {
         const customers = await db.customers.toArray();
         const today = new Date().toDateString();
@@ -75,7 +87,7 @@ export const startScheduler = (getContext: () => AppContextType) => {
         ));
         
         if (debtors.length > 0) {
-          context.triggerNotification('payment-due', { title: 'Payment Due', body: `You have ${debtors.length} payments due today!`, icon: 'https://cdn-icons-png.flaticon.com/512/567423.png', tag: 'payment-due' });
+          triggerNotification('payment-due', { title: 'Payment Due', body: `You have ${debtors.length} payments due today!`, icon: 'https://cdn-icons-png.flaticon.com/512/567423.png', tag: 'payment-due' });
         }
       }
 
@@ -90,7 +102,7 @@ export const startScheduler = (getContext: () => AppContextType) => {
         const totalSales = salesToday.reduce((sum, s) => sum + s.total, 0);
         const totalProfit = salesToday.reduce((sum, s) => sum + s.profit, 0);
 
-        context.triggerNotification('daily-report', { 
+        triggerNotification('daily-report', { 
           type: 'daily-report',
           totalSales,
           totalProfit,
@@ -121,7 +133,7 @@ export const startScheduler = (getContext: () => AppContextType) => {
         // If you add inventory costs later, logic will handle `totalInventoryExpenseMonth` automatically.
         const netProfit = totalProfit - totalExpense;
 
-        context.triggerNotification('monthly-report', { 
+        triggerNotification('monthly-report', { 
           type: 'monthly-report',
           totalSales,
           totalProfit,
@@ -137,5 +149,5 @@ export const startScheduler = (getContext: () => AppContextType) => {
       console.error("Scheduler Error:", error);
     }
 
-  }, 24 * 60 * 1000); // Check once per day
+  }, 24 * 60 * 1000); // Check once per day (in milliseconds: 86400000)
 };
