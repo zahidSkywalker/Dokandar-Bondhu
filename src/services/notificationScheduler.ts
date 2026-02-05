@@ -1,6 +1,4 @@
 import { db } from '../db/db';
-// Note: We import 'db' directly because 'AppContextType' doesn't expose the database object. 
-// We only need the trigger function signature for type safety.
 
 // Business Rules Configuration
 const RULES = {
@@ -10,13 +8,12 @@ const RULES = {
 
 /**
  * Helper to check stock status
- * Directly accesses db.products to avoid type errors
  */
 const checkStockAlert = async (): Promise<boolean> => {
   try {
     const lowStockItems = await db.products.where('stock').below(RULES.STOCK_LOW_THRESHOLD).toArray();
-  
-    // Prevent spamming - check only if > 30 mins since last check
+    
+    // Prevent spamming every minute - check only if > 30 mins since last check
     const lastChecked = localStorage.getItem('lastStockCheckTime');
     const now = Date.now();
     if (lastChecked && (now - parseInt(lastChecked)) < 1000 * 60 * 30) { // 30 mins
@@ -33,7 +30,6 @@ const checkStockAlert = async (): Promise<boolean> => {
 
 /**
  * Helper to check if any payment is due today (Simplified)
- * Directly accesses db.customers to avoid type errors
  */
 const checkDuePayments = async (): Promise<boolean> => {
   try {
