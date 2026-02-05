@@ -166,10 +166,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   // --- NEW: Suppliers (Feature 3) ---
-  // FIXED: Explicit return type to satisfy TS2322
   const addSupplier = async (supplierData: Omit<Supplier, 'id'>): Promise<number> => {
     try { 
-      return await db.suppliers.add(supplierData); 
+      // FIX: Explicit cast to 'number' to satisfy TS2322 error regarding IndexableType
+      return (await db.suppliers.add(supplierData)) as number;
     } catch (error) { 
       throw new Error("Could not save supplier."); 
     }
