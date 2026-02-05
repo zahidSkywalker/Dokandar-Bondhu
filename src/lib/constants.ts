@@ -92,6 +92,14 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
       stockWarning: "Warning",
       daysLeft: "Days Left",
       stockUnknown: "No Sales Data"
+    },
+            // NEW: Notification Keys
+      stockLow: "Low Stock",
+      stockOut: "Stock Out",
+      stockCritical: "Critical",
+      stockWarning: "Warning",
+      daysLeft: "Days Left",
+      stockUnknown: "No Sales Data"
     }
   },
   bn: {
