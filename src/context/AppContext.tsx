@@ -22,7 +22,7 @@ interface AppContextType {
   // Customers (Baki Khata)
   addCustomer: (customer: Omit<Customer, 'id' | 'debt' | 'createdAt'>) => Promise<void>;
   updateCustomerDebt: (customerId: number, amount: number) => Promise<void>; 
-  updateCustomer: (id: number, data: Partial<Customer>) => Promise<void>; // NEW: Feature 1
+  updateCustomer: (id: number, data: Partial<Customer>) => Promise<void>;
 
   // Staff
   addStaff: (staff: Omit<Staff, 'id' | 'active'>) => Promise<void>;
@@ -71,14 +71,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const total = saleData.sellPrice * saleData.quantity;
         const profit = (saleData.sellPrice - saleData.buyPrice) * saleData.quantity;
 
-        // 1. Update Stock
+        //1. Update Stock
         await db.products.update(product.id!, { stock: product.stock - saleData.quantity, updatedAt: new Date() });
 
         // 2. Add Sale
         await db.sales.add({ ...saleData, total, profit });
 
         // 3. Log Price History (Feature 6)
-        // We log prices at the moment of sale to track trends and calculate future margins
         await db.priceHistory.add({
           productId: product.id!,
           buyPrice: saleData.buyPrice,
@@ -167,7 +166,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   // --- NEW: Suppliers (Feature 3) ---
-  const addSupplier = async (supplierData: Omit<Supplier, 'id'>) => {
+  // FIXED: Explicit return type to satisfy TS2322
+  const addSupplier = async (supplierData: Omit<Supplier, 'id'>): Promise<number> => {
     try { 
       return await db.suppliers.add(supplierData); 
     } catch (error) { 
@@ -175,7 +175,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
-  const getSuppliers = async () => {
+  const getSuppliers = async (): Promise<Supplier[]> => {
     return await db.suppliers.toArray();
   };
 
