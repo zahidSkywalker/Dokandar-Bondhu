@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Plus, Check, ShoppingCart, User, Users } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Plus, Check, ShoppingCart, User, Users, AlertTriangle, Calendar } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
 import { useApp } from '../../context/AppContext';
@@ -16,14 +16,15 @@ const Sales: React.FC = () => {
   const { addSale } = useApp();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [productId, setProductId] = useState<string>('');
-  const [customerId, setCustomerId] = useState<string>(''); // New
-  const [staffId, setStaffId] = useState<string>(''); // New
+  const [customerId, setCustomerId] = useState<string>('');
+  const [staffId, setStaffId] = useState<string>('');
   const [quantity, setQuantity] = useState('');
+  const [dueDate, setDueDate] = useState<string>(''); // NEW: Feature 1
+  const [marginAlert, setMarginAlert] = useState<string | null>(null); // NEW: Feature 6
 
   const products = useLiveQuery(() => db.products.toArray());
-  const customers = useLiveQuery(() => db.customers.toArray()); // New
-  const staff = useLiveQuery(() => db.staff.toArray()); // New
-  
+  const customers = useLiveQuery(() => db.customers.toArray());
+  const staff = useLiveQuery(() => db.staff.toArray());
   const recentSales = useLiveQuery(
     () => db.sales.orderBy('date').reverse().limit(10).toArray(),
     []
@@ -31,6 +32,26 @@ const Sales: React.FC = () => {
 
   const selectedProduct = useMemo(() => products?.find(p => p.id === Number(productId)), [productId, products]);
   const selectedCustomer = useMemo(() => customers?.find(c => c.id === Number(customerId)), [customerId, customers]);
+
+  // NEW: Margin Alert Logic (Feature 6)
+  useEffect(() => {
+    if (selectedProduct && quantity) {
+      const buy = selectedProduct.buyPrice;
+      const sell = selectedProduct.sellPrice;
+      const margin = sell - buy;
+      const marginPercent = buy > 0 ? (margin / buy) * 100 : 0;
+
+      if (margin < 0) {
+        setMarginAlert("Selling at a loss!");
+      } else if (marginPercent < 10) {
+        setMarginAlert("Low margin (under 10%)");
+      } else {
+        setMarginAlert(null);
+      }
+    } else {
+      setMarginAlert(null);
+    }
+  }, [selectedProduct, quantity]);
 
   const handleSale = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,12 +66,15 @@ const Sales: React.FC = () => {
         date: new Date(),
         customerId: customerId ? Number(customerId) : undefined,
         staffId: staffId ? Number(staffId) : undefined,
+        dueDate: dueDate ? new Date(dueDate) : undefined, // NEW: Feature 1
       });
       setIsModalOpen(false);
       setProductId('');
       setCustomerId('');
       setStaffId('');
       setQuantity('');
+      setDueDate('');
+      setMarginAlert(null);
     } catch (err: any) { alert(err.message || "Error"); }
   };
 
@@ -70,6 +94,12 @@ const Sales: React.FC = () => {
                 <h3 className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{sale.productName}</h3>
                 <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}`}>{formatDate(sale.date, lang)} • {sale.quantity} pcs</p>
                 {sale.customerId && <span className="text-[10px] text-blue-500 flex items-center gap-1"><User size={10}/> Due Customer</span>}
+                {/* NEW: Due Date Indicator (Feature 1) */}
+                {sale.dueDate && (
+                   <span className="text-[10px] text-orange-500 flex items-center gap-1">
+                      <Calendar size={10} /> Due: {new Date(sale.dueDate).toLocaleDateString()}
+                   </span>
+                )}
               </div>
             </div>
             <div className="text-right">
@@ -101,12 +131,37 @@ const Sales: React.FC = () => {
             {staff?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
 
+          {/* NEW: Due Date (Feature 1) */}
+          {selectedCustomer && (
+             <div className="mb-4">
+               <label className={`block text-sm font-bold mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-earth-700'}`}>Due Date (Optional)</label>
+               <input 
+                 type="date" 
+                 className={`w-full px-4 py-3 rounded-xl focus:outline-none focus:ring-2 ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-cream-200 text-earth-800'}`}
+                 value={dueDate}
+                 onChange={(e) => setDueDate(e.target.value)}
+               />
+             </div>
+          )}
+
           {selectedProduct && (
             <div className={`p-4 rounded-xl mb-4 border ${theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-cream-50 border-cream-100'}`}>
               <div className="flex justify-between text-sm mb-1"><span className={theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}>Price:</span><span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-800'}`}>{formatCurrency(selectedProduct.sellPrice, lang)}</span></div>
               <div className="flex justify-between text-sm"><span className={theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}>Stock:</span><span className={`font-bold ${selectedProduct.stock < 5 ? 'text-red-500' : (theme === 'dark' ? 'text-white' : 'text-earth-700')}`}>{selectedProduct.stock}</span></div>
             </div>
           )}
+
+          {/* NEW: Margin Alert UI (Feature 6) */}
+          {marginAlert && (
+             <div className={`p-3 rounded-lg mb-4 flex items-center gap-2 text-xs font-bold ${
+                marginAlert.includes("loss") 
+                ? "bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400" 
+                : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400"
+             }`}>
+                <AlertTriangle size={14} /> {marginAlert}
+             </div>
+          )}
+
           <Input label={t('sales.quantity')} type="number" min="1" required value={quantity} onChange={(e) => setQuantity(e.target.value)} />
           {selectedProduct && quantity && (
              <div className={`mb-4 p-4 rounded-xl flex justify-between items-center shadow-lg ${selectedCustomer ? 'bg-blue-600 text-white' : 'bg-earth-800 text-white'}`}>
