@@ -84,6 +84,14 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
       syncSuccess: "Prices updated successfully!",
       syncError: "Failed to update prices. Check internet connection.",
       syncInProgress: "Updating prices...",
+    },
+     // NEW: Stock Alert Keys
+      stockLow: "Low Stock",
+      stockOut: "Stock Out",
+      stockCritical: "Critical",
+      stockWarning: "Warning",
+      daysLeft: "Days Left",
+      stockUnknown: "No Sales Data"
     }
   },
   bn: {
@@ -169,6 +177,13 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
       syncSuccess: "বাজার দর সফলভাবে আপডেট হয়েছে!",
       syncError: "আপডেট করতে ব্যর্থ হয়েছে। ইন্টারনেট সংযোগ পরীক্ষা করুন।",
       syncInProgress: "আপডেট হচ্ছে...",
+    },
+     stockLow: "কম মজুদ",
+      stockOut: "মজুদ শেষ",
+      stockCritical: "গুরুত্ব",
+      stockWarning: "সতর্তবক",
+      daysLeft: "দিন বাকি আছে",
+      stockUnknown: "বিক্রয়ার নেই"
     }
   }
 };
