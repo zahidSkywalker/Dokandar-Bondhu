@@ -116,3 +116,20 @@ export interface Translation {
   staff: Record<string, string>;
   market: MarketTranslation; // FIXED: Uses specific nested type
 }
+
+// NEW: Stock Prediction & Alert Types
+export interface StockPrediction {
+  productId: number;
+  productName: string;
+  currentStock: number;
+  daysLeft: number;
+  avgDailySales: number;
+  alertLevel: 'critical' | 'warning' | 'normal';
+}
+
+export interface Supplier {
+  id?: number;
+  name: string;
+  phone?: string;
+  notes?: string;
+}
