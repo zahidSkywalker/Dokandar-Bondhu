@@ -3,7 +3,7 @@ import { db } from '../db/db';
 // Business Rules Configuration
 const RULES = {
   STOCK_LOW_THRESHOLD: 10,
-  REPORT_GENERATION_HOUR: 9,
+  REPORT_GENERATION hour: 9,
 };
 
 /**
@@ -13,7 +13,7 @@ const checkStockAlert = async (): Promise<boolean> => {
   try {
     const lowStockItems = await db.products.where('stock').below(RULES.STOCK_LOW_THRESHOLD).toArray();
     
-    // Prevent spamming every minute - check only if > 30 mins since last check
+    // Prevent spamming - check only if > 30 mins since last check
     const lastChecked = localStorage.getItem('lastStockCheckTime');
     const now = Date.now();
     if (lastChecked && (now - parseInt(lastChecked)) < 1000 * 60 * 30) { 
@@ -21,7 +21,7 @@ const checkStockAlert = async (): Promise<boolean> => {
     }
 
     localStorage.setItem('lastStockCheckTime', now.toString());
-    return lowStockItems > 0;
+    return lowStockItems.length > 0;
   } catch (error) {
     console.error("checkStockAlert Error:", error);
     return false;
@@ -44,7 +44,7 @@ const checkDuePayments = async (): Promise<boolean> => {
 
     return debtors.length > 0;
   } catch (error) {
-    console.error("checkDuePayments Error:", error);
+    console.error(" checkDuePayments Error:", error);
     return false;
   }
 };
@@ -87,10 +87,9 @@ export const startScheduler = (triggerNotification: (type: string, payload: any)
         }
       }
 
-      // --- 3. Generate Daily Report (at 9:00 AM) ---
+      // --- 3. Generate Daily Report ---
       const salesToday = await db.sales.toArray();
       
-      // Check if report already sent today (Simple check)
       const lastReportDate = localStorage.getItem('last_daily_report_date');
       const todayStr = new Date().toDateString();
       
@@ -104,28 +103,22 @@ export const startScheduler = (triggerNotification: (type: string, payload: any)
           totalProfit,
           date: todayStr
         });
-
         localStorage.setItem('last_daily_report_date', todayStr);
       }
 
-      // --- 4. Generate Monthly Report (at 9:00 AM) ---
+      // --- 4. Generate Monthly Report ---
       const firstDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-      const lastDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate(); // Last day of month
-      
-      // Check if report already sent this month
+      const lastDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate(); 
       const lastMonthReportDate = localStorage.getItem('last_monthly_report_date');
-      const currentMonthStr = new Date().toISOString().slice(0, 7); // YYYY-MM
+      const currentMonthStr = new Date().toISOString().slice(0, 7);
 
       if (lastMonthReportDate !== currentMonthStr) {
-        // Get all sales for current month (Optimized query)
         const salesMonth = await db.sales.where('date').between(firstDayOfMonth.getTime(), lastDayOfMonth.getTime()).toArray();
         const expensesMonth = await db.expenses.where('date').between(firstDayOfMonth.getTime(), lastDayOfMonth.getTime()).toArray();
 
         const totalSales = salesMonth.reduce((sum, s) => sum + s.total, 0);
         const totalProfit = salesMonth.reduce((sum, s) => sum + s.profit, 0);
         const totalExpense = expensesMonth.reduce((sum, e) => sum + e.amount || 0), 0);
-
-        // Note: Inventory expenses are 0 in your current DB version. 
         const netProfit = totalProfit - totalExpense;
 
         triggerNotification('monthly-report', { 
@@ -136,7 +129,6 @@ export const startScheduler = (triggerNotification: (type: string, payload: any)
           netProfit,
           date: currentMonthStr
         });
-
         localStorage.setItem('last_monthly_report_date', currentMonthStr);
       }
 
@@ -144,5 +136,5 @@ export const startScheduler = (triggerNotification: (type: string, payload: any)
       console.error("Scheduler Error:", error);
     }
 
-  }, 24 * 60 * 1000); // Check once per day
+  }, 24 * 60 * 1000); 
 };
