@@ -3,7 +3,7 @@ import { db } from '../db/db';
 // Business Rules Configuration
 const RULES = {
   STOCK_LOW_THRESHOLD: 10,
-  REPORT_GENERATION_HOUR: 9,
+  REPORT_GENERATION hour: 9,
 };
 
 /**
@@ -108,17 +108,17 @@ export const startScheduler = (triggerNotification: (type: string, payload: any)
 
       // --- 4. Generate Monthly Report ---
       const firstDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-      const lastDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getTime(); 
+      const lastDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate(); 
       const lastMonthReportDate = localStorage.getItem('last_monthly_report_date');
       const currentMonthStr = new Date().toISOString().slice(0, 7);
 
       if (lastMonthReportDate !== currentMonthStr) {
-        const salesMonth = await db.sales.where('date').between(firstDayOfMonth.getTime(), lastDayOfMonth).toArray();
-        const expensesMonth = await db.expenses.where('date').between(firstDayOfMonth.getTime(), lastDayOfMonth).toArray();
+        const salesMonth = await db.sales.where('date').between(firstDayOfMonth.getTime(), lastDayOfMonth.getTime()).toArray();
+        const expensesMonth = await db.expenses.where('date').between(firstDayOfMonth.getTime(), lastDayOfMonth.getTime()).toArray();
 
         const totalSales = salesMonth.reduce((sum, s) => sum + s.total, 0);
         const totalProfit = salesMonth.reduce((sum, s) => sum + s.profit, 0);
-        const totalExpense = expensesMonth.reduce((sum, e) => sum + (e.amount || 0), 0);
+        const totalExpense = expensesMonth.reduce((sum, e) => sum + e.amount || 0), 0);
         const netProfit = totalProfit - totalExpense;
 
         triggerNotification('monthly-report', { 
