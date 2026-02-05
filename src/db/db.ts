@@ -1,38 +1,23 @@
 import Dexie, { Table } from 'dexie';
-import { Product, Sale, Expense, Customer, Staff, InventoryExpense, MarketPrice } from '../types';
+import { Product, Sale, Expense, Customer, Staff, InventoryExpense, MarketPrice, Supplier, StockPrediction } from '../types';
 
 class DokandarDB extends Dexie {
-  products!: Table<Product>;
+  // Added `stock` index to allow fast lookups like "where stock > 0"
+  products!: Table<Product, { stock: number }>; 
   sales!: Table<Sale>;
   expenses!: Table<Expense>;
   customers!: Table<Customer>;
   staff!: Table<Staff>;
   inventoryExpenses!: Table<InventoryExpense>;
-  marketPrices!: Table<MarketPrice>; // NEW
+  marketPrices!: Table<MarketPrice>;
+  suppliers!: Table<Supplier>; // NEW: For Feature 3
+  // Optional: For caching daily stats calculation
+  dailyStats!: Table<any>;
 
   constructor() {
     super('DokandarBondhuDB');
     
-    // Version 1 Schema
-    this.version(1).stores({
-      products: '++id, name, category, stock',
-      sales: '++id, productId, date',
-      expenses: '++id, category, date'
-    });
-
-    // Version 2 Schema (Migration)
-    this.version(2).stores({
-      products: '++id, name, category, stock',
-      sales: '++id, productId, customerId, staffId, date',
-      expenses: '++id, category, date',
-      customers: '++id, name, debt',
-      staff: '++id, name, role',
-      inventoryExpenses: '++id, productId, date'
-    }).upgrade(tx => {
-      console.log("Database migrated to V2");
-    });
-
-    // Version 3 Schema (Market Prices)
+    // Version 3 Schema (Existing)
     this.version(3).stores({
       products: '++id, name, category, stock',
       sales: '++id, productId, customerId, staffId, date',
@@ -40,9 +25,24 @@ class DokandarDB extends Dexie {
       customers: '++id, name, debt',
       staff: '++id, name, role',
       inventoryExpenses: '++id, productId, date',
-      marketPrices: '++id, category, dateFetched' // Index for efficient filtering
+      marketPrices: '++id, category, dateFetched'
     }).upgrade(tx => {
-      console.log("Database migrated to V3 (Market Prices Added)");
+      console.log("Database migrated to V3");
+    });
+
+    // Version 4 Schema (Smart Low-Stock)
+    this.version(4).stores({
+      products: '++id, name, category, stock', // stock index added
+      sales: '++id, productId, customerId, staffId, date',
+      expenses: '++id, category, date',
+      customers: '++id, name, debt',
+      staff: '++id, name, role',
+      inventoryExpenses: '++id, productId, date',
+      marketPrices: '++id, category, dateFetched',
+      suppliers: '++id, name, phone', // NEW
+      stockPredictions: '++id, productId, date, alertLevel' // NEW
+    }).upgrade(tx => {
+      console.log("Database migrated to V4 (Smart Stock Alerts)");
     });
   }
 }
