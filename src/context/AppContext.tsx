@@ -1,56 +1,45 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { db } from '../db/db';
-import { 
-  Product, 
-  Sale, 
-  Expense, 
-  Customer, 
-  Staff, 
-  InventoryExpense, 
-  MarketPrice, 
-  Supplier, 
-  StockPrediction 
-} from '../types';
+import { Product, Sale, Expense, Customer, Staff, InventoryExpense, Supplier, PriceHistory } from '../types';
 
-// Extended Context Interface
 interface AppContextType {
-  // --- Products ---
+  // Products
   addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   updateProduct: (id: number, product: Partial<Product>) => Promise<void>;
   deleteProduct: (id: number) => Promise<void>;
   
-  // --- Sales ---
+  // Sales
   addSale: (sale: Omit<Sale, 'id' | 'total' | 'profit'>) => Promise<void>;
   deleteSale: (id: number) => Promise<void>;
   
-  // --- Expenses ---
+  // Expenses
   addExpense: (expense: Omit<Expense, 'id'>) => Promise<void>;
   deleteExpense: (id: number) => Promise<void>;
 
-  // --- NEW: Inventory Expenses ---
+  // Inventory Expenses
   addInventoryExpense: (expense: Omit<InventoryExpense, 'id'>) => Promise<void>;
 
-  // --- NEW: Customers (Baki Khata) ---
+  // Customers (Baki Khata)
   addCustomer: (customer: Omit<Customer, 'id' | 'debt' | 'createdAt'>) => Promise<void>;
-  updateCustomerDebt: (customerId: number, amount: number) => Promise<void>;
-  
-  // --- NEW: Staff ---
+  updateCustomerDebt: (customerId: number, amount: number) => Promise<void>; 
+  updateCustomer: (id: number, data: Partial<Customer>) => Promise<void>; // NEW: Feature 1
+
+  // Staff
   addStaff: (staff: Omit<Staff, 'id' | 'active'>) => Promise<void>;
 
-  // --- NEW: Market Prices ---
-  syncMarketPrices: (data: Omit<MarketPrice, 'id' | 'dateFetched'>[]) => Promise<void>;
+  // NEW: Suppliers (Feature 3)
+  addSupplier: (supplier: Omit<Supplier, 'id'>) => Promise<number>;
+  getSuppliers: () => Promise<Supplier[]>;
 
-  // --- NEW: Suppliers ---
-  addSupplier: (supplier: Omit<Supplier, 'id'>) => Promise<void>;
-
-  // --- NEW: Notification Trigger ---
-  triggerNotification: (type: string, payload?: any) => Promise<void>;
+  // NEW: Price History & Margin Guard (Feature 6)
+  logPriceHistory: (productId: number, buyPrice: number, sellPrice: number) => Promise<void>;
+  getLastPurchasePrice: (productId: number) => Promise<number | undefined>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  
+
   // --- Products (Existing) ---
   const addProduct = async (productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
@@ -69,12 +58,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     catch (error) { throw new Error("Could not delete product."); }
   };
 
-  // --- Sales (Updated for Baki Khata) ---
+  // --- Sales (Updated with Customer/Staff & Price History) ---
   const addSale = async (saleData: Omit<Sale, 'id' | 'total' | 'profit'>) => {
     if (saleData.quantity <= 0) throw new Error("Quantity must be positive");
 
     try {
-      await db.transaction('rw', db.products, db.sales, db.customers, async () => {
+      await db.transaction('rw', db.products, db.sales, db.customers, db.priceHistory, async () => {
         const product = await db.products.get(saleData.productId);
         if (!product) throw new Error("Product not found");
         if (product.stock < saleData.quantity) throw new Error(`Insufficient Stock. Available: ${product.stock}`);
@@ -82,13 +71,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const total = saleData.sellPrice * saleData.quantity;
         const profit = (saleData.sellPrice - saleData.buyPrice) * saleData.quantity;
 
-        // Update Stock
+        // 1. Update Stock
         await db.products.update(product.id!, { stock: product.stock - saleData.quantity, updatedAt: new Date() });
 
-        // Add Sale
+        // 2. Add Sale
         await db.sales.add({ ...saleData, total, profit });
 
-        // Add Debt if Baki Khata (Customer Linked)
+        // 3. Log Price History (Feature 6)
+        // We log prices at the moment of sale to track trends and calculate future margins
+        await db.priceHistory.add({
+          productId: product.id!,
+          buyPrice: saleData.buyPrice,
+          sellPrice: saleData.sellPrice,
+          date: new Date()
+        });
+
+        // 4. Add Debt if Baki Khata
         if (saleData.customerId) {
           const customer = await db.customers.get(saleData.customerId);
           if (customer) {
@@ -96,7 +94,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           }
         }
       });
-    } catch (error) { throw error; }
+    } catch (error) {
+      throw error; 
+    }
   };
 
   const deleteSale = async (id: number) => {
@@ -106,7 +106,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       await db.transaction('rw', db.products, db.sales, db.customers, async () => {
         const product = await db.products.get(sale.productId);
         if (product) await db.products.update(product.id!, { stock: product.stock + sale.quantity });
-        // Reverse Debt (Optional logic)
+        // Reverse Debt (optional logic, usually refunds are rare in khata)
         await db.sales.delete(id);
       });
     } catch (error) { throw new Error("Could not delete sale."); }
@@ -123,13 +123,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     catch (error) { throw new Error("Could not delete expense."); }
   };
 
-  // --- NEW: Inventory Expenses ---
+  // --- Inventory Expenses ---
   const addInventoryExpense = async (expenseData: Omit<InventoryExpense, 'id'>) => {
     try { await db.inventoryExpenses.add({ ...expenseData, date: expenseData.date || new Date() }); } 
     catch (error) { throw new Error("Could not save inventory expense."); }
   };
 
-  // --- NEW: Customers (Baki Khata) ---
+  // --- Customers (Baki Khata) ---
   const addCustomer = async (customerData: Omit<Customer, 'id' | 'debt' | 'createdAt'>) => {
     try { await db.customers.add({ ...customerData, debt: 0, createdAt: new Date() }); } 
     catch (error) { throw new Error("Could not save customer."); }
@@ -151,40 +151,54 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     } catch (error) { throw new Error("Could not update debt."); }
   };
 
-  // --- NEW: Staff ---
+  // NEW: Update Customer (Feature 1)
+  const updateCustomer = async (id: number, data: Partial<Customer>) => {
+    try { 
+      await db.customers.update(id, data); 
+    } catch (error) { 
+      throw new Error("Could not update customer."); 
+    }
+  };
+
+  // --- Staff ---
   const addStaff = async (staffData: Omit<Staff, 'id' | 'active'>) => {
     try { await db.staff.add({ ...staffData, active: true }); } 
     catch (error) { throw new Error("Could not add staff."); }
   };
 
-  // --- NEW: Market Prices (Sync) ---
-  const syncMarketPrices = async (data: Omit<MarketPrice, 'id' | 'dateFetched'>[]) => {
-    try {
-      const dataWithDate = data.map(item => ({ ...item, dateFetched: new Date() }));
-
-      await db.transaction('rw', db.marketPrices, async () => {
-        await db.marketPrices.clear(); // Clear old
-        await db.marketPrices.bulkAdd(dataWithDate); // Add new
-      });
-    } catch (error) {
-      throw new Error("Failed to sync market prices.");
+  // --- NEW: Suppliers (Feature 3) ---
+  const addSupplier = async (supplierData: Omit<Supplier, 'id'>) => {
+    try { 
+      return await db.suppliers.add(supplierData); 
+    } catch (error) { 
+      throw new Error("Could not save supplier."); 
     }
   };
 
-  // --- NEW: Suppliers ---
-  const addSupplier = async (supplierData: Omit<Supplier, 'id'>) => {
-    try { await db.suppliers.add({ ...supplierData }); } 
-    catch (error) { throw new Error("Could not add supplier."); }
+  const getSuppliers = async () => {
+    return await db.suppliers.toArray();
   };
 
-  // --- NEW: Notification Trigger ---
-  const triggerNotification = async (type: string, payload?: any) => {
-    console.log(`[AppContext] Triggered Notification: ${type}`, payload);
-    // In a real app with a UI list, we would update a state here.
-    // Since this is a conceptual "Serverless" PWA, we assume the UI listens to the hook `usePushNotifications`.
-    // However, to keep the Context in charge of *dispatching*:
-    // We just log it here for now, or could integrate with a local DB notification log if we had one.
-    // The logic in `notificationScheduler.ts` calls this method.
+  // --- NEW: Price History Logic (Feature 6) ---
+  const logPriceHistory = async (productId: number, buyPrice: number, sellPrice: number) => {
+    try {
+      await db.priceHistory.add({
+        productId,
+        buyPrice,
+        sellPrice,
+        date: new Date()
+      });
+    } catch (e) {
+      console.error("Failed to log price history", e);
+    }
+  };
+
+  const getLastPurchasePrice = async (productId: number): Promise<number | undefined> => {
+    const history = await db.priceHistory
+      .where('productId').equals(productId)
+      .reverse()
+      .first();
+    return history?.buyPrice;
   };
 
   const value: AppContextType = {
@@ -192,11 +206,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     addSale, deleteSale,
     addExpense, deleteExpense,
     addInventoryExpense,
-    addCustomer, updateCustomerDebt,
+    addCustomer, updateCustomerDebt, updateCustomer,
     addStaff,
-    syncMarketPrices,
-    addSupplier,
-    triggerNotification
+    addSupplier, getSuppliers,
+    logPriceHistory, getLastPurchasePrice
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
