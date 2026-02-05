@@ -2,6 +2,9 @@ import { Translation } from '../types';
 
 export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
   en: {
+    // ==========================================
+    // 1. COMMON
+    // ==========================================
     common: {
       appName: "Dokandar Bondhu",
       save: "Save",
@@ -12,20 +15,34 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
       loading: "Loading...",
       noData: "No data found",
       confirmDelete: "Are you sure you want to delete this?",
-      refresh: "Refresh", // NEW
-      offline: "Offline", // NEW
-      online: "Online",   // NEW
-      lastUpdated: "Last Updated", // NEW
-      sync: "Sync Now",    // NEW
+      refresh: "Refresh",
+      offline: "Offline",
+      online: "Online",
+      lastUpdated: "Last Updated",
+      sync: "Sync Now"
     },
+
+    // ==========================================
+    // 2. DASHBOARD
+    // ==========================================
     dashboard: {
       title: "Dashboard",
       todaySales: "Today's Sales",
       todayProfit: "Today's Profit",
       todayExpense: "Today's Expenses",
       stockAlert: "Low Stock Alert",
-      recentSales: "Recent Sales"
+      recentSales: "Recent Sales",
+      stockLow: "Low Stock",
+      stockOut: "Stock Out",
+      stockCritical: "Critical",
+      stockWarning: "Warning",
+      daysLeft: "Days Left",
+      stockUnknown: "No Sales Data"
     },
+
+    // ==========================================
+    // 3. SALES
+    // ==========================================
     sales: {
       title: "Sales",
       newSale: "New Sale",
@@ -35,6 +52,10 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
       date: "Date",
       profit: "Profit"
     },
+
+    // ==========================================
+    // 4. INVENTORY
+    // ==========================================
     inventory: {
       title: "Inventory",
       addProduct: "Add Product",
@@ -44,6 +65,10 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
       stock: "Stock Qty",
       category: "Category"
     },
+
+    // ==========================================
+    // 5. EXPENSES
+    // ==========================================
     expenses: {
       title: "Expenses",
       addExpense: "Add Expense",
@@ -51,8 +76,12 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
       amount: "Amount",
       note: "Note"
     },
+
+    // ==========================================
+    // 6. LEDGER (BAKI KHATA)
+    // ==========================================
     ledger: {
-      title: "Ledger", 
+      title: "Ledger",
       addCustomer: "Add Customer",
       name: "Name",
       phone: "Phone",
@@ -60,11 +89,18 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
       debt: "Debt",
       receivePayment: "Receive Payment"
     },
+
+    // ==========================================
+    // 7. STAFF
+    // ==========================================
     staff: {
       title: "Staff",
       addStaff: "Add Staff"
     },
-    // NEW SECTION: Market Prices
+
+    // ==========================================
+    // 8. MARKET PRICES
+    // ==========================================
     market: {
       title: "Market Prices",
       subtitle: "Daily Retail Market Price (RMP)",
@@ -83,115 +119,224 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
       emptyState: "No market data available. Please connect to internet and sync.",
       syncSuccess: "Prices updated successfully!",
       syncError: "Failed to update prices. Check internet connection.",
-      syncInProgress: "Updating prices...",
+      syncInProgress: "Updating prices..."
     },
-     // NEW: Stock Alert Keys
-      stockLow: "Low Stock",
-      stockOut: "Stock Out",
-      stockCritical: "Critical",
-      stockWarning: "Warning",
-      daysLeft: "Days Left",
-      stockUnknown: "No Sales Data"
+
+    // ==========================================
+    // 9. SUPPLIERS
+    // ==========================================
+    suppliers: {
+      title: "Suppliers",
+      addSupplier: "Add Supplier",
+      phone: "Phone",
+      notes: "Notes",
+      totalDue: "Total Due",
+      lastPurchase: "Last Purchase",
+      payNow: "Pay Now"
     },
-            // NEW: Notification Keys
-      stockLow: "Low Stock",
-      stockOut: "Stock Out",
-      stockCritical: "Critical",
-      stockWarning: "Warning",
-      daysLeft: "Days Left",
-      stockUnknown: "No Sales Data"
+
+    // ==========================================
+    // 10. NOTIFICATIONS
+    // ==========================================
+    notifications: {
+      title: "Notifications",
+      enable: "Enable Notifications",
+      enabled: "Active",
+      disabled: "Denied",
+      status: "Status",
+      testBtn: "Send Test Notification",
+      alertMsg: "Notifications allow us to alert you about low stock and daily summaries even when the app is closed.",
+      settings: "Notification Settings",
+      type: "Notification Type",
+      lowStock: "Low Stock Alerts",
+      duePayment: "Due Payment Reminders",
+      dailySummary: "Daily Sales Summary",
+      monthlySummary: "Monthly Profit Summary",
+      marketUpdate: "Market Price Updates"
+    },
+
+    // ==========================================
+    // 11. PROFIT INSIGHTS
+    // ==========================================
+    insights: {
+      title: "Profit Insights",
+      subtitle: "Business Performance Analysis",
+      topPerformers: "Top Performers",
+      bottomPerformers: "Attention Required",
+      trends: "Trend Analysis",
+      bestSeller: "Best Seller",
+      dailyReport: "Daily Report",
+      monthlyReport: "Monthly Report"
     }
   },
+
   bn: {
+    // ==========================================
+    // 1. COMMON
+    // ==========================================
     common: {
       appName: "দোকানদার বন্ধু",
-      save: "সংরক্ষণ",
+      save: "সেভ করুন",
       cancel: "বাতিল",
-      delete: "মুছে ফেল",
-      edit: "সম্পাদনা",
-      search: "অনুসন্ধান...",
+      delete: "ডিলিট করুন",
+      edit: "এডিট",
+      search: "খুঁজুন...",
       loading: "লোড হচ্ছে...",
-      noData: "কোন তথ্য পাওয়া যায়নি",
-      confirmDelete: "আপনি কি নিশ্চিত এটি মুছে ফেল?",
-      refresh: "রিফ্রেশ", // NEW
-      offline: "অফলাইন", // NEW
-      online: "অনলাইন",   // NEW
-      lastUpdated: "সর্বশেষ আপডেট", // NEW
-      sync: "সিঙ্ক করুন",    // NEW
+      noData: "কোনো ডাটা নাই",
+      confirmDelete: "এইটা ডিলিট করবেন নিশ্চিত?",
+      refresh: "রিফ্রেশ",
+      offline: "নেট নাই",
+      online: "নেট আছে",
+      lastUpdated: "সর্বশেষ আপডেট",
+      sync: "এখনই সিঙ্ক করুন"
     },
+
+    // ==========================================
+    // 2. DASHBOARD
+    // ==========================================
     dashboard: {
       title: "ড্যাশবোর্ড",
-      todaySales: "আজকের বিক্রয়",
+      todaySales: "আজকের বিক্রি",
       todayProfit: "আজকের লাভ",
       todayExpense: "আজকের খরচ",
-      stockAlert: "মজুদ সতর্কতা",
-      recentSales: "সাম্প্রতিক বিক্রয়"
+      stockAlert: "মজুদ কম সতর্কতা",
+      recentSales: "সাম্প্রতিক বিক্রি",
+      stockLow: "মজুদ কম",
+      stockOut: "মজুদ শেষ",
+      stockCritical: "জরুরি অবস্থা",
+      stockWarning: "সতর্ক থাকুন",
+      daysLeft: "আর দিন বাকি",
+      stockUnknown: "বিক্রির হিসাব নাই"
     },
+
+    // ==========================================
+    // 3. SALES
+    // ==========================================
     sales: {
-      title: "বিক্রয়",
-      newSale: "নতুন বিক্রয়",
-      selectProduct: "পণ্য নির্বাচন",
+      title: "বিক্রি",
+      newSale: "নতুন বিক্রি",
+      selectProduct: "পণ্য বাছাই করুন",
       quantity: "পরিমাণ",
-      total: "মোট",
+      total: "মোট টাকা",
       date: "তারিখ",
       profit: "লাভ"
     },
+
+    // ==========================================
+    // 4. INVENTORY
+    // ==========================================
     inventory: {
-      title: "মজুদ খাতা",
-      addProduct: "নতুন পণ্য",
+      title: "মজুদের হিসাব",
+      addProduct: "পণ্য যোগ করুন",
       productName: "পণ্যের নাম",
-      buyPrice: "ক্রয় মূল্য",
-      sellPrice: "বিক্রয় মূল্য",
-      stock: "মজুদ সংখ্যা",
+      buyPrice: "কেনা দাম",
+      sellPrice: "বিক্রি দাম",
+      stock: "মজুদের পরিমাণ",
       category: "ক্যাটাগরি"
     },
+
+    // ==========================================
+    // 5. EXPENSES
+    // ==========================================
     expenses: {
-      title: "খরচের খাতা",
-      addExpense: "নতুন খরচ",
+      title: "খরচ",
+      addExpense: "খরচ যোগ করুন",
       category: "খাত",
-      amount: "টাকা",
+      amount: "টাকার পরিমাণ",
       note: "নোট"
     },
+
+    // ==========================================
+    // 6. LEDGER (BAKI KHATA)
+    // ==========================================
     ledger: {
-      title: "বাকি খাতা", 
-      addCustomer: "গ্রাহক যোগ",
+      title: "বাকির খাতা",
+      addCustomer: "গ্রাহক যোগ করুন",
       name: "নাম",
-      phone: "ফোন",
+      phone: "মোবাইল",
       address: "ঠিকানা",
-      debt: "বাকি",
-      receivePayment: "টাকা গ্রহণ"
+      debt: "বাকি টাকা",
+      receivePayment: "টাকা নিলাম"
     },
+
+    // ==========================================
+    // 7. STAFF
+    // ==========================================
     staff: {
-      title: "কর্মী",
-      addStaff: "কর্মী যোগ"
+      title: "কর্মচারী",
+      addStaff: "কর্মচারী যোগ করুন"
     },
-    // NEW SECTION: Market Prices
+
+    // ==========================================
+    // 8. MARKET PRICES
+    // ==========================================
     market: {
       title: "বাজার দর",
-      subtitle: "দৈনিক পাইকারি ও খুচরা বাজার দর (RMP)",
-      source: "সূত্র: টিসিবি অফিসিয়াল",
+      subtitle: "আজকের খুচরা বাজার দর",
+      source: "সূত্র: টিসিবি",
       categories: {
-        all: "সকল পণ্য",
-        rice: "চাল ও শস্য",
+        all: "সব পণ্য",
+        rice: "চাল-ডাল",
         vegetables: "সবজি",
         spices: "মসলা",
-        meat: "মাছ ও মাংস",
+        meat: "মাছ-মাংস",
         fruits: "ফলমূল",
         essentials: "নিত্যপ্রয়োজনীয়"
       },
-      priceRange: "দর (টাকা)",
+      priceRange: "দামের রেঞ্জ",
       unit: "একক",
-      emptyState: "কোন বাজার তথ্য নেই। অনুগ্রহ করে ইন্টারনেটে সংযুক্ত হয়ে সিঙ্ক করুন।",
-      syncSuccess: "বাজার দর সফলভাবে আপডেট হয়েছে!",
-      syncError: "আপডেট করতে ব্যর্থ হয়েছে। ইন্টারনেট সংযোগ পরীক্ষা করুন।",
-      syncInProgress: "আপডেট হচ্ছে...",
+      emptyState: "বাজার দর নাই। নেট অন করে সিঙ্ক দেন।",
+      syncSuccess: "বাজার দর আপডেট হইছে!",
+      syncError: "আপডেট হয় নাই। নেট চেক করেন।",
+      syncInProgress: "আপডেট চলতেছে..."
     },
-     stockLow: "কম মজুদ",
-      stockOut: "মজুদ শেষ",
-      stockCritical: "গুরুত্ব",
-      stockWarning: "সতর্তবক",
-      daysLeft: "দিন বাকি আছে",
-      stockUnknown: "বিক্রয়ার নেই"
+
+    // ==========================================
+    // 9. SUPPLIERS
+    // ==========================================
+    suppliers: {
+      title: "সরবরাহকারী",
+      addSupplier: "সরবরাহকারী যোগ",
+      phone: "ফোন নম্বর",
+      notes: "নোট",
+      totalDue: "মোট বাকি",
+      lastPurchase: "শেষ কেনাকাটা",
+      payNow: "এখনই পরিশোধ"
+    },
+
+    // ==========================================
+    // 10. NOTIFICATIONS
+    // ==========================================
+    notifications: {
+      title: "নোটিফিকেশন",
+      enable: "নোটিফিকেশন চালু করুন",
+      enabled: "চালু আছে",
+      disabled: "বন্ধ",
+      status: "স্ট্যাটাস",
+      testBtn: "টেস্ট নোটিফিকেশন পাঠান",
+      alertMsg:
+        "নোটিফিকেশন চালু রাখলে মজুদ কম, বাকি আদায় আর দৈনিক বিক্রির খবর নেট থাকুক বা না থাকুক পাবেন।",
+      settings: "নোটিফিকেশন সেটিংস",
+      type: "নোটিফিকেশন টাইপ",
+      lowStock: "মজুদ কম হলে",
+      duePayment: "বাকি আদায় রিমাইন্ডার",
+      dailySummary: "আজকের বিক্রির হিসাব",
+      monthlySummary: "মাসিক লাভের হিসাব",
+      marketUpdate: "বাজার দর আপডেট"
+    },
+
+    // ==========================================
+    // 11. PROFIT INSIGHTS
+    // ==========================================
+    insights: {
+      title: "লাভের বিশ্লেষণ",
+      subtitle: "ব্যবসার অবস্থা এক নজরে",
+      topPerformers: "সবচেয়ে বেশি বিক্রি",
+      bottomPerformers: "খেয়াল দরকার",
+      trends: "ট্রেন্ড বিশ্লেষণ",
+      bestSeller: "বেস্ট সেলার",
+      dailyReport: "আজকের রিপোর্ট",
+      monthlyReport: "মাসের রিপোর্ট"
     }
   }
 };
