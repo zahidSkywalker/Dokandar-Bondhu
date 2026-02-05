@@ -28,7 +28,11 @@ const Dashboard: React.FC = () => {
   } = useDashboardStats();
 
   const GreetingIcon = getGreetingIcon();
-
+   // NEW: Helper to get prediction details for a product
+  const getPrediction = (productId: number) => {
+    const prediction = stockPredictions.find(p => p.productId === productId);
+    return prediction || { alertLevel: 'normal' }; // Fallback
+  };
   if (isLoading) return <div className="p-4 text-center">Loading...</div>;
 
   const monthlyData = [
@@ -115,47 +119,74 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Stock Prediction Alert (Fixed JSX) */}
-      <div className={`p-5 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
-        <h3 className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'} mb-4 flex items-center gap-2`}>
-          <AlertTriangle className="text-yellow-500" size={18} /> Stock Prediction
-        </h3>
-        
-        {!stockPredictions || stockPredictions.length === 0 ? (
-           <div className="p-4 text-center text-gray-400 dark:text-gray-500">
-             <Package size={32} className="mx-auto mb-2 opacity-20" />
-             No stock data available.
-           </div>
-        ) : (
+      {/* NEW: Smart Low Stock Alert Section */}
+        <div className={`p-4 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'} flex items-center gap-2`}>
+              <AlertTriangle className="text-yellow-500" size={18} /> 
+              {t('dashboard.stockAlert')}
+            </h3>
+            <span className={`text-xs font-bold uppercase ${theme === 'dark' ? 'text-gray-400' : 'text-earth-400'}`}>
+              {stockPredictions.filter(p => p.alertLevel === 'critical').length} Critical
+            </span>
+          </div>
+
           <div className="space-y-3">
-             {stockPredictions
-               .filter(p => p.daysLeft < 999)
-               .sort((a, b) => a.daysLeft - b.daysLeft)
-               .slice(0, 5)
-               .map((product) => {
-                  const isCritical = product.daysLeft < 3;
-                  // FIXED: Removed the extra closing </div> below
-                  return (
-                    <div key={product.id} className={`flex justify-between items-center p-3 rounded-lg border ${
+            {stockPredictions.length === 0 ? (
+              <div className="p-4 text-center text-gray-400 dark:text-gray-500">
+                <Package size={32} className="mx-auto mb-2 opacity-20" />
+                <p className="font-medium">No stock data available. Sales history required.</p>
+              </div>
+            ) : (
+              stockPredictions.slice(0, 5).map((item) => {
+                const prediction = getPrediction(item.productId);
+                const isCritical = prediction.alertLevel === 'critical';
+                const isWarning = prediction.alertLevel === 'warning';
+
+                return (
+                  <div 
+                    key={item.productId} 
+                    className={`flex justify-between items-center p-3 rounded-lg border ${
                       isCritical 
                         ? 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900' 
-                        : 'bg-orange-50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900'
-                    }`}>
-                      <div className="flex items-center gap-2">
-                         <div className={`w-2 h-2 rounded-full ${isCritical ? 'bg-red-500' : 'bg-orange-500'}`} />
-                         <span className={`font-bold ${isCritical ? 'text-red-700 dark:text-red-300' : 'text-orange-700 dark:text-orange-300'}`}>
-                           {product.name}
-                         </span>
+                        : isWarning
+                          ? 'bg-orange-50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900'
+                          : 'bg-white dark:bg-gray-800 border-cream-200 dark:border-gray-700'
+                    }`}
+                  >
+                    <div className="flex-1">
+                      <div>
+                        <h4 className={`font-bold text-sm ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>
+                          {item.productName}
+                        </h4>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className={`text-xs px-2 py-0.5 rounded bg-earth-50 dark:bg-earth-900/30 text-earth-600 dark:text-earth-400 font-bold uppercase`}>
+                            Stock: {item.currentStock}
+                          </span>
+                          <span className={`text-xs font-bold ${prediction.daysLeft === 999 ? 'text-gray-400' : (isCritical ? 'text-red-600' : 'text-orange-600')}`}>
+                            ({prediction.daysLeft === 999 ? 'No Data' : prediction.daysLeftText})
+                          </span>
+                        </div>
                       </div>
-                      <span className={`text-xs font-bold ${isCritical ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'}`}>
-                         {product.daysLeft === 999 ? 'No Sales Data' : `${product.daysLeft} Days Left`}
-                      </span>
                     </div>
-                  );
-                })
-             }
+                    
+                    {/* NEW: Dynamic Badges */}
+                    <div className="flex flex-col items-center gap-2">
+                      <Badge variant={prediction.alertLevel}>
+                        {prediction.daysLeft === 999 ? 'Unknown' : isCritical ? 'Critical' : 'Warning'}
+                      </Badge>
+                      {prediction.daysLeft !== 999 && (
+                        <span className="text-[10px] text-gray-500">
+                          Avg: {prediction.avgDailySales.toFixed(1)}/day
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Charts & Recent List */}
