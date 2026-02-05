@@ -3,7 +3,7 @@ import { db } from '../db/db';
 // Business Rules Configuration
 const RULES = {
   STOCK_LOW_THRESHOLD: 10,
-  REPORT_GENERATION hour: 9,
+  REPORT_GENERATION_HOUR: 9,
 };
 
 /**
@@ -34,9 +34,8 @@ const checkStockAlert = async (): Promise<boolean> => {
 const checkDuePayments = async (): Promise<boolean> => {
   try {
     const allCustomers = await db.customers.toArray();
-    const today = new Date().toDateString(); // "YYYY-MM-DD"
+    const today = new Date().toDateString(); 
 
-    // Find customers with debt
     const debtors = allCustomers.filter(c => c.debt > 0 && (
       c.name.includes(today) || 
       c.debt.toString().includes(today)
@@ -56,7 +55,7 @@ const checkDuePayments = async (): Promise<boolean> => {
  * @param triggerNotification - Passed in from AppContext to dispatch notifications
  */
 export const startScheduler = (triggerNotification: (type: string, payload: any) => Promise<void>) => {
-  console.log("🕵 Starting Notification Scheduler (Business Logic Loop)...");
+  console.log("Starting Notification Scheduler (Business Logic Loop)...");
 
   setInterval(async () => {
     try {
@@ -75,8 +74,6 @@ export const startScheduler = (triggerNotification: (type: string, payload: any)
       if (isDueDate) {
         const customers = await db.customers.toArray();
         const today = new Date().toDateString();
-        
-        // Find customers with debt
         const debtors = customers.filter(c => c.debt > 0 && (
           c.name.includes(today) || 
           c.debt.toString().includes(today)
@@ -109,8 +106,9 @@ export const startScheduler = (triggerNotification: (type: string, payload: any)
       // --- 4. Generate Monthly Report ---
       const firstDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
       const lastDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate(); 
+      
       const lastMonthReportDate = localStorage.getItem('last_monthly_report_date');
-      const currentMonthStr = new Date().toISOString().slice(0, 7);
+      const currentMonthStr = new Date().toISOString().slice(0, 7); 
 
       if (lastMonthReportDate !== currentMonthStr) {
         const salesMonth = await db.sales.where('date').between(firstDayOfMonth.getTime(), lastDayOfMonth.getTime()).toArray();
