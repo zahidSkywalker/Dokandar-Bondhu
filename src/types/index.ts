@@ -23,7 +23,7 @@ export interface Sale {
   date: Date;
   customerId?: number;
   staffId?: number;
-  dueDate?: Date; // NEW: Feature 1
+  dueDate?: Date; 
 }
 
 export interface Expense {
@@ -40,7 +40,7 @@ export interface InventoryExpense {
   description: string;
   amount: number;
   date: Date;
-  supplierId?: number; // NEW: Feature 3
+  supplierId?: number; 
 }
 
 export interface Customer {
@@ -51,7 +51,7 @@ export interface Customer {
   debt: number;
   lastPaymentDate?: Date;
   createdAt: Date;
-  notes?: string; // NEW: Feature 1
+  notes?: string; 
 }
 
 export interface Staff {
@@ -93,7 +93,7 @@ export interface Supplier {
   name: string;
   phone?: string;
   notes?: string;
-  totalDue?: number; // Derived field for UI display
+  totalDue?: number;
 }
 
 // ==========================================
@@ -140,6 +140,13 @@ export interface Translation {
   ledger: Record<string, string>;
   staff: Record<string, string>;
   market: MarketTranslation;
+  
+  // ==========================================
+  // NEW: Added to fix Constants Errors
+  // ==========================================
+  suppliers: Record<string, string>;
+  notifications: Record<string, string>;
+  insights: Record<string, string>;
 }
 
 // NEW: Stock Prediction & Alert Types
