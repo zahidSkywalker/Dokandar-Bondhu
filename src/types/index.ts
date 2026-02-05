@@ -21,8 +21,9 @@ export interface Sale {
   total: number;
   profit: number;
   date: Date;
-  customerId?: number; // For Baki Khata
-  staffId?: number; // For Employee Tracking
+  customerId?: number;
+  staffId?: number;
+  dueDate?: Date; // NEW: Feature 1
 }
 
 export interface Expense {
@@ -39,6 +40,7 @@ export interface InventoryExpense {
   description: string;
   amount: number;
   date: Date;
+  supplierId?: number; // NEW: Feature 3
 }
 
 export interface Customer {
@@ -49,6 +51,7 @@ export interface Customer {
   debt: number;
   lastPaymentDate?: Date;
   createdAt: Date;
+  notes?: string; // NEW: Feature 1
 }
 
 export interface Staff {
@@ -78,8 +81,30 @@ export interface MarketPrice {
   unit: string;
   minPrice: number;
   maxPrice: number;
-  category: string; // e.g., 'Rice', 'Vegetables', 'Spices'
+  category: string;
   dateFetched: Date;
+}
+
+// ==========================================
+// NEW: Supplier Interface (Feature 3)
+// ==========================================
+export interface Supplier {
+  id?: number;
+  name: string;
+  phone?: string;
+  notes?: string;
+  totalDue?: number; // Derived field for UI display
+}
+
+// ==========================================
+// NEW: Price History Interface (Feature 6)
+// ==========================================
+export interface PriceHistory {
+  id?: number;
+  productId: number;
+  buyPrice: number;
+  sellPrice: number;
+  date: Date;
 }
 
 // ==========================================
@@ -114,7 +139,7 @@ export interface Translation {
   expenses: Record<string, string>;
   ledger: Record<string, string>;
   staff: Record<string, string>;
-  market: MarketTranslation; // FIXED: Uses specific nested type
+  market: MarketTranslation;
 }
 
 // NEW: Stock Prediction & Alert Types
@@ -125,28 +150,4 @@ export interface StockPrediction {
   daysLeft: number;
   avgDailySales: number;
   alertLevel: 'critical' | 'warning' | 'normal';
-}
-
-export interface Supplier {
-  id?: number;
-  name: string;
-  phone?: string;
-  notes?: string;
-}
-// NEW: Daily Sales Summary Type
-// ==========================================
-export interface DailyReportPayload extends NotificationPayload {
-  totalSales: number;
-  totalProfit: number;
-  date: string;
-}
-
-// ==========================================
-// NEW: Monthly Profit Summary Type
-// ==========================================
-export interface MonthlyReportPayload extends NotificationPayload {
-  totalSales: number;
-  totalProfit: number;
-  totalExpense: number;
-  netProfit: number;
 }
