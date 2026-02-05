@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, User, Phone, MapPin, CheckCircle, Wallet, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Plus, User, Phone, MapPin, CheckCircle, Wallet, RefreshCw, AlertTriangle, Edit3 } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
 import { useApp } from '../../context/AppContext';
@@ -13,17 +13,18 @@ import { formatCurrency } from '../../lib/utils';
 const Ledger: React.FC = () => {
   const { t, lang } = useLanguage();
   const { theme } = useTheme();
-  const { addCustomer, updateCustomerDebt } = useApp();
+  const { addCustomer, updateCustomerDebt, updateCustomer } = useApp();
   
   // UI States
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [isPayModalOpen, setIsPayModalOpen] = React.useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false); // NEW
   const [selectedCustomer, setSelectedCustomer] = React.useState<any>(null);
+  const [editingCustomer, setEditingCustomer] = React.useState<any>(null); // NEW
   const [paymentAmount, setPaymentAmount] = React.useState('');  
   const [formData, setFormData] = React.useState({ name: '', phone: '', address: '' });
   
-  // Data State - Using useLiveQuery (Robust Production Pattern)
-  // Note: We use 'customers' (plural) from db.ts
+  // Data State
   const customers = useLiveQuery(() => db.customers.orderBy('debt').reverse().toArray(), []);
 
   const handleAdd = async (e: React.FormEvent) => {
@@ -34,6 +35,18 @@ const Ledger: React.FC = () => {
       setFormData({ name: '', phone: '', address: '' });
     } catch (err: any) { 
       alert("Error adding customer");
+    }
+  };
+
+  // NEW: Handle Customer Update (Feature 1)
+  const handleUpdateCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await updateCustomer(editingCustomer.id, { notes: editingCustomer.notes });
+      setIsEditModalOpen(false);
+      setEditingCustomer(null);
+    } catch (err: any) { 
+      alert("Error updating customer");
     }
   };
 
@@ -89,6 +102,12 @@ const Ledger: React.FC = () => {
                         <MapPin size={12}/> {customer.address}
                       </p>
                     )}
+                    {/* NEW: Notes Display (Feature 1) */}
+                    {customer.notes && (
+                       <p className={`text-xs mt-1 italic text-gray-500 truncate max-w-[200px]`}>
+                         "{customer.notes}"
+                       </p>
+                    )}
                   </div>
                 </div>
                 
@@ -105,15 +124,24 @@ const Ledger: React.FC = () => {
                  </span>
               </div>
 
-              {/* Action */}
-              {customer.debt > 0 && (
+              {/* Actions */}
+              <div className="flex gap-2 mt-3">
+                {customer.debt > 0 && (
+                  <button 
+                    onClick={() => { setSelectedCustomer(customer); setIsPayModalOpen(true); }}
+                    className="flex-1 py-2 rounded-xl text-xs font-bold bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border border-green-100 dark:border-green-900 hover:bg-green-100 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Wallet size={14}/> {t('ledger.receivePayment')}
+                  </button>
+                )}
+                {/* NEW: Edit Notes Button (Feature 1) */}
                 <button 
-                  onClick={() => { setSelectedCustomer(customer); setIsPayModalOpen(true); }}
-                  className="w-full mt-3 py-2 rounded-xl text-xs font-bold bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border border-green-100 dark:border-green-900 hover:bg-green-100 transition-colors flex items-center justify-center gap-2"
+                   onClick={() => { setEditingCustomer(customer); setIsEditModalOpen(true); }}
+                   className="px-3 py-2 rounded-xl text-xs font-bold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 transition-colors flex items-center justify-center gap-1"
                 >
-                  <Wallet size={14}/> {t('ledger.receivePayment')}
+                   <Edit3 size={12}/> Notes
                 </button>
-              )}
+              </div>
             </div>
           ))
         )}
@@ -139,9 +167,30 @@ const Ledger: React.FC = () => {
               {formatCurrency(selectedCustomer?.debt || 0, lang)}
             </p>
           </div>
-          <Input label={t('common.save')} type="number" required value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} />
+          <Input label="Payment Amount" type="number" required value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} />
           <div className="h-6" />
           <Button variant="success" icon={<CheckCircle size={20}/>}>Confirm Payment</Button>
+        </form>
+      </Modal>
+
+      {/* NEW: Edit Customer Notes Modal (Feature 1) */}
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Edit Customer Notes">
+        <form onSubmit={handleUpdateCustomer} className="space-y-2">
+          <div className="mb-4">
+             <label className="block text-sm font-bold mb-1 text-gray-700 dark:text-gray-300">Customer</label>
+             <input disabled value={editingCustomer?.name} className="w-full p-2 bg-gray-100 dark:bg-gray-700 rounded text-gray-500 dark:text-gray-400" />
+          </div>
+          <div className="mb-4">
+             <label className="block text-sm font-bold mb-1 text-gray-700 dark:text-gray-300">Notes</label>
+             <textarea
+                className={`w-full p-3 rounded-xl border focus:outline-none focus:ring-2 ${theme === 'dark' ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-cream-200'}`}
+                rows={4}
+                placeholder="Add address, preferences, or credit warnings..."
+                value={editingCustomer?.notes || ''}
+                onChange={(e) => setEditingCustomer({...editingCustomer, notes: e.target.value})}
+             />
+          </div>
+          <Button icon={<Edit3 size={20}/>}>Save Notes</Button>
         </form>
       </Modal>
 
