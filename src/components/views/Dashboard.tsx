@@ -1,15 +1,18 @@
 import React from 'react';
-import { ArrowUpRight, ArrowDownRight, Package, TrendingUp, Wallet, AlertTriangle, ShoppingCart } from 'lucide-react';
-import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { ArrowUpRight, ArrowDownRight, Package, TrendingUp, Wallet, AlertTriangle, ShoppingCart, Activity, Award, Calendar } from 'lucide-react';
+import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts'; // Added missing imports
 import { useDashboardStats } from '../../hooks/useDashboardStats';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../context/ThemeContext';
 import { formatCurrency, formatDate, getGreetingIcon } from '../../lib/utils';
+import Badge from '../ui/Badge';
 
 const Dashboard: React.FC = () => {
   const { t, lang } = useLanguage();
   const { theme } = useTheme();
-  const { 
+  const GreetingIcon = getGreetingIcon();
+
+  const {
     totalSales, 
     totalProfit, 
     totalExpense, 
@@ -24,15 +27,29 @@ const Dashboard: React.FC = () => {
     totalExpenseMonth,
     totalSalesMonth,
     netMonthlyProfit,
-    stockPredictions
+    stockPredictions,
+    analyzeProfitability
   } = useDashboardStats();
 
-  const GreetingIcon = getGreetingIcon();
-   // NEW: Helper to get prediction details for a product
-  const getPrediction = (productId: number) => {
-    const prediction = stockPredictions.find(p => p.productId === productId);
-    return prediction || { alertLevel: 'normal' }; // Fallback
-  };
+  // Reusable Card Component (Moved inside to avoid import errors)
+  const InsightCard: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode; type?: 'success' | 'warning' }> = ({ title, icon, children, type = 'success' }) => (
+    <div className={`p-5 rounded-2xl border shadow-sm ${type === 'warning' ? 'bg-orange-50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900' : 'bg-white dark:bg-gray-800 border-cream-200 dark:border-gray-700'}`}>
+      <div className="flex items-start gap-4">
+        <div className={`p-3 rounded-full ${type === 'warning' ? 'bg-orange-100 dark:bg-orange-900/20' : 'bg-earth-50 dark:bg-earth-900/20'}`}>
+          {icon}
+        </div>
+        <div className="flex-1">
+          <h4 className={`font-bold text-base ${type === 'warning' ? 'text-orange-700 dark:text-orange-300' : 'text-earth-700 dark:text-earth-200'}`}>
+            {title}
+          </h4>
+          <div className={`text-sm ${type === 'warning' ? 'text-orange-600 dark:text-orange-400' : 'text-gray-600 dark:text-gray-400'}`}>
+            {children}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   if (isLoading) return <div className="p-4 text-center">Loading...</div>;
 
   const monthlyData = [
@@ -40,6 +57,17 @@ const Dashboard: React.FC = () => {
     { name: 'Expenses', value: totalExpenseMonth + totalInventoryExpenseMonth },
     { name: 'Inventory Cost', value: totalInventoryExpenseMonth },
   ];
+
+  // Helper to get prediction details
+  const getPrediction = (productId: number) => {
+    const prediction = stockPredictions.find(p => p.productId === productId);
+    if (!prediction) return { alertLevel: 'normal', daysLeft: 999, daysLeftText: 'No Data' };
+    return {
+      ...prediction,
+      alertLevel: prediction.alertLevel || 'normal',
+      daysLeftText: prediction.daysLeft === 999 ? 'No Sales Data' : `${prediction.daysLeft} Days Left`
+    };
+  };
 
   return (
     <div className="space-y-6 pb-24 max-w-2xl mx-auto">
@@ -88,7 +116,7 @@ const Dashboard: React.FC = () => {
            </div>
         </div>
 
-        <div className={`p-4 rounded-xl mb-4 ${netMonthlyProfit >= 0 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'} border ${netMonthlyProfit >= 0 ? 'border-green-100 dark:border-green-900' : 'border-red-100 dark:border-red-900'} mb-4`}>
+        <div className={`p-4 rounded-xl mb-4 ${netMonthlyProfit >= 0 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'} border ${netMonthlyProfit >= 0 ? 'border-green-100 dark:border-green-900' : 'border-red-100 dark:border-red-900'}`}>
           <p className={`text-xs font-bold mb-1 uppercase ${netMonthlyProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>Net Monthly Profit</p>
           <p className={`text-2xl font-bold ${netMonthlyProfit >= 0 ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
             {formatCurrency(netMonthlyProfit, lang)}
@@ -114,79 +142,53 @@ const Dashboard: React.FC = () => {
              <Package className={lowStockCount > 0 ? 'text-red-500' : 'text-earth-400 dark:text-gray-500'} size={18} />
           </div>
           <p className={`text-xl font-bold ${lowStockCount > 0 ? 'text-red-600' : (theme === 'dark' ? 'text-white' : 'text-earth-800')}`}>
-            {lowStockCount} <span className="text-xs font-normal">items</span>
+            {lowStockCount} <span className="text-xs font-normal"> items</span>
           </p>
         </div>
       </div>
 
-      {/* NEW: Smart Low Stock Alert Section */}
-        <div className={`p-4 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'} flex items-center gap-2`}>
-              <AlertTriangle className="text-yellow-500" size={18} /> 
-              {t('dashboard.stockAlert')}
-            </h3>
-            <span className={`text-xs font-bold uppercase ${theme === 'dark' ? 'text-gray-400' : 'text-earth-400'}`}>
-              {stockPredictions.filter(p => p.alertLevel === 'critical').length} Critical
-            </span>
-          </div>
-
+      {/* Stock Prediction Alert */}
+      <div className={`p-5 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
+        <h3 className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'} mb-4 flex items-center gap-2`}>
+          <AlertTriangle className="text-yellow-500" size={18} /> Stock Prediction
+        </h3>
+        
+        {!stockPredictions || stockPredictions.length === 0 ? (
+           <div className="p-4 text-center text-gray-400 dark:text-gray-500">
+             <Package size={32} className="mx-auto mb-2 opacity-20" />
+             No stock data available.
+           </div>
+        ) : (
           <div className="space-y-3">
-            {stockPredictions.length === 0 ? (
-              <div className="p-4 text-center text-gray-400 dark:text-gray-500">
-                <Package size={32} className="mx-auto mb-2 opacity-20" />
-                <p className="font-medium">No stock data available. Sales history required.</p>
-              </div>
-            ) : (
-              stockPredictions.slice(0, 5).map((item) => {
-                const prediction = getPrediction(item.productId);
-                const isCritical = prediction.alertLevel === 'critical';
-                const isWarning = prediction.alertLevel === 'warning';
-
-                return (
-                  <div 
-                    key={item.productId} 
-                    className={`flex justify-between items-center p-3 rounded-lg border ${
+             {stockPredictions
+               .filter(p => p.daysLeft < 999)
+               .sort((a, b) => a.daysLeft - b.daysLeft)
+               .slice(0, 5)
+               .map((item) => {
+                  const prediction = getPrediction(item.productId);
+                  const isCritical = prediction.daysLeft < 3;
+                  
+                  return (
+                    <div key={item.id} className={`flex justify-between items-center p-3 rounded-lg border ${
                       isCritical 
                         ? 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900' 
-                        : isWarning
-                          ? 'bg-orange-50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900'
-                          : 'bg-white dark:bg-gray-800 border-cream-200 dark:border-gray-700'
-                    }`}
-                  >
-                    <div className="flex-1">
-                      <div>
-                        <h4 className={`font-bold text-sm ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>
-                          {item.productName}
-                        </h4>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className={`text-xs px-2 py-0.5 rounded bg-earth-50 dark:bg-earth-900/30 text-earth-600 dark:text-earth-400 font-bold uppercase`}>
-                            Stock: {item.currentStock}
-                          </span>
-                          <span className={`text-xs font-bold ${prediction.daysLeft === 999 ? 'text-gray-400' : (isCritical ? 'text-red-600' : 'text-orange-600')}`}>
-                            ({prediction.daysLeft === 999 ? 'No Data' : prediction.daysLeftText})
-                          </span>
-                        </div>
+                        : 'bg-orange-50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900'
+                    }`}>
+                      <div className="flex items-center gap-2">
+                         <div className={`w-2 h-2 rounded-full ${isCritical ? 'bg-red-500' : 'bg-orange-500'}`} />
+                         <span className={`font-bold ${isCritical ? 'text-red-700 dark:text-red-300' : 'text-orange-700 dark:text-orange-300'}`}>
+                           {prediction.productName}
+                         </span>
                       </div>
+                      <span className={`text-xs font-bold ${isCritical ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'}`}>
+                         {prediction.daysLeft === 999 ? 'No Sales Data' : `${prediction.daysLeft} Days Left`}
+                      </span>
                     </div>
-                    
-                    {/* NEW: Dynamic Badges */}
-                    <div className="flex flex-col items-center gap-2">
-                      <Badge variant={prediction.alertLevel}>
-                        {prediction.daysLeft === 999 ? 'Unknown' : isCritical ? 'Critical' : 'Warning'}
-                      </Badge>
-                      {prediction.daysLeft !== 999 && (
-                        <span className="text-[10px] text-gray-500">
-                          Avg: {prediction.avgDailySales.toFixed(1)}/day
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })
-            )}
+                  );
+                })
+             }
           </div>
-        </div>
+        )}
       </div>
 
       {/* Charts & Recent List */}
