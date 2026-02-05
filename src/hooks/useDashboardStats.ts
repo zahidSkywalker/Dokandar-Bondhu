@@ -10,7 +10,7 @@ export const useDashboardStats = () => {
   const monthStart = startOfMonth(new Date()).getTime();
   const monthEnd = endOfMonth(new Date()).getTime();
   const sevenDaysAgo = subDays(new Date(), 7).getTime();
-
+  const stockPredictions = useLiveQuery(() => db.stockPredictions.toArray());
   // --- Queries ---
 
   // Today
@@ -68,7 +68,7 @@ export const useDashboardStats = () => {
       
       // Prevent division by zero
       const daysLeft = dailyAvg > 0 ? Math.floor(product.stock / dailyAvg) : 999;
-
+      
       return { 
         ...product, 
         daysLeft, 
@@ -94,7 +94,20 @@ export const useDashboardStats = () => {
       sales: daySales.reduce((sum, s) => sum + s.total, 0) 
     };
   });
+      // Stock Predictions Logic
+  const stockPredictionsMap = stockPredictions 
+    ? stockPredictions.reduce((acc, p) => ({ ...acc, [p.productId]: p }), {})
+    : {};
 
+  const predictionsWithDetails = (productId: number) => {
+    const pred = stockPredictionsMap[productId];
+    if (!pred) return null;
+    return {
+      ...pred,
+      alertLevel: pred.alertLevel,
+      daysLeftText: pred.daysLeft === 999 ? 'No Sales Data' : `${pred.daysLeft} Days Left`
+    };
+  };
   return {
     // Daily Stats
     totalSales,
@@ -116,5 +129,10 @@ export const useDashboardStats = () => {
     isLoading: !salesToday || !expensesToday || !lowStockItems || !allSales || !allProducts,
     chartData,
     greeting: getGreeting()
+  };
+};
+   // NEW: Return stock predictions mapped for easy access
+    stockPredictions: products ? products.map(p => predictionsWithDetails(p.id!)) : [],
+    isLoading: !stockPredictions
   };
 };
