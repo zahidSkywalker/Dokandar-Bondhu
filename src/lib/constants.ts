@@ -183,10 +183,10 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
       search: "খুঁজুন...",
       loading: "লোড হচ্ছে...",
       noData: "কোনো ডাটা নাই",
-      confirmDelete: "এইটা ডিলিট করবেন নিশ্চিত?",
+      confirmDelete: "এইটি ডিলিট করবেন নিশ্চিত?",
       refresh: "রিফ্রেশ",
-      offline: "নেট নাই",
-      online: "নেট আছে",
+      offline: "অফলাইন",
+      online: "অনলাইন",
       lastUpdated: "সর্বশেষ আপডেট",
       sync: "এখনই সিঙ্ক করুন"
     },
@@ -196,25 +196,25 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
     // ==========================================
     dashboard: {
       title: "ড্যাশবোর্ড",
-      todaySales: "আজকের বিক্রি",
+      todaySales: "আজকের বিক্রয়",
       todayProfit: "আজকের লাভ",
       todayExpense: "আজকের খরচ",
       stockAlert: "মজুদ কম সতর্কতা",
-      recentSales: "সাম্প্রতিক বিক্রি",
+      recentSales: "সাম্প্রতিক বিক্রয়",
       stockLow: "মজুদ কম",
       stockOut: "মজুদ শেষ",
       stockCritical: "জরুরি অবস্থা",
       stockWarning: "সতর্ক থাকুন",
-      daysLeft: "আর দিন বাকি",
-      stockUnknown: "বিক্রির হিসাব নাই"
+      daysLeft: "আর কত দিন বাকি",
+      stockUnknown: "বিক্রয়ের হিসাব নাই"
     },
 
     // ==========================================
     // 3. SALES
     // ==========================================
     sales: {
-      title: "বিক্রি",
-      newSale: "নতুন বিক্রি",
+      title: "বিক্রয়",
+      newSale: "নতুন বিক্রয়",
       selectProduct: "পণ্য বাছাই করুন",
       quantity: "পরিমাণ",
       total: "মোট টাকা",
@@ -230,7 +230,7 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
       addProduct: "পণ্য যোগ করুন",
       productName: "পণ্যের নাম",
       buyPrice: "কেনা দাম",
-      sellPrice: "বিক্রি দাম",
+      sellPrice: "বিক্রয় দাম",
       stock: "মজুদের পরিমাণ",
       category: "ক্যাটাগরি"
     },
@@ -286,9 +286,9 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
       priceRange: "দামের রেঞ্জ",
       unit: "একক",
       emptyState: "বাজার দর নাই। নেট অন করে সিঙ্ক দেন।",
-      syncSuccess: "বাজার দর আপডেট হইছে!",
-      syncError: "আপডেট হয় নাই। নেট চেক করেন।",
-      syncInProgress: "আপডেট চলতেছে..."
+      syncSuccess: "বাজার দর আপডেট হয়েছে!",
+      syncError: "আপডেট হয়নি। নেট চেক করেন।",
+      syncInProgress: "আপডেট চলছে..."
     },
 
     // ==========================================
@@ -315,12 +315,12 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
       status: "স্ট্যাটাস",
       testBtn: "টেস্ট নোটিফিকেশন পাঠান",
       alertMsg:
-        "নোটিফিকেশন চালু রাখলে মজুদ কম, বাকি আদায় আর দৈনিক বিক্রির খবর নেট থাকুক বা না থাকুক পাবেন।",
+        "নোটিফিকেশন চালু রাখলে আমরা মজুদ কম, বাকি আদায় আর দৈনিক বিক্রয়ের খবর নেট থাকুক বা না থাকুক পাবেন।",
       settings: "নোটিফিকেশন সেটিংস",
       type: "নোটিফিকেশন টাইপ",
       lowStock: "মজুদ কম হলে",
       duePayment: "বাকি আদায় রিমাইন্ডার",
-      dailySummary: "আজকের বিক্রির হিসাব",
+      dailySummary: "আজকের বিক্রয়ের হিসাব",
       monthlySummary: "মাসিক লাভের হিসাব",
       marketUpdate: "বাজার দর আপডেট"
     },
@@ -330,8 +330,8 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
     // ==========================================
     insights: {
       title: "লাভের বিশ্লেষণ",
-      subtitle: "ব্যবসার অবস্থা এক নজরে",
-      topPerformers: "সবচেয়ে বেশি বিক্রি",
+      subtitle: "ব্যবসায়ের অবস্থা এক নজরে",
+      topPerformers: "সবচেয়ে বেশি বিক্রয়",
       bottomPerformers: "খেয়াল দরকার",
       trends: "ট্রেন্ড বিশ্লেষণ",
       bestSeller: "বেস্ট সেলার",
