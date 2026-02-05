@@ -1,6 +1,6 @@
 import React, { useEffect, ReactNode } from 'react';
 import { X } from 'lucide-react';
-import { useLanguage } from '../../context/LanguageContext';
+import { useTheme } from '../../context/ThemeContext';
 
 interface ModalProps {
   isOpen: boolean;
@@ -10,27 +10,37 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
-  const { t } = useLanguage();
+  const { theme } = useTheme();
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-100"
         onClick={onClose}
       />
       
       {/* Content */}
-      <div className="relative bg-white w-full sm:w-[500px] sm:rounded-2xl rounded-t-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto animate-slide-up">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-gray-800">{title}</h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
-            <X className="w-5 h-5 text-gray-500" />
+      <div className={`
+        relative w-full sm:w-[480px] max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl animate-slide-up
+        ${theme === 'dark' ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-slate-100'}
+      `}>
+        <div className="sticky top-0 z-10 px-6 py-5 border-b flex justify-between items-center backdrop-blur-md bg-opacity-90
+          ${theme === 'dark' ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}
+        ">
+          <h2 className="text-lg font-bold text-slate-800 dark:text-white tracking-tight">{title}</h2>
+          <button 
+            onClick={onClose} 
+            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 transition-colors"
+          >
+            <X className="w-5 h-5" />
           </button>
         </div>
-        {children}
+        <div className="px-6 py-6">
+          {children}
+        </div>
       </div>
     </div>
   );
