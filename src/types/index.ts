@@ -133,3 +133,20 @@ export interface Supplier {
   phone?: string;
   notes?: string;
 }
+// NEW: Daily Sales Summary Type
+// ==========================================
+export interface DailyReportPayload extends NotificationPayload {
+  totalSales: number;
+  totalProfit: number;
+  date: string;
+}
+
+// ==========================================
+// NEW: Monthly Profit Summary Type
+// ==========================================
+export interface MonthlyReportPayload extends NotificationPayload {
+  totalSales: number;
+  totalProfit: number;
+  totalExpense: number;
+  netProfit: number;
+}
