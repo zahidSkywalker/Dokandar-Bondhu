@@ -8,7 +8,7 @@ import { useTheme } from '../../context/ThemeContext';
 import Modal from '../ui/Modal';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
-import FlowAnimation from '../ui/FlowAnimation'; // NEW: Import Flow Animation
+import FlowAnimation from '../ui/FlowAnimation'; // Import Animation
 import { formatCurrency, formatDate, toEnglishDigits } from '../../lib/utils';
 
 const Sales: React.FC = () => {
@@ -22,7 +22,7 @@ const Sales: React.FC = () => {
   const [quantity, setQuantity] = useState('');
   const [dueDate, setDueDate] = useState<string>('');
   const [marginAlert, setMarginAlert] = useState<string | null>(null);
-  const [showFlowAnimation, setShowFlowAnimation] = useState(false); // NEW: State for Animation
+  const [showFlowAnimation, setShowFlowAnimation] = useState(false); // State for Animation
 
   const products = useLiveQuery(() => db.products.toArray());
   const customers = useLiveQuery(() => db.customers.toArray());
@@ -58,10 +58,7 @@ const Sales: React.FC = () => {
     e.preventDefault();
     if (!selectedProduct) return;
     try {
-      // 1. Trigger Animation
-      setShowFlowAnimation(true);
-
-      // 2. Perform DB Operation
+      setShowFlowAnimation(true); // Trigger Animation
       await addSale({
         productId: selectedProduct.id!,
         productName: selectedProduct.name,
@@ -73,8 +70,6 @@ const Sales: React.FC = () => {
         staffId: staffId ? Number(staffId) : undefined,
         dueDate: dueDate ? new Date(dueDate) : undefined,
       });
-
-      // 3. Cleanup UI
       setIsModalOpen(false);
       setProductId('');
       setCustomerId('');
@@ -82,8 +77,6 @@ const Sales: React.FC = () => {
       setQuantity('');
       setDueDate('');
       setMarginAlert(null);
-      
-      // Note: Animation handles its own auto-stop
     } catch (err: any) { 
       alert(err.message || "Error"); 
       setShowFlowAnimation(false); // Stop on error
@@ -92,7 +85,7 @@ const Sales: React.FC = () => {
 
   return (
     <div className="pb-24 max-w-2xl mx-auto">
-      {/* NEW: Global Flow Animation Layer */}
+      {/* Global Flow Animation Layer */}
       <FlowAnimation 
         trigger={showFlowAnimation} 
         color="#10B981" 
@@ -181,8 +174,8 @@ const Sales: React.FC = () => {
           {marginAlert && (
              <div className={`p-3 rounded-lg mb-4 flex items-center gap-2 text-xs font-bold ${
                 marginAlert.includes("loss") 
-                ? "bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400" 
-                : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400"
+                  ? "bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400" 
+                  : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400"
              }`}>
                 <AlertTriangle size={14} /> {marginAlert}
              </div>
