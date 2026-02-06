@@ -12,7 +12,7 @@ interface NavItemProps {
 }
 
 const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, isActive, onClick }) => {
-  const { theme } = useTheme(); // Get theme for conditional styling
+  const { theme } = useTheme(); 
 
   return (
     <button
@@ -27,8 +27,8 @@ const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, isActive, onClick 
         className={cn(
           "p-2 rounded-2xl transition-transform duration-300",
           isActive 
-            ? "bg-earth-800 text-white shadow-lg scale-110 animate-bounce" // Active: Bounce & Scale Up
-            : "bg-transparent dark:bg-transparent" // Inactive: Transparent
+            ? "bg-earth-800 text-white shadow-lg scale-110 animate-bounce" 
+            : "bg-transparent dark:bg-transparent"
         )}
       >
         <Icon className={cn("w-6 h-6", isActive && "stroke-[2.5px]")} />
@@ -53,11 +53,16 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, setActiveTab }) => {
     <div className={`fixed bottom-0 left-0 right-0 backdrop-blur-lg border-t pb-safe pt-2 px-4 z-40 ${
       theme === 'dark' ? 'bg-gray-900/90 border-gray-800' : 'bg-white/90 border-cream-200'
     }`}>
-      <div className="flex justify-between items-center max-w-lg mx-auto">
+      <div className="flex justify-between items-center max-w-2xl mx-auto"> {/* Increased max-w for 7 tabs */}
+        
         <NavItem icon={LayoutDashboard} label={t('dashboard.title')} isActive={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
         <NavItem icon={ShoppingCart} label={t('sales.title')} isActive={activeTab === 'sales'} onClick={() => setActiveTab('sales')} />
         <NavItem icon={Receipt} label={t('expenses.title')} isActive={activeTab === 'expenses'} onClick={() => setActiveTab('expenses')} />
         <NavItem icon={Wallet} label={t('ledger.title')} isActive={activeTab === 'ledger'} onClick={() => setActiveTab('ledger')} />
+        
+        {/* NEW: Suppliers Tab */}
+        <NavItem icon={Store} label="Suppliers" isActive={activeTab === 'suppliers'} onClick={() => setActiveTab('suppliers')} />
+        
         <NavItem icon={TrendingUp} label={t('market.title')} isActive={activeTab === 'market'} onClick={() => setActiveTab('market')} />
         <NavItem icon={Package} label={t('inventory.title')} isActive={activeTab === 'inventory'} onClick={() => setActiveTab('inventory')} />
       </div>
