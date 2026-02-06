@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, User, Phone, MapPin, Wallet, RefreshCw, AlertTriangle, Edit3, Trash2, List, ChevronRight, CreditCard, CheckCircle } from 'lucide-react';
+import { Plus, User, Phone, MapPin, Wallet, RefreshCw, AlertTriangle, Edit3, Trash2, List, ChevronRight, CreditCard, CheckCircle, Calendar } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
 import { useApp } from '../../context/AppContext';
@@ -8,18 +8,20 @@ import { useTheme } from '../../context/ThemeContext';
 import Modal from '../ui/Modal';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
-import { formatCurrency } from '../../lib/utils';
+import { formatCurrency, formatDate } from '../../lib/utils';
 
 const Ledger: React.FC = () => {
   const { t, lang } = useLanguage();
   const { theme } = useTheme();
-  const { addCustomer, updateCustomerDebt, updateCustomer, deleteProduct } = useApp();
+  const { addCustomer, updateCustomerDebt, updateCustomer } = useApp();
   
   // UI States
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isManageModalOpen, setIsManageModalOpen] = useState(false); // For Editing/Deleting Debtor
+  const [isStatementModalOpen, setIsStatementModalOpen] = useState(false); // NEW: Statement View
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [customerTransactions, setCustomerTransactions] = useState<any[]>([]); // NEW: For Statement
   
   // Form States
   const [formData, setFormData] = useState({ name: '', phone: '', address: '', notes: '' });
@@ -28,7 +30,8 @@ const Ledger: React.FC = () => {
   // Data State
   const customers = useLiveQuery(() => db.customers.orderBy('debt').reverse().toArray());
   
-  // Action Handlers
+  // --- Handlers ---
+
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -59,7 +62,6 @@ const Ledger: React.FC = () => {
 
   const handleDeleteDebtor = async () => {
     if (confirm("Are you sure you want to delete this debtor? This action cannot be undone.")) {
-      // Since we don't have a deleteCustomer method exported, we use the DB directly
       if (selectedCustomer?.id) {
         await db.customers.delete(selectedCustomer.id);
         setIsManageModalOpen(false);
@@ -73,7 +75,7 @@ const Ledger: React.FC = () => {
     if (!selectedCustomer) return;
     try {
       const amount = parseFloat(paymentAmount);
-      await updateCustomerDebt(selectedCustomer.id, -amount); // Negative amount = Payment
+      await updateCustomerDebt(selectedCustomer.id, -amount);
       setIsPaymentModalOpen(false);
       setPaymentAmount('');
       setSelectedCustomer(null);
@@ -96,6 +98,15 @@ const Ledger: React.FC = () => {
   const openPaymentModal = (customer: any) => {
     setSelectedCustomer(customer);
     setIsPaymentModalOpen(true);
+  };
+
+  // NEW: Open Statement/History View
+  const openStatement = async (customer: any) => {
+    setSelectedCustomer(customer);
+    // Fetch Sales linked to this customer
+    const sales = await db.sales.where('customerId').equals(customer.id).reverse().toArray();
+    setCustomerTransactions(sales);
+    setIsStatementModalOpen(true);
   };
 
   return (
@@ -178,8 +189,7 @@ const Ledger: React.FC = () => {
 
                 {/* View Statement (History) */}
                 <button 
-                   onClick={() => {/* We'll reuse existing logic if needed, or just add as a button for now */}
-                   console.log('Open Statement')} 
+                   onClick={() => openStatement(customer)} // FIXED: Valid function call
                    className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900 hover:bg-blue-100 transition-colors flex items-center justify-center gap-1"
                 >
                    <List size={12}/> History
@@ -240,6 +250,47 @@ const Ledger: React.FC = () => {
           <div className="h-6" />
           <Button variant="success" icon={<CheckCircle size={20}/>}>Confirm Payment</Button>
         </form>
+      </Modal>
+
+      {/* NEW: 4. Statement/History Modal */}
+      <Modal isOpen={isStatementModalOpen} onClose={() => setIsStatementModalOpen(false)} title={`Statement: ${selectedCustomer?.name}`}>
+        <div className="space-y-3 max-h-[70vh] overflow-y-auto">
+           <div className="flex justify-between items-center pb-4 border-b border-gray-100 dark:border-gray-700">
+             <span className="text-sm font-bold text-gray-500 dark:text-gray-400">Current Due</span>
+             <span className={`text-lg font-bold ${selectedCustomer?.debt > 0 ? 'text-red-500' : 'text-green-500'}`}>
+               {formatCurrency(selectedCustomer?.debt || 0, lang)}
+             </span>
+           </div>
+
+           {customerTransactions.length === 0 ? (
+             <p className="text-center text-gray-500 py-4">No transactions found.</p>
+           ) : (
+             customerTransactions.map((tx) => (
+               <div key={tx.id} className={`flex flex-col gap-1 py-3 border-b border-gray-100 dark:border-gray-700 last:border-0`}>
+                 <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                       <div className={`p-1.5 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                         <CreditCard size={14} className="text-earth-600 dark:text-earth-400"/>
+                       </div>
+                       <div>
+                         <p className="text-sm font-bold dark:text-white">{tx.quantity} Items</p>
+                         <p className="text-[10px] text-gray-500">{formatDate(tx.date, lang)}</p>
+                       </div>
+                    </div>
+                    <div className="text-right">
+                       <p className="text-sm font-bold dark:text-white">{formatCurrency(tx.total, lang)}</p>
+                    </div>
+                 </div>
+                 {tx.dueDate && (
+                   <div className="flex items-center gap-1 mt-1">
+                     <Calendar size={10} className="text-orange-500" />
+                     <span className="text-[10px] text-orange-500">Due: {new Date(tx.dueDate).toLocaleDateString()}</span>
+                   </div>
+                 )}
+               </div>
+             ))
+           )}
+        </div>
       </Modal>
 
     </div>
