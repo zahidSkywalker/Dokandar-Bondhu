@@ -8,6 +8,7 @@ import { useTheme } from '../../context/ThemeContext';
 import Modal from '../ui/Modal';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
+import FlowAnimation from '../ui/FlowAnimation'; // NEW: Import Flow Animation
 import { formatCurrency, toEnglishDigits } from '../../lib/utils';
 
 const Inventory: React.FC = () => {
@@ -20,7 +21,8 @@ const Inventory: React.FC = () => {
   const [priceHistory, setPriceHistory] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [marginWarning, setMarginWarning] = useState<string | null>(null); 
-  
+  const [showFlowAnimation, setShowFlowAnimation] = useState(false); // NEW: State for Animation
+
   const [formData, setFormData] = useState({
     name: '',
     buyPrice: '',
@@ -66,6 +68,10 @@ const Inventory: React.FC = () => {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // 1. Trigger the Flow Animation (Starts the "Data Packet" moving)
+      setShowFlowAnimation(true);
+
+      // 2. Perform Database Operation
       await addProduct({
         name: formData.name,
         buyPrice: parseFloat(toEnglishDigits(formData.buyPrice)),
@@ -74,11 +80,18 @@ const Inventory: React.FC = () => {
         category: formData.category,
         unit: formData.unit
       });
+      
+      // 3. Close Modal
       setIsModalOpen(false);
       setFormData({ name: '', buyPrice: '', sellPrice: '', stock: '', category: 'General', unit: 'pcs' });
       setMarginWarning(null);
+      
+      // Note: The animation stops automatically via its internal timer (1.5s), 
+      // so we don't strictly need to set setShowFlowAnimation(false) here 
+      // unless we wanted to cut it short. We let it play out.
     } catch (err) {
       alert("Error adding product");
+      setShowFlowAnimation(false); // Stop animation on error
     }
   };
 
@@ -91,6 +104,12 @@ const Inventory: React.FC = () => {
 
   return (
     <div className="pb-24 max-w-2xl mx-auto">
+      {/* NEW: Global Flow Animation Layer */}
+      <FlowAnimation 
+        trigger={showFlowAnimation} 
+        color="#8B5E3C"
+      />
+
       <div className="flex justify-between items-center mb-6 mt-2">
         <h1 className="text-2xl font-bold text-earth-900 dark:text-white">{t('inventory.title')}</h1>
         <button 
@@ -130,16 +149,14 @@ const Inventory: React.FC = () => {
                      {product.unit}
                    </span>
                 </div>
-                <div className="flex justify-between items-center mt-2">
-                  <p className="text-xs text-earth-500 dark:text-gray-400 font-medium">
-                    Buy: {formatCurrency(product.buyPrice, lang)} • Sell: {formatCurrency(product.sellPrice, lang)}
-                  </p>
-                  <div className={`mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold ${
-                    product.stock < 10 ? 'bg-red-50 text-red-600 border border-red-100 dark:bg-red-900/20 dark:border-red-900 dark:text-red-400' : 'bg-green-50 text-green-600 border border-green-100 dark:bg-green-900/20 dark:border-green-900 dark:text-green-400'
-                  }`}>
-                    <div className={`w-1.5 h-1.5 rounded-full ${product.stock < 10 ? 'bg-red-500' : 'bg-green-500'}`} />
-                    Stock: {product.stock} {product.unit}
-                  </div>
+                <p className="text-xs text-earth-500 dark:text-gray-400 mt-1 font-medium">
+                  Buy: {formatCurrency(product.buyPrice, lang)} • Sell: {formatCurrency(product.sellPrice, lang)}
+                </p>
+                <div className={`mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold ${
+                  product.stock < 10 ? 'bg-red-50 text-red-600 border border-red-100 dark:bg-red-900/20 dark:border-red-900 dark:text-red-400' : 'bg-green-50 text-green-600 border border-green-100 dark:bg-green-900/20 dark:border-green-900 dark:text-green-400'
+                }`}>
+                  <div className={`w-1.5 h-1.5 rounded-full ${product.stock < 10 ? 'bg-red-500' : 'bg-green-500'}`} />
+                  Stock: {product.stock} {product.unit}
                 </div>
                 
                  {(product.sellPrice - product.buyPrice) < (product.buyPrice * 0.1) && product.buyPrice > 0 && (
@@ -163,6 +180,7 @@ const Inventory: React.FC = () => {
         )}
       </div>
 
+      {/* Add Product Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={t('inventory.addProduct')}>
         <form onSubmit={handleAdd} className="space-y-2">
           <Input 
@@ -175,7 +193,7 @@ const Inventory: React.FC = () => {
           <div>
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{t('inventory.category')}</label>
             <select 
-                className={`w-full mb-2 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 bg-white border-gray-200 text-earth-800`}
+                className={`w-full mb-4 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 bg-white border-gray-200 text-earth-800`}
                 value={formData.category} 
                 onChange={(e) => setFormData({...formData, category: e.target.value})}
             >
@@ -217,21 +235,24 @@ const Inventory: React.FC = () => {
             onChange={(e) => setFormData({...formData, stock: e.target.value})} 
           />
           
-          <div>
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Unit</label>
-            <select 
-                className={`w-full px-4 py-3 rounded-xl focus:outline-none focus:ring-2 bg-white border-gray-200 text-earth-800`}
-                value={formData.unit} 
-                onChange={(e) => setFormData({...formData, unit: e.target.value})}
+          <div className="grid grid-cols-2 gap-4">
+             <div>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Unit</label>
+                <select 
+                  className={`w-full px-4 py-3 rounded-xl focus:outline-none focus:ring-2 bg-white border-gray-200 text-earth-800`}
+                  value={formData.unit} 
+                  onChange={(e) => setFormData({...formData, unit: e.target.value})}
                 >
                   {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
                 </select>
+             </div>
           </div>
           <div className="h-6" />
           <Button icon={<Plus size={20} />}>{t('common.save')}</Button>
         </form>
       </Modal>
 
+      {/* Price History Modal */}
       <Modal isOpen={isHistoryModalOpen} onClose={() => setIsHistoryModalOpen(false)} title={`Price History: ${selectedProductForHistory?.name}`}>
         <div className="space-y-3 max-h-[60vh] overflow-y-auto">
             {priceHistory.length === 0 ? (
