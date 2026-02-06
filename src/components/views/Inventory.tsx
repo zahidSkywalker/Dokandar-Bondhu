@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, Package, History, AlertTriangle } from 'lucide-react';
+import { Plus, Search, Trash2, Package, History, AlertTriangle, Edit3 } from 'lucide-react'; // Added Edit3
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
 import { useApp } from '../../context/AppContext';
@@ -8,20 +8,25 @@ import { useTheme } from '../../context/ThemeContext';
 import Modal from '../ui/Modal';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
-import FlowAnimation from '../ui/FlowAnimation'; // NEW: Import Flow Animation
+import FlowAnimation from '../ui/FlowAnimation';
 import { formatCurrency, toEnglishDigits } from '../../lib/utils';
 
 const Inventory: React.FC = () => {
   const { t, lang } = useLanguage();
   const { theme } = useTheme();
-  const { addProduct, deleteProduct, getLastPurchasePrice } = useApp();
+  const { addProduct, updateProduct, deleteProduct, getLastPurchasePrice } = useApp();
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [selectedProductForHistory, setSelectedProductForHistory] = useState<any>(null);
   const [priceHistory, setPriceHistory] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [marginWarning, setMarginWarning] = useState<string | null>(null); 
-  const [showFlowAnimation, setShowFlowAnimation] = useState(false); // NEW: State for Animation
+  const [showFlowAnimation, setShowFlowAnimation] = useState(false); // Flow Animation
+
+  // NEW: Edit Mode State
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -35,8 +40,9 @@ const Inventory: React.FC = () => {
   const CATEGORIES = ['General', 'Grocery', 'Medicine', 'Cosmetics', 'Electronics', 'Dairy', 'Hardware', 'Clothing'];
   const UNITS = ['pcs', 'kg', 'g', 'l', 'ml', 'm', 'box', 'pack', 'dozen'];
 
+  // Margin Check Logic (Reused for Add/Edit)
   useEffect(() => {
-    const checkMargin = async () => {
+    const checkMargin = () => {
       if (formData.buyPrice && formData.sellPrice) {
         const buy = parseFloat(toEnglishDigits(formData.buyPrice));
         const sell = parseFloat(toEnglishDigits(formData.sellPrice));
@@ -68,10 +74,7 @@ const Inventory: React.FC = () => {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // 1. Trigger the Flow Animation (Starts the "Data Packet" moving)
-      setShowFlowAnimation(true);
-
-      // 2. Perform Database Operation
+      setShowFlowAnimation(true); // Trigger Animation
       await addProduct({
         name: formData.name,
         buyPrice: parseFloat(toEnglishDigits(formData.buyPrice)),
@@ -80,18 +83,49 @@ const Inventory: React.FC = () => {
         category: formData.category,
         unit: formData.unit
       });
-      
-      // 3. Close Modal
       setIsModalOpen(false);
       setFormData({ name: '', buyPrice: '', sellPrice: '', stock: '', category: 'General', unit: 'pcs' });
       setMarginWarning(null);
-      
-      // Note: The animation stops automatically via its internal timer (1.5s), 
-      // so we don't strictly need to set setShowFlowAnimation(false) here 
-      // unless we wanted to cut it short. We let it play out.
     } catch (err) {
       alert("Error adding product");
-      setShowFlowAnimation(false); // Stop animation on error
+      setShowFlowAnimation(false);
+    }
+  };
+
+  // NEW: Handle Edit
+  const openEditModal = (product: any) => {
+    setEditingProduct(product);
+    setFormData({
+      name: product.name,
+      buyPrice: String(product.buyPrice),
+      sellPrice: String(product.sellPrice),
+      stock: String(product.stock),
+      category: product.category,
+      unit: product.unit
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProduct) return;
+    try {
+      setShowFlowAnimation(true);
+      await updateProduct(editingProduct.id, {
+        name: formData.name,
+        buyPrice: parseFloat(toEnglishDigits(formData.buyPrice)),
+        sellPrice: parseFloat(toEnglishDigits(formData.sellPrice)),
+        stock: parseInt(toEnglishDigits(formData.stock)),
+        category: formData.category,
+        unit: formData.unit
+      });
+      setIsEditModalOpen(false);
+      setEditingProduct(null);
+      setFormData({ name: '', buyPrice: '', sellPrice: '', stock: '', category: 'General', unit: 'pcs' });
+      setMarginWarning(null);
+    } catch (err) {
+      alert("Error updating product");
+      setShowFlowAnimation(false);
     }
   };
 
@@ -104,11 +138,8 @@ const Inventory: React.FC = () => {
 
   return (
     <div className="pb-24 max-w-2xl mx-auto">
-      {/* NEW: Global Flow Animation Layer */}
-      <FlowAnimation 
-        trigger={showFlowAnimation} 
-        color="#8B5E3C"
-      />
+      {/* Flow Animation Layer */}
+      <FlowAnimation trigger={showFlowAnimation} color="#8B5E3C" />
 
       <div className="flex justify-between items-center mb-6 mt-2">
         <h1 className="text-2xl font-bold text-earth-900 dark:text-white">{t('inventory.title')}</h1>
@@ -165,13 +196,24 @@ const Inventory: React.FC = () => {
                     </div>
                  )}
                  
-                 <button 
+                 <div className="mt-2">
+                    <button 
                        onClick={() => handleViewHistory(product)}
-                       className="mt-2 text-xs flex items-center gap-1 text-blue-500 hover:underline"
+                       className="text-xs flex items-center gap-1 text-blue-500 hover:underline"
                     >
                        <History size={12} /> View Price History
                     </button>
+                 </div>
               </div>
+              
+              {/* NEW: Edit Button */}
+              <button 
+                onClick={() => openEditModal(product)}
+                className="p-3 bg-gray-100 dark:bg-gray-700 hover:bg-earth-100 dark:hover:bg-gray-600 text-earth-600 dark:text-gray-300 rounded-xl transition-colors"
+              >
+                <Edit3 size={16} />
+              </button>
+              
               <button onClick={() => deleteProduct(product.id!)} className="bg-cream-50 dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 text-earth-400 p-3 rounded-xl transition-colors">
                 <Trash2 size={18} />
               </button>
@@ -249,6 +291,78 @@ const Inventory: React.FC = () => {
           </div>
           <div className="h-6" />
           <Button icon={<Plus size={20} />}>{t('common.save')}</Button>
+        </form>
+      </Modal>
+
+      {/* NEW: Edit Product Modal */}
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Edit Product">
+        <form onSubmit={handleUpdate} className="space-y-2">
+          <Input 
+            label={t('inventory.productName')} 
+            required 
+            value={formData.name} 
+            onChange={(e) => setFormData({...formData, name: e.target.value})} 
+          />
+          
+          <div>
+            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{t('inventory.category')}</label>
+            <select 
+                className={`w-full mb-4 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 bg-white border-gray-200 text-earth-800`}
+                value={formData.category} 
+                onChange={(e) => setFormData({...formData, category: e.target.value})}
+            >
+               {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input 
+              label={t('inventory.buyPrice')} 
+              type="number" 
+              required 
+              value={formData.buyPrice} 
+              onChange={(e) => setFormData({...formData, buyPrice: e.target.value})} 
+            />
+            <Input 
+              label={t('inventory.sellPrice')} 
+              type="number" 
+              required 
+              value={formData.sellPrice} 
+              onChange={(e) => setFormData({...formData, sellPrice: e.target.value})} 
+            />
+          </div>
+          
+          {marginWarning && (
+            <div className={`p-3 rounded-xl text-xs font-bold mb-2 flex items-center gap-2 ${
+              marginWarning.includes("below cost") ? "bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400" : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400"
+            }`}>
+              <AlertTriangle size={14} />
+              {marginWarning}
+            </div>
+          )}
+
+          <Input 
+            label={t('inventory.stock')} 
+            type="number" 
+            required 
+            value={formData.stock} 
+            onChange={(e) => setFormData({...formData, stock: e.target.value})} 
+          />
+          
+          <div className="grid grid-cols-2 gap-4">
+             <div>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Unit</label>
+                <select 
+                  className={`w-full px-4 py-3 rounded-xl focus:outline-none focus:ring-2 bg-white border-gray-200 text-earth-800`}
+                  value={formData.unit} 
+                  onChange={(e) => setFormData({...formData, unit: e.target.value})}
+                >
+                  {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+                </select>
+             </div>
+          </div>
+          <div className="h-6" />
+          <Button icon={<Edit3 size={20} />}>Update Product</Button>
         </form>
       </Modal>
 
