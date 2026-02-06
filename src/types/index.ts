@@ -71,9 +71,6 @@ export interface DailyStats {
 export type Language = 'en' | 'bn';
 export type Theme = 'light' | 'dark';
 
-// ==========================================
-// NEW: Market Price Interface
-// ==========================================
 export interface MarketPrice {
   id?: number;
   nameEn: string;
@@ -85,9 +82,6 @@ export interface MarketPrice {
   dateFetched: Date;
 }
 
-// ==========================================
-// NEW: Supplier Interface (Feature 3)
-// ==========================================
 export interface Supplier {
   id?: number;
   name: string;
@@ -96,9 +90,6 @@ export interface Supplier {
   totalDue?: number;
 }
 
-// ==========================================
-// NEW: Price History Interface (Feature 6)
-// ==========================================
 export interface PriceHistory {
   id?: number;
   productId: number;
@@ -107,9 +98,15 @@ export interface PriceHistory {
   date: Date;
 }
 
-// ==========================================
-// FIXED: Translation Interface Structure
-// ==========================================
+// NEW: Payment Interface for Ledger Statements
+export interface Payment {
+  id?: number;
+  customerId: number;
+  amount: number;
+  date: Date;
+  note?: string;
+}
+
 interface MarketTranslation {
   title: string;
   subtitle: string;
@@ -140,16 +137,11 @@ export interface Translation {
   ledger: Record<string, string>;
   staff: Record<string, string>;
   market: MarketTranslation;
-  
-  // ==========================================
-  // NEW: Added to fix Constants Errors
-  // ==========================================
   suppliers: Record<string, string>;
   notifications: Record<string, string>;
   insights: Record<string, string>;
 }
 
-// NEW: Stock Prediction & Alert Types
 export interface StockPrediction {
   productId: number;
   productName: string;
