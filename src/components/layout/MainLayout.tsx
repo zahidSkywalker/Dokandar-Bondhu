@@ -6,7 +6,8 @@ import Sales from '../views/Sales';
 import Expenses from '../views/Expenses';
 import Ledger from '../views/Ledger';
 import Settings from '../views/Settings';
-import Suppliers from '../views/Suppliers'; // NEW IMPORT
+import Suppliers from '../views/Suppliers'; 
+import Market from '../views/Market'; // FIXED: Re-added missing import
 import { useLanguage } from '../../context/LanguageContext';
 import { Settings as SettingsIcon, Moon, Sun } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
@@ -23,7 +24,8 @@ const MainLayout: React.FC = () => {
       case 'sales': return <Sales />;
       case 'expenses': return <Expenses />;
       case 'ledger': return <Ledger />;
-      case 'suppliers': return <Suppliers />; // NEW CASE
+      case 'suppliers': return <Suppliers />;
+      case 'market': return <Market />; // FIXED: Ensured this case exists
       case 'settings': return <Settings />;
       default: return <Dashboard />;
     }
@@ -33,7 +35,7 @@ const MainLayout: React.FC = () => {
     <div className={`min-h-screen font-sans pb-20 transition-colors duration-300 ${theme === 'dark' ? 'bg-gray-900 text-gray-100' : 'bg-cream-50 text-earth-900'}`}>
       
       {/* Header */}
-      <header className={`sticky top-0 z-30 border-b px-4 py-4 flex justify-between items-center ${theme === 'dark' ? 'bg-gray-800/90 border-gray-700 backdrop-blur-md' : 'bg-white/80 border-cream-200 backdrop-blur-md shadow-sm'}`}>
+      <header className={`sticky top-0 z-30 border-b px-6 py-4 flex justify-between items-center ${theme === 'dark' ? 'bg-gray-800/90 border-gray-700 backdrop-blur-md' : 'bg-white/80 border-cream-200 backdrop-blur-md shadow-sm'}`}>
         <div>
           <h1 className={`font-bold text-xl tracking-tight ${theme === 'dark' ? 'text-white' : 'text-earth-800'}`}>{t('common.appName')}</h1>
           <p className={`text-xs font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-earth-600'}`}>Business Manager</p>
@@ -62,7 +64,7 @@ const MainLayout: React.FC = () => {
         </div>
       </header>
 
-      <main className="animate-fade-in px-4 pt-4">
+      <main className="animate-fade-in px-6 pt-4"> {/* Changed px-4 to px-6 for better layout */}
         {renderContent()}
       </main>
 
