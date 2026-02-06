@@ -28,7 +28,7 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen font-sans pb-20 transition-colors duration-300 ${theme === 'dark' ? 'bg-slate-950 text-slate-200' : 'bg-slate-50 text-slate-900'}`}>
+    <div className={`min-h-screen font-sans transition-colors duration-300 ${theme === 'dark' ? 'bg-slate-950 text-slate-200' : 'bg-slate-50 text-slate-900'}`}>
       
       {/* Header */}
       <header className={`
@@ -74,7 +74,8 @@ const MainLayout: React.FC = () => {
         </div>
       </header>
 
-      <main className="animate-fade-in px-4 pt-4 max-w-2xl mx-auto">
+      {/* FIX: Added pb-safe to prevent Navbar Cutoff on devices with notches/home bars */}
+      <main className="animate-fade-in px-4 pt-4 max-w-2xl mx-auto pb-safe">
         {renderContent()}
       </main>
 
