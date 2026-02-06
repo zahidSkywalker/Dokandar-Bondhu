@@ -5,36 +5,37 @@ import { useTheme } from '../../context/ThemeContext';
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
-  variant?: 'default' | 'dark'; 
+  variant?: 'default' | 'dark'; // NEW: Explicit variant control
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, label, error, variant = 'default', ...props }, ref) => {
-    const { theme } = useTheme(); 
+    const { theme } = useTheme(); // Hook to get theme state
 
+    // Dynamic styling based on theme
     const isDark = theme === 'dark';
     
-    const baseStyles = "w-full px-4 py-3 rounded-xl text-sm focus:outline-none transition-all duration-200 border";
+    // Base styles
+    const baseStyles = "w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200";
     
+    // Conditional styling for Dark Mode visibility
     const modeStyles = isDark 
-      ? "bg-slate-800/50 border-slate-700 text-slate-100 placeholder-slate-500 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/50" 
-      : "bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/50";
-
-    const labelStyles = "block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 ml-1";
+      ? "bg-gray-800 border-gray-600 text-white placeholder-gray-500 focus:ring-2 focus:ring-earth-600" 
+      : "bg-white border-gray-200 text-earth-900 placeholder-gray-400 focus:ring-2 focus:ring-earth-200";
 
     return (
-      <div className="w-full mb-5">
+      <div className="w-full mb-4">
         {label && (
-          <label className={labelStyles}>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             {label}
           </label>
         )}
         <input
           ref={ref}
-          className={cn(baseStyles, modeStyles, error && "border-red-500 focus:border-red-500 focus:ring-red-500/50", className)}
+          className={cn(baseStyles, modeStyles, error && "border-red-500 focus:ring-red-500", className)}
           {...props}
         />
-        {error && <p className="text-red-500 text-xs mt-1.5 ml-1">{error}</p>}
+        {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
       </div>
     );
   }
