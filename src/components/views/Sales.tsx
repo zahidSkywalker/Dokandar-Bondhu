@@ -8,6 +8,7 @@ import { useTheme } from '../../context/ThemeContext';
 import Modal from '../ui/Modal';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
+import FlowAnimation from '../ui/FlowAnimation'; // NEW: Import Flow Animation
 import { formatCurrency, formatDate, toEnglishDigits } from '../../lib/utils';
 
 const Sales: React.FC = () => {
@@ -21,6 +22,7 @@ const Sales: React.FC = () => {
   const [quantity, setQuantity] = useState('');
   const [dueDate, setDueDate] = useState<string>('');
   const [marginAlert, setMarginAlert] = useState<string | null>(null);
+  const [showFlowAnimation, setShowFlowAnimation] = useState(false); // NEW: State for Animation
 
   const products = useLiveQuery(() => db.products.toArray());
   const customers = useLiveQuery(() => db.customers.toArray());
@@ -33,7 +35,6 @@ const Sales: React.FC = () => {
   const selectedProduct = useMemo(() => products?.find(p => p.id === Number(productId)), [productId, products]);
   const selectedCustomer = useMemo(() => customers?.find(c => c.id === Number(customerId)), [customerId, customers]);
 
-  // Margin Alert Logic
   useEffect(() => {
     if (selectedProduct && quantity) {
       const buy = selectedProduct.buyPrice;
@@ -57,6 +58,10 @@ const Sales: React.FC = () => {
     e.preventDefault();
     if (!selectedProduct) return;
     try {
+      // 1. Trigger Animation
+      setShowFlowAnimation(true);
+
+      // 2. Perform DB Operation
       await addSale({
         productId: selectedProduct.id!,
         productName: selectedProduct.name,
@@ -68,6 +73,8 @@ const Sales: React.FC = () => {
         staffId: staffId ? Number(staffId) : undefined,
         dueDate: dueDate ? new Date(dueDate) : undefined,
       });
+
+      // 3. Cleanup UI
       setIsModalOpen(false);
       setProductId('');
       setCustomerId('');
@@ -75,11 +82,22 @@ const Sales: React.FC = () => {
       setQuantity('');
       setDueDate('');
       setMarginAlert(null);
-    } catch (err: any) { alert(err.message || "Error"); }
+      
+      // Note: Animation handles its own auto-stop
+    } catch (err: any) { 
+      alert(err.message || "Error"); 
+      setShowFlowAnimation(false); // Stop on error
+    }
   };
 
   return (
     <div className="pb-24 max-w-2xl mx-auto">
+      {/* NEW: Global Flow Animation Layer */}
+      <FlowAnimation 
+        trigger={showFlowAnimation} 
+        color="#10B981" 
+      />
+
       <div className="flex justify-between items-center mb-6 mt-2">
         <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{t('sales.title')}</h1>
         <button onClick={() => setIsModalOpen(true)} className={`p-3 rounded-2xl shadow-xl active:scale-95 transition-transform ${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-earth-800 text-white'}`}><Plus size={24} /></button>
@@ -93,8 +111,6 @@ const Sales: React.FC = () => {
                <div>
                 <h3 className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{sale.productName}</h3>
                 
-                {/* FIX: Show Product Unit from DB instead of hardcoded 'pcs' */}
-                {/* We need to find the product to get its unit because Sale table doesn't store it directly */}
                 <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}`}>
                   {formatDate(sale.date, lang)} • {sale.quantity} {products?.find(p => p.id === sale.productId)?.unit || 'pcs'}
                 </div>
@@ -137,7 +153,6 @@ const Sales: React.FC = () => {
             {staff?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
 
-          {/* FIX: Due Date - Made it more visible and robust */}
           {selectedCustomer && (
              <div className="mb-4">
                <label className={`block text-sm font-bold mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-earth-700'}`}>Due Date (Optional)</label>
