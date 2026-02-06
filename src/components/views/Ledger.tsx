@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, User, Phone, MapPin, Wallet, RefreshCw, AlertTriangle, Edit3, Trash2, CheckCircle, List, CreditCard, ChevronRight, Calendar } from 'lucide-react';
+import { Plus, User, Phone, MapPin, Wallet, RefreshCw, AlertTriangle, Edit3, Trash2, List, ChevronRight, CreditCard, CheckCircle, Calendar } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
 import { useApp } from '../../context/AppContext';
@@ -13,22 +13,23 @@ import { formatCurrency, formatDate } from '../../lib/utils';
 const Ledger: React.FC = () => {
   const { t, lang } = useLanguage();
   const { theme } = useTheme();
-  const { addCustomer, updateCustomer, recordPayment } = useApp();
+  const { addCustomer, updateCustomerDebt, updateCustomer } = useApp();
+  
   // UI States
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isManageModalOpen, setIsManageModalOpen] = useState(false);
-  const [isStatementModalOpen, setIsStatementModalOpen] = useState(false);
+  const [isManageModalOpen, setIsManageModalOpen] = useState(false); // For Editing/Deleting Debtor
+  const [isStatementModalOpen, setIsStatementModalOpen] = useState(false); // NEW: Statement View
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
-  const [customerTransactions, setCustomerTransactions] = useState<any[]>([]); 
+  const [customerTransactions, setCustomerTransactions] = useState<any[]>([]); // NEW: For Statement
   
   // Form States
   const [formData, setFormData] = useState({ name: '', phone: '', address: '', notes: '' });
   const [paymentAmount, setPaymentAmount] = useState('');
-  const [paymentNote, setPaymentNote] = useState('');
 
-  const customers = useLiveQuery(() => db.customers.orderBy('debt').reverse().toArray(), []);
-
+  // Data State
+  const customers = useLiveQuery(() => db.customers.orderBy('debt').reverse().toArray());
+  
   // --- Handlers ---
 
   const handleAdd = async (e: React.FormEvent) => {
@@ -73,15 +74,10 @@ const Ledger: React.FC = () => {
     e.preventDefault();
     if (!selectedCustomer) return;
     try {
-      await recordPayment({
-        customerId: selectedCustomer.id,
-        amount: parseFloat(paymentAmount),
-        note: paymentNote,
-        date: new Date()
-      });
+      const amount = parseFloat(paymentAmount);
+      await updateCustomerDebt(selectedCustomer.id, -amount);
       setIsPaymentModalOpen(false);
       setPaymentAmount('');
-      setPaymentNote('');
       setSelectedCustomer(null);
     } catch (err: any) { 
       alert("Error processing payment");
@@ -104,174 +100,136 @@ const Ledger: React.FC = () => {
     setIsPaymentModalOpen(true);
   };
 
+  // NEW: Open Statement/History View
   const openStatement = async (customer: any) => {
     setSelectedCustomer(customer);
-    
-    // Fetch Sales (Credits - Increases Debt)
-    const sales = await db.sales.where('customerId').equals(customer.id).toArray();
-    
-    // Fetch Payments (Debits - Decreases Debt)
-    const payments = await db.payments.where('customerId').equals(customer.id).toArray();
-
-    // Merge and Sort by Date (Newest First)
-    const transactions = [
-      ...sales.map(s => ({
-        id: s.id,
-        date: new Date(s.date).getTime(),
-        type: 'Sale' as const,
-        desc: `Sale: ${s.quantity} items`,
-        amount: s.total, // Positive because it increases debt balance
-        balance: 0 // Placeholder for UI
-      })),
-      ...payments.map(p => ({
-        id: p.id,
-        date: new Date(p.date).getTime(),
-        type: 'Payment' as const,
-        desc: `Payment: ${p.note || 'Repayment'}`,
-        amount: -p.amount, // Negative because it decreases debt balance
-        balance: 0
-      }))
-    ].sort((a, b) => a.date - b.date);
-
-    // Calculate Running Balance (Oldest to Newest)
-    let runningBalance = 0;
-    const statementWithBalance = transactions.map(tx => {
-      runningBalance += tx.amount;
-      return { ...tx, balance: runningBalance, dateObj: new Date(tx.date) };
-    });
-
-    setCustomerTransactions(statementWithBalance);
+    // Fetch Sales linked to this customer
+    const sales = await db.sales.where('customerId').equals(customer.id).reverse().toArray();
+    setCustomerTransactions(sales);
     setIsStatementModalOpen(true);
   };
 
   return (
-    <div className={`pb-32 max-w-3xl mx-auto min-h-screen ${theme === 'dark' ? 'bg-gray-900 text-gray-100' : 'bg-[#F9FAFB] text-gray-800'}`}>
+    <div className={`pb-24 max-w-2xl mx-auto ${theme === 'dark' ? 'bg-gray-900 text-gray-100' : 'bg-cream-50 text-earth-900'}`}>
       
-      {/* Header - More Spacing */}
-      <div className="flex justify-between items-center mb-8 mt-6">
-        <div>
-          <h1 className={`text-3xl font-extrabold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{t('ledger.title')}</h1>
-          <p className={`text-base mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Manage debts, credits, and repayments.</p>
-        </div>
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6 mt-2">
+        <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{t('ledger.title')}</h1>
         <button 
           onClick={() => setIsAddModalOpen(true)}
-          className={`bg-earth-800 text-white p-4 rounded-2xl shadow-xl shadow-earth-900/30 active:scale-95 transition-transform hover:bg-earth-700`}
+          className={`p-3 rounded-2xl shadow-xl active:scale-95 transition-transform ${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-earth-800 text-white'}`}
         >
-          <Plus size={28} />
+          <Plus size={24} />
         </button>
       </div>
 
-      {/* Customer List - More Breathing Room */}
-      <div className="space-y-6">
-        {!customers ? <div className="p-8 text-center">Loading...</div> : customers.length === 0 ? (
-          <div className="p-16 text-center border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-3xl">
-             <User className="mx-auto text-gray-300 dark:text-gray-600 mb-4" size={64} />
-             <p className={`text-lg font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>No customers yet. Add one to start.</p>
-          </div>
+      {/* Customer List */}
+      <div className="space-y-4">
+        {!customers ? <div className="p-4 text-center">Loading...</div> : customers.length === 0 ? (
+          <p className={`text-center mt-10 ${theme === 'dark' ? 'text-gray-400' : 'text-earth-400'}`}>No customers yet. Add one to start.</p>
         ) : (
           customers.map((customer) => (
-            <div key={customer.id} className={`p-8 rounded-3xl border shadow-sm transition-all hover:shadow-md ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+            <div key={customer.id} className={`p-5 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
               
               {/* Info Header */}
-              <div className="flex justify-between items-start mb-6">
-                <div className="flex items-center gap-4">
-                  <div className={`p-3 rounded-2xl ${theme === 'dark' ? 'bg-gray-700/20 text-earth-600' : 'bg-earth-50 text-earth-600'}`}>
-                    <User size={28} />
+              <div className="flex justify-between items-start mb-3">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-xl ${theme === 'dark' ? 'bg-gray-700 text-earth-600' : 'bg-earth-50 text-earth-600'}`}>
+                    <User size={20} />
                   </div>
                   <div>
-                    <h3 className={`text-2xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{customer.name}</h3>
+                    <h3 className={`font-bold text-lg ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{customer.name}</h3>
                     {customer.phone && (
-                      <p className={`text-base text-gray-500 dark:text-gray-400 flex items-center gap-2 mt-1`}>
-                        <Phone size={18}/> {customer.phone}
+                      <p className={`text-xs flex items-center gap-1 ${theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}`}>
+                        <Phone size={12}/> {customer.phone}
                       </p>
                     )}
                     {customer.address && (
-                      <p className={`text-base text-gray-500 dark:text-gray-400 flex items-center gap-2 mt-1`}>
-                        <MapPin size={18}/> {customer.address}
+                      <p className={`text-xs flex items-center gap-1 ${theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}`}>
+                        <MapPin size={12}/> {customer.address}
                       </p>
                     )}
                   </div>
                 </div>
                 
                 {/* Total Due Badge */}
-                <div className={`px-5 py-2 rounded-xl font-bold text-lg ${customer.debt > 0 ? 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400' : 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400'}`}>
+                <div className={`px-3 py-1.5 rounded-lg font-bold text-sm ${customer.debt > 0 ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'}`}>
                   {customer.debt > 0 ? 'Due' : 'Cleared'}
                 </div>
               </div>
               
               {/* Stats Row */}
-              <div className={`flex justify-between items-center p-4 rounded-2xl mb-6 ${theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
-                 <span className={`text-xs font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>{t('ledger.debt')}</span>
-                 <span className={`text-3xl font-extrabold ${customer.debt > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+              <div className={`flex justify-between items-center p-3 rounded-xl mb-3 ${theme === 'dark' ? 'bg-gray-700/50' : 'bg-earth-50'}`}>
+                 <span className={`text-xs font-bold uppercase ${theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}`}>{t('ledger.debt')}</span>
+                 <span className={`font-bold ${customer.debt > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
                    {formatCurrency(customer.debt || 0, lang)}
                  </span>
               </div>
 
-              {/* Action Buttons - More Spacious */}
-              <div className="flex gap-4">
+              {/* Action Buttons */}
+              <div className="flex gap-2">
                 
                 {/* Manage Debtor (Edit/Delete) */}
                 <button 
                    onClick={() => openManageModal(customer)}
-                   className="flex-1 px-6 py-4 rounded-2xl text-sm font-bold bg-white dark:bg-gray-800 text-gray-800 hover:bg-gray-100 transition-colors shadow-sm border border border-gray-200"
+                   className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 transition-colors flex items-center justify-center gap-1"
                 >
-                   <Edit3 size={16}/> Manage
+                   <Edit3 size={12}/> Manage
                 </button>
 
                 {/* Record Payment */}
                 {customer.debt > 0 && (
                   <button 
                     onClick={() => openPaymentModal(customer)}
-                    className="flex-1 px-6 py-4 rounded-2xl text-sm font-bold bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border border-green-100 dark:border-green-900 hover:bg-green-100 shadow-sm"
+                    className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border border-green-100 dark:border-green-900 hover:bg-green-100 transition-colors flex items-center justify-center gap-1"
                   >
-                    <Wallet size={16}/> Pay Due
+                    <Wallet size={12}/> Pay Due
                   </button>
                 )}
 
                 {/* View Statement (History) */}
                 <button 
-                   onClick={() => openStatement(customer)} 
-                   className="flex-1 px-6 py-4 rounded-2xl text-sm font-bold bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900 hover:bg-blue-100 shadow-sm"
-                 >
-                   <List size={16}/> History
+                   onClick={() => openStatement(customer)} // FIXED: Valid function call
+                   className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900 hover:bg-blue-100 transition-colors flex items-center justify-center gap-1"
+                >
+                   <List size={12}/> History
                 </button>
               </div>
             </div>
-          </div>
           ))
         )}
       </div>
 
       {/* 1. Add Customer Modal */}
       <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title={t('ledger.addCustomer')}>
-        <form onSubmit={handleAdd} className="space-y-4">
+        <form onSubmit={handleAdd} className="space-y-2">
           <Input label={t('ledger.name')} required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
           <Input label={t('ledger.phone')} type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} />
           <Input label={t('ledger.address')} value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} />
           <Input label="Notes (Optional)" placeholder="Address, references, or credit warnings..." value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} />
-          <div className="h-8" />
-          <Button icon={<Plus size={24} />}>Save Customer</Button>
+          <div className="h-6" />
+          <Button icon={<Plus size={20}/>}>Save Customer</Button>
         </form>
       </Modal>
 
-      {/* 2. Manage Debtor Modal */}
+      {/* 2. Manage Debtor Modal (Edit/Delete) */}
       <Modal isOpen={isManageModalOpen} onClose={() => setIsManageModalOpen(false)} title="Manage Debtor">
-        <form onSubmit={handleUpdateDebtor} className="space-y-4">
-           <div className="mb-6">
-             <label className="block text-sm font-bold mb-2 text-gray-700 dark:text-gray-300">Customer</label>
-             <input disabled value={selectedCustomer?.name} className="w-full p-4 bg-white dark:bg-gray-700 rounded-xl text-gray-500 dark:text-gray-400" />
+        <form onSubmit={handleUpdateDebtor} className="space-y-2">
+           <div className="mb-4">
+             <label className="block text-sm font-bold mb-1 text-gray-700 dark:text-gray-300">Customer</label>
+             <input disabled value={selectedCustomer?.name} className="w-full p-2 bg-gray-100 dark:bg-gray-700 rounded text-gray-500 dark:text-gray-400" />
            </div>
           <Input label="Name" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
           <Input label={t('ledger.phone')} type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} />
           <Input label={t('ledger.address')} value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} />
           <Input label="Notes" placeholder="Address, references, or credit warnings..." value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} />
-          <div className="h-8" />
-          <div className="grid grid-cols-2 gap-6">
+          <div className="h-6" />
+          <div className="grid grid-cols-2 gap-2">
              <Button icon={<Edit3 size={20} />}>Update Info</Button>
              <button 
                 type="button"
                 onClick={handleDeleteDebtor}
-                className="bg-red-500 text-white hover:bg-red-600 shadow-lg shadow-red-500/30 px-8 py-3 font-bold text-sm"
+                className="bg-red-500 text-white hover:bg-red-600 transition-colors rounded-xl px-4 py-3 font-bold text-xs"
              >
                 <Trash2 size={18} className="inline mr-2" /> Remove
              </button>
@@ -281,82 +239,60 @@ const Ledger: React.FC = () => {
 
       {/* 3. Payment Modal */}
       <Modal isOpen={isPaymentModalOpen} onClose={() => setIsPaymentModalOpen(false)} title="Record Payment">
-        <form onSubmit={handlePayment} className="space-y-4">
-          <div className={`p-6 rounded-2xl mb-4 bg-gray-100 dark:bg-gray-800 border border-gray-300`}>
-            <p className="text-xs font-bold uppercase text-gray-500 dark:text-gray-400 mb-2">{t('ledger.debt')}</p>
-            <p className={`text-3xl font-bold ${selectedCustomer?.debt > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-500 dark:text-green-400'}`}>
+        <form onSubmit={handlePayment} className="space-y-2">
+          <div className={`p-4 rounded-xl mb-4 ${theme === 'dark' ? 'bg-gray-700' : 'bg-cream-100'}`}>
+            <p className="text-xs uppercase font-bold text-earth-500 dark:text-gray-400 mb-1">{t('ledger.debt')}</p>
+            <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>
               {formatCurrency(selectedCustomer?.debt || 0, lang)}
             </p>
           </div>
-          <Input label="Payment Amount" type="number" required value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)}} />
-          <Input label="Note (Optional)" placeholder="e.g. Monthly installment, partial payment..." value={paymentNote} onChange={(e) => setPaymentNote(e.target.value)} />
-          <div className="h-8" />
-          <Button variant="success" icon={<CheckCircle size={20} />}>Confirm Payment</Button>
+          <Input label="Payment Amount" type="number" required value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} />
+          <div className="h-6" />
+          <Button variant="success" icon={<CheckCircle size={20}/>}>Confirm Payment</Button>
         </form>
       </Modal>
 
-      {/* 4. Statement Modal */}
+      {/* NEW: 4. Statement/History Modal */}
       <Modal isOpen={isStatementModalOpen} onClose={() => setIsStatementModalOpen(false)} title={`Statement: ${selectedCustomer?.name}`}>
-        <div className="space-y-4">
-           {/* Header Summary */}
-           <div className={`p-6 rounded-2xl border flex justify-between items-end ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
-             <div>
-                <p className="text-xs font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">{t('ledger.debt')}</p>
-                <p className={`text-3xl font-bold ${selectedCustomer?.debt > 0 ? 'text-red-500' : 'text-green-500'}`}>
-                  {formatCurrency(selectedCustomer?.debt || 0, lang)}
-                </p>
-             </div>
-             {selectedCustomer?.debt > 0 && (
-                <button onClick={() => { setIsStatementModalOpen(false); openPaymentModal(selectedCustomer); }} className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-4 py-2 rounded-lg font-bold">
-                   Pay Now
-                </button>
-             )}
+        <div className="space-y-3 max-h-[70vh] overflow-y-auto">
+           <div className="flex justify-between items-center pb-4 border-b border-gray-100 dark:border-gray-700">
+             <span className="text-sm font-bold text-gray-500 dark:text-gray-400">Current Due</span>
+             <span className={`text-lg font-bold ${selectedCustomer?.debt > 0 ? 'text-red-500' : 'text-green-500'}`}>
+               {formatCurrency(selectedCustomer?.debt || 0, lang)}
+             </span>
            </div>
 
-           {/* Statement Table */}
-           <div className={`rounded-2xl border overflow-hidden ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
-              <div className={`grid grid-cols-4 gap-2 p-3 text-xs font-bold uppercase tracking-wider border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-100'}`}>
-                 <div>Date</div>
-                 <div>Description</div>
-                 <div className="text-right">Amount</div>
-                 <div className="text-right">Balance</div>
-              </div>
-
-              <div className="max-h-[60vh] overflow-y-auto">
-                 {customerTransactions.length === 0 ? (
-                    <p className="text-center py-8 text-gray-500">No transactions found.</p>
-                 ) : (
-                    customerTransactions.map((tx) => (
-                      <div key={tx.id} className={`grid grid-cols-4 gap-2 p-3 border-b last:border-0 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} items-center`}>
-                        <div className="text-gray-500 dark:text-gray-400">{formatDate(new Date(tx.date), lang)}</div>
-                        
-                        <div className="text-gray-900 dark:text-gray-100">
-                           {tx.desc}
-                        </div>
-                        
-                        {tx.type === 'Sale' ? (
-                           <div className="flex items-center gap-2 text-green-600 dark:text-green-500">
-                              <Wallet size={14}/>
-                           </div>
-                        ) : (
-                           <div className="flex items-center gap-2 text-red-500">
-                              <CreditCard size={14}/>
-                           </div>
-                        )}
-
-                        <div className="text-right font-bold">
-                           {tx.amount > 0 ? '+' : ''}{formatCurrency(tx.amount, lang)}
-                        </div>
-                        
-                        <div className="text-right font-medium">
-                           {formatCurrency(tx.balance, lang)}
-                        </div>
+           {customerTransactions.length === 0 ? (
+             <p className="text-center text-gray-500 py-4">No transactions found.</p>
+           ) : (
+             customerTransactions.map((tx) => (
+               <div key={tx.id} className={`flex flex-col gap-1 py-3 border-b border-gray-100 dark:border-gray-700 last:border-0`}>
+                 <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                       <div className={`p-1.5 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                         <CreditCard size={14} className="text-earth-600 dark:text-earth-400"/>
+                       </div>
+                       <div>
+                         <p className="text-sm font-bold dark:text-white">{tx.quantity} Items</p>
+                         <p className="text-[10px] text-gray-500">{formatDate(tx.date, lang)}</p>
+                       </div>
                     </div>
-                 ))}
-              </div>
+                    <div className="text-right">
+                       <p className="text-sm font-bold dark:text-white">{formatCurrency(tx.total, lang)}</p>
+                    </div>
+                 </div>
+                 {tx.dueDate && (
+                   <div className="flex items-center gap-1 mt-1">
+                     <Calendar size={10} className="text-orange-500" />
+                     <span className="text-[10px] text-orange-500">Due: {new Date(tx.dueDate).toLocaleDateString()}</span>
+                   </div>
+                 )}
+               </div>
+             ))
            )}
         </div>
       </Modal>
+
     </div>
   );
 };
