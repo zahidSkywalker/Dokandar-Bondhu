@@ -15,7 +15,9 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
+    // FIXED: Explicit z-[60] to ensure it sits on top of BottomNav (z-40)
+    // Added pb-safe to the content wrapper to prevent content from being hidden behind the bar
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4 pb-safe">
       {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-100"
@@ -24,11 +26,11 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
       
       {/* Content */}
       <div className={`
-        relative w-full sm:w-[480px] max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl animate-slide-up
-        ${theme === 'dark' ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-slate-100'}
+        relative w-full sm:w-[480px] max-h-[85vh] overflow-y-auto rounded-2xl shadow-2xl animate-slide-up
+        ${theme === 'dark' ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-slate-200'}
       `}>
         <div className="sticky top-0 z-10 px-6 py-5 border-b flex justify-between items-center backdrop-blur-md bg-opacity-90
-          ${theme === 'dark' ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}
+          ${theme === 'dark' ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}
         ">
           <h2 className="text-lg font-bold text-slate-800 dark:text-white tracking-tight">{title}</h2>
           <button 
