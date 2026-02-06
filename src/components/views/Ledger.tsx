@@ -1,5 +1,5 @@
-import React from 'react';
-import { Plus, User, Phone, MapPin, CheckCircle, Wallet, RefreshCw, AlertTriangle, Edit3 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, User, Phone, MapPin, CheckCircle, Wallet, RefreshCw, AlertTriangle, Edit3, List } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
 import { useApp } from '../../context/AppContext';
@@ -18,14 +18,29 @@ const Ledger: React.FC = () => {
   // UI States
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [isPayModalOpen, setIsPayModalOpen] = React.useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false); // NEW
+  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = React.useState(false); // NEW
   const [selectedCustomer, setSelectedCustomer] = React.useState<any>(null);
-  const [editingCustomer, setEditingCustomer] = React.useState<any>(null); // NEW
+  const [editingCustomer, setEditingCustomer] = React.useState<any>(null);
+  const [customerHistory, setCustomerHistory] = React.useState<any[]>([]); // NEW
   const [paymentAmount, setPaymentAmount] = React.useState('');  
   const [formData, setFormData] = React.useState({ name: '', phone: '', address: '' });
   
   // Data State
   const customers = useLiveQuery(() => db.customers.orderBy('debt').reverse().toArray(), []);
+
+  // NEW: Fetch Transaction History for selected customer
+  const fetchCustomerHistory = async (customer: any) => {
+    setSelectedCustomer(customer);
+    
+    // Fetch Sales linked to this customer
+    const sales = await db.sales.where('customerId').equals(customer.id).reverse().toArray();
+    
+    // Fetch Payments (this is tricky because we store payment amount in updateCustomerDebt, but we can infer it via a separate logic or just show Sales for now. 
+    // To be simple: We will show the list of Sales associated with this customer.
+    setCustomerHistory(sales);
+    setIsHistoryModalOpen(true);
+  };
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +53,6 @@ const Ledger: React.FC = () => {
     }
   };
 
-  // NEW: Handle Customer Update (Feature 1)
   const handleUpdateCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -102,7 +116,6 @@ const Ledger: React.FC = () => {
                         <MapPin size={12}/> {customer.address}
                       </p>
                     )}
-                    {/* NEW: Notes Display (Feature 1) */}
                     {customer.notes && (
                        <p className={`text-xs mt-1 italic text-gray-500 truncate max-w-[200px]`}>
                          "{customer.notes}"
@@ -134,12 +147,20 @@ const Ledger: React.FC = () => {
                     <Wallet size={14}/> {t('ledger.receivePayment')}
                   </button>
                 )}
-                {/* NEW: Edit Notes Button (Feature 1) */}
+                
                 <button 
                    onClick={() => { setEditingCustomer(customer); setIsEditModalOpen(true); }}
                    className="px-3 py-2 rounded-xl text-xs font-bold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 transition-colors flex items-center justify-center gap-1"
                 >
                    <Edit3 size={12}/> Notes
+                </button>
+
+                {/* NEW: View History Button (Advanced Ledger) */}
+                <button 
+                   onClick={() => fetchCustomerHistory(customer)}
+                   className="flex-1 py-2 rounded-xl text-xs font-bold bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900 hover:bg-blue-100 transition-colors flex items-center justify-center gap-1"
+                >
+                   <List size={12}/> History
                 </button>
               </div>
             </div>
@@ -173,7 +194,7 @@ const Ledger: React.FC = () => {
         </form>
       </Modal>
 
-      {/* NEW: Edit Customer Notes Modal (Feature 1) */}
+      {/* Edit Customer Notes Modal */}
       <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Edit Customer Notes">
         <form onSubmit={handleUpdateCustomer} className="space-y-2">
           <div className="mb-4">
@@ -192,6 +213,28 @@ const Ledger: React.FC = () => {
           </div>
           <Button icon={<Edit3 size={20}/>}>Save Notes</Button>
         </form>
+      </Modal>
+
+      {/* NEW: Customer Transaction History Modal */}
+      <Modal isOpen={isHistoryModalOpen} onClose={() => setIsHistoryModalOpen(false)} title={`History: ${selectedCustomer?.name}`}>
+        <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+            {customerHistory.length === 0 ? (
+               <p className="text-center text-gray-500">No transactions found.</p>
+            ) : (
+               customerHistory.map((sale) => (
+                 <div key={sale.id} className="flex justify-between items-center border-b border-gray-100 pb-2 dark:border-gray-700 dark:text-white">
+                    <div>
+                       <p className="text-sm font-bold">{sale.quantity} items</p>
+                       <p className="text-xs text-gray-500">{new Date(sale.date).toLocaleDateString()}</p>
+                       {sale.dueDate && <p className="text-[10px] text-orange-500">Due: {new Date(sale.dueDate).toLocaleDateString()}</p>}
+                    </div>
+                    <div className="text-right">
+                       <p className="font-bold text-lg">{formatCurrency(sale.total, lang)}</p>
+                    </div>
+                 </div>
+               ))
+            )}
+        </div>
       </Modal>
 
     </div>
