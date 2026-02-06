@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, Package, History } from 'lucide-react'; // Added History
+import { Plus, Search, Trash2, Package, History, AlertTriangle } from 'lucide-react'; // FIXED: Added AlertTriangle
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
 import { useApp } from '../../context/AppContext';
@@ -13,9 +13,9 @@ const Inventory: React.FC = () => {
   const { t, lang } = useLanguage();
   const { addProduct, deleteProduct, getLastPurchasePrice } = useApp();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false); // NEW
-  const [selectedProductForHistory, setSelectedProductForHistory] = useState<any>(null); // NEW
-  const [priceHistory, setPriceHistory] = useState<any[]>([]); // NEW
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [selectedProductForHistory, setSelectedProductForHistory] = useState<any>(null);
+  const [priceHistory, setPriceHistory] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [marginWarning, setMarginWarning] = useState<string | null>(null); 
   
@@ -82,6 +82,14 @@ const Inventory: React.FC = () => {
       alert("Error adding product");
     }
   };
+
+  // FIX: Ensure products is defined correctly and mapped
+  const products = useLiveQuery(
+    () => db.products
+      .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+      .toArray(),
+    [searchTerm]
+  );
 
   return (
     <div className="pb-24 max-w-2xl mx-auto">
@@ -174,7 +182,7 @@ const Inventory: React.FC = () => {
           <div>
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{t('inventory.category')}</label>
             <select 
-                className={`w-full mb-4 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 ${'bg-white border-gray-200 text-earth-800'}`}
+                className={`w-full mb-4 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 bg-white border-gray-200 text-earth-800`}
                 value={formData.category} 
                 onChange={(e) => setFormData({...formData, category: e.target.value})}
             >
@@ -230,7 +238,7 @@ const Inventory: React.FC = () => {
              </div>
              
              <Input 
-              label={t('inventory.category')} // Keeping this for layout consistency or remove if not needed
+              label={t('inventory.category')}
               value={formData.category} 
               onChange={(e) => setFormData({...formData, category: e.target.value})} 
             />
