@@ -6,7 +6,7 @@ import Sales from '../views/Sales';
 import Expenses from '../views/Expenses';
 import Ledger from '../views/Ledger';
 import Settings from '../views/Settings';
-import Market from '../views/Market'; // NEW IMPORT
+import Suppliers from '../views/Suppliers'; // NEW IMPORT
 import { useLanguage } from '../../context/LanguageContext';
 import { Settings as SettingsIcon, Moon, Sun } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
@@ -23,7 +23,7 @@ const MainLayout: React.FC = () => {
       case 'sales': return <Sales />;
       case 'expenses': return <Expenses />;
       case 'ledger': return <Ledger />;
-      case 'market': return <Market />; // NEW CASE
+      case 'suppliers': return <Suppliers />; // NEW CASE
       case 'settings': return <Settings />;
       default: return <Dashboard />;
     }
