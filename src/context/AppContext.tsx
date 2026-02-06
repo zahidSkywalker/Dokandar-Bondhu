@@ -1,46 +1,40 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { db } from '../db/db';
-import { Product, Sale, Expense, Customer, Staff, InventoryExpense, Supplier, PriceHistory } from '../types';
+import { Product, Sale, Expense, Customer, Staff, InventoryExpense, Supplier, PriceHistory, Payment } from '../types';
 
 interface AppContextType {
-  // Products
   addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   updateProduct: (id: number, product: Partial<Product>) => Promise<void>;
   deleteProduct: (id: number) => Promise<void>;
   
-  // Sales
   addSale: (sale: Omit<Sale, 'id' | 'total' | 'profit'>) => Promise<void>;
   deleteSale: (id: number) => Promise<void>;
   
-  // Expenses
   addExpense: (expense: Omit<Expense, 'id'>) => Promise<void>;
   deleteExpense: (id: number) => Promise<void>;
 
-  // Inventory Expenses
   addInventoryExpense: (expense: Omit<InventoryExpense, 'id'>) => Promise<void>;
 
-  // Customers (Baki Khata)
   addCustomer: (customer: Omit<Customer, 'id' | 'debt' | 'createdAt'>) => Promise<void>;
   updateCustomerDebt: (customerId: number, amount: number) => Promise<void>; 
   updateCustomer: (id: number, data: Partial<Customer>) => Promise<void>;
 
-  // Staff
   addStaff: (staff: Omit<Staff, 'id' | 'active'>) => Promise<void>;
 
-  // NEW: Suppliers (Feature 3)
   addSupplier: (supplier: Omit<Supplier, 'id'>) => Promise<number>;
   getSuppliers: () => Promise<Supplier[]>;
 
-  // NEW: Price History & Margin Guard (Feature 6)
   logPriceHistory: (productId: number, buyPrice: number, sellPrice: number) => Promise<void>;
   getLastPurchasePrice: (productId: number) => Promise<number | undefined>;
+  
+  // NEW: Record Payment for Statement
+  recordPayment: (payment: Omit<Payment, 'id'>) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
-  // --- Products (Existing) ---
   const addProduct = async (productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       const now = new Date();
@@ -58,7 +52,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     catch (error) { throw new Error("Could not delete product."); }
   };
 
-  // --- Sales (Updated with Customer/Staff & Price History) ---
   const addSale = async (saleData: Omit<Sale, 'id' | 'total' | 'profit'>) => {
     if (saleData.quantity <= 0) throw new Error("Quantity must be positive");
 
@@ -71,13 +64,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const total = saleData.sellPrice * saleData.quantity;
         const profit = (saleData.sellPrice - saleData.buyPrice) * saleData.quantity;
 
-        //1. Update Stock
         await db.products.update(product.id!, { stock: product.stock - saleData.quantity, updatedAt: new Date() });
-
-        // 2. Add Sale
         await db.sales.add({ ...saleData, total, profit });
-
-        // 3. Log Price History (Feature 6)
         await db.priceHistory.add({
           productId: product.id!,
           buyPrice: saleData.buyPrice,
@@ -85,7 +73,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           date: new Date()
         });
 
-        // 4. Add Debt if Baki Khata
         if (saleData.customerId) {
           const customer = await db.customers.get(saleData.customerId);
           if (customer) {
@@ -105,13 +92,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       await db.transaction('rw', db.products, db.sales, db.customers, async () => {
         const product = await db.products.get(sale.productId);
         if (product) await db.products.update(product.id!, { stock: product.stock + sale.quantity });
-        // Reverse Debt (optional logic, usually refunds are rare in khata)
         await db.sales.delete(id);
       });
     } catch (error) { throw new Error("Could not delete sale."); }
   };
 
-  // --- Expenses (Existing) ---
   const addExpense = async (expenseData: Omit<Expense, 'id'>) => {
     try { await db.expenses.add({ ...expenseData, date: expenseData.date || new Date() }); } 
     catch (error) { throw new Error("Could not save expense."); }
@@ -122,13 +107,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     catch (error) { throw new Error("Could not delete expense."); }
   };
 
-  // --- Inventory Expenses ---
   const addInventoryExpense = async (expenseData: Omit<InventoryExpense, 'id'>) => {
     try { await db.inventoryExpenses.add({ ...expenseData, date: expenseData.date || new Date() }); } 
     catch (error) { throw new Error("Could not save inventory expense."); }
   };
 
-  // --- Customers (Baki Khata) ---
   const addCustomer = async (customerData: Omit<Customer, 'id' | 'debt' | 'createdAt'>) => {
     try { await db.customers.add({ ...customerData, debt: 0, createdAt: new Date() }); } 
     catch (error) { throw new Error("Could not save customer."); }
@@ -150,7 +133,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     } catch (error) { throw new Error("Could not update debt."); }
   };
 
-  // NEW: Update Customer (Feature 1)
   const updateCustomer = async (id: number, data: Partial<Customer>) => {
     try { 
       await db.customers.update(id, data); 
@@ -159,16 +141,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
-  // --- Staff ---
   const addStaff = async (staffData: Omit<Staff, 'id' | 'active'>) => {
     try { await db.staff.add({ ...staffData, active: true }); } 
     catch (error) { throw new Error("Could not add staff."); }
   };
 
-  // --- NEW: Suppliers (Feature 3) ---
   const addSupplier = async (supplierData: Omit<Supplier, 'id'>): Promise<number> => {
     try { 
-      // FIX: Explicit cast to 'number' to satisfy TS2322 error regarding IndexableType
       return (await db.suppliers.add(supplierData)) as number;
     } catch (error) { 
       throw new Error("Could not save supplier."); 
@@ -179,7 +158,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return await db.suppliers.toArray();
   };
 
-  // --- NEW: Price History Logic (Feature 6) ---
   const logPriceHistory = async (productId: number, buyPrice: number, sellPrice: number) => {
     try {
       await db.priceHistory.add({
@@ -201,6 +179,33 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return history?.buyPrice;
   };
 
+  // NEW: Record Payment Logic
+  const recordPayment = async (paymentData: Omit<Payment, 'id'>) => {
+    try {
+      await db.transaction('rw', db.payments, db.customers, async () => {
+        // 1. Log the payment
+        await db.payments.add({
+          ...paymentData,
+          date: paymentData.date || new Date()
+        });
+
+        // 2. Update Customer Debt
+        const customer = await db.customers.get(paymentData.customerId);
+        if (customer) {
+          const newDebt = customer.debt - paymentData.amount; // Payment reduces debt
+          if (newDebt < 0) throw new Error("Payment exceeds total debt");
+          
+          await db.customers.update(customer.id!, {
+            debt: newDebt,
+            lastPaymentDate: new Date()
+          });
+        }
+      });
+    } catch (error) {
+      throw new Error("Could not record payment.");
+    }
+  };
+
   const value: AppContextType = {
     addProduct, updateProduct, deleteProduct,
     addSale, deleteSale,
@@ -209,7 +214,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     addCustomer, updateCustomerDebt, updateCustomer,
     addStaff,
     addSupplier, getSuppliers,
-    logPriceHistory, getLastPurchasePrice
+    logPriceHistory, getLastPurchasePrice,
+    recordPayment // NEW
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
