@@ -6,9 +6,8 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* FIXED: Added top safe area padding for layout consistency */
-  padding-top: env(safe-area-inset-top, 0px); 
   padding-bottom: env(safe-area-inset-bottom);
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 body {
@@ -97,6 +96,65 @@ input:-webkit-autofill:active {
 @keyframes pulse-slow {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.6; }
+}
+
+/* ==========================================
+   NEW: DIGITAL DATA FLOW ANIMATIONS
+   ========================================== */
+
+/* Draws the line from start to finish */
+@keyframes draw-path {
+  to { stroke-dashoffset: 0; }
+}
+
+/* Moves the circle packet along the path (Visual simulation using translate) */
+/* Note: True path following in SVG requires SMIL or complex JS. 
+   For smooth visual effect across all screens, we use a coordinated 
+   transform animation that mimics travel. */
+@keyframes move-packet {
+  0% {
+    transform: translate(-50vw, 40vh); /* Start point relative to container */
+    opacity: 0;
+  }
+  15% {
+    transform: translate(-40vw, 40vh); /* Move towards center */
+    opacity: 1;
+  }
+  50% {
+    transform: translate(0, 0); /* Center */
+    opacity: 1;
+  }
+  85% {
+    transform: translate(40vw, -10vh); /* Move towards target */
+    opacity: 1;
+  }
+  100% {
+    transform: translate(50vw, -40vh); /* End point */
+    opacity: 0;
+  }
+}
+
+/* Ping effect for success flash */
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* Assign animations to classes */
+.animate-draw-path {
+  stroke-dasharray: 150;
+  stroke-dashoffset: 150;
+  animation: draw-path 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-move-packet {
+  animation: move-packet 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-ping {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
 /* ==============================
