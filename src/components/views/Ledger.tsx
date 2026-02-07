@@ -113,7 +113,7 @@ const Ledger: React.FC = () => {
 
     // 3. Merge and Sort by Date
     const transactions = [
-      ...sales.map(s => {
+      ...sales.map(s => ({
         id: s.id,
         date: new Date(s.date).getTime(),
         type: 'Sale',
@@ -121,7 +121,7 @@ const Ledger: React.FC = () => {
         amount: s.total, // Positive
         balance: 0
       })),
-      ...payments.map(p => {
+      ...payments.map(p => ({
         id: p.id,
         date: new Date(p.date).getTime(),
         type: 'Payment',
@@ -337,7 +337,7 @@ const Ledger: React.FC = () => {
                        
                        <div className="flex flex-col items-center gap-1">
                           <div className={`p-1.5 rounded-md ${theme === 'dark' ? 'bg-green-900/20' : 'bg-green-50'}`}>
-                              <tx.type === 'Sale' ? (
+                            {tx.type === 'Sale' ? (
                                 <TrendingUp size={14} className="text-green-600 dark:text-green-400"/>
                               ) : (
                                 <ArrowDownRight size={14} className="text-red-600 dark:text-red-400"/>
