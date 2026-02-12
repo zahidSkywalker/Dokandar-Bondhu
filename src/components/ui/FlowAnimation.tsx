@@ -1,81 +1,66 @@
 import React, { useEffect, useState } from 'react';
-import { useTheme } from '../../context/ThemeContext';
+import { createPortal } from 'react-dom';
+import { CheckCircle } from 'lucide-react';
 
 interface FlowAnimationProps {
   trigger: boolean;
-  onComplete?: () => void;
   color?: string;
 }
 
-const FlowAnimation: React.FC<FlowAnimationProps> = ({ trigger, onComplete, color }) => {
-  const { theme } = useTheme();
-  const [isVisible, setIsVisible] = useState(false);
+const FlowAnimation: React.FC<FlowAnimationProps> = ({ trigger, color = '#10B981' }) => {
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     if (trigger) {
-      setIsVisible(true);
-      // Animation lasts 1.5s
+      setVisible(true);
       const timer = setTimeout(() => {
-        setIsVisible(false);
-        onComplete?.();
-      }, 1500);
+        setVisible(false);
+      }, 1500); // Animation duration
+
       return () => clearTimeout(timer);
     }
-  }, [trigger, onComplete]);
+  }, [trigger]);
 
-  if (!isVisible) return null;
+  if (!visible) return null;
 
-  // Dynamic color based on theme or prop
-  const strokeColor = color || (theme === 'dark' ? '#fff' : '#8B5E3C');
-
-  return (
-    <div className="fixed inset-0 pointer-events-none z-[60] flex items-center justify-center">
-      <svg className="w-full h-full absolute top-0 left-0" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <defs>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-            <feMerge>
-              <feMergeNode in="coloredBlur" in2="SourceGraphic"/>
-            </feMerge>
-          </filter>
-        </defs>
-        
-        {/* 
-           Path logic: 
-           Starts at bottom-center (50, 90).
-           Curves to middle (50, 50).
-           Ends at top-left (Dashboard/Stats area).
-        */}
-        <path 
-          d="M 50 90 C 50 50, 80 40, 95 20" 
-          fill="none" 
-          stroke={strokeColor} 
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeDasharray="150, 150"
-          className="animate-draw-path"
-          style={{ filter: 'url(#glow)', opacity: 0.6 }}
-        />
-        
-        {/* The "Data Packet" / Circle */}
-        <circle 
-          r="2.5" 
-          fill={strokeColor} 
-          className="animate-move-packet"
-          style={{ filter: 'url(#glow)' }}
-        >
-           <animate 
-              attributeName="opacity" 
-              values="0;1;1;0" 
-              dur="1.5s" 
-              begin="0.3s"
-           />
-        </circle>
-      </svg>
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center pointer-events-none">
+      {/* Background Overlay */}
+      <div 
+        className="absolute inset-0 bg-black/20 backdrop-blur-sm animate-fade-in"
+      />
       
-      {/* Success Flash */}
-      <div className="absolute top-10 right-10 w-2 h-2 rounded-full bg-white shadow-lg animate-ping opacity-75" />
-    </div>
+      {/* Success Circle */}
+      <div className="relative z-10 flex flex-col items-center animate-bounce-in">
+        <div 
+          className="w-24 h-24 rounded-full flex items-center justify-center shadow-2xl"
+          style={{ backgroundColor: color }}
+        >
+          <CheckCircle className="w-16 h-16 text-white" strokeWidth={3} />
+        </div>
+        <p className="mt-4 text-white font-bold text-xl tracking-wide drop-shadow-md">
+          Success!
+        </p>
+      </div>
+
+      {/* Confetti Effect (CSS Only) */}
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-2 h-2 rounded-full animate-confetti-fall"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `-5%`,
+              backgroundColor: ['#FFD700', '#FF6B6B', '#4ECDC4', '#1A5319', '#FFF'][i % 5],
+              animationDelay: `${Math.random() * 0.5}s`,
+              animationDuration: `${1 + Math.random()}s`
+            }}
+          />
+        ))}
+      </div>
+    </div>,
+    document.body
   );
 };
 
