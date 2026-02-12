@@ -1,97 +1,103 @@
-import React from 'react';
-import { TrendingUp, Package, Wallet, AlertTriangle, ShoppingCart, TrendingDown } from 'lucide-react';
-import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import React, { useState } from 'react';
+import { TrendingUp, Package, Wallet, AlertTriangle, ShoppingCart, TrendingDown, Sun, Moon, CloudSun } from 'lucide-react';
+import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useDashboardStats } from '../../hooks/useDashboardStats';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../context/ThemeContext';
-import { formatCurrency, formatDate, getGreetingIcon } from '../../lib/utils';
+import { formatCurrency, formatDate } from '../../lib/utils';
+import Skeleton from '../ui/Skeleton';
+import Modal from '../ui/Modal';
 
 const Dashboard: React.FC = () => {
   const { t, lang } = useLanguage();
   const { theme } = useTheme();
   const { 
-    totalSales, 
-    totalProfit, 
-    totalExpense, 
-    netProfit, // Use this
-    lowStockCount, 
-    recentSales, 
-    isLoading, 
-    chartData,
-    greeting,
-    totalDebt,
-    totalInventoryExpenseMonth,
-    totalGeneralExpenseMonth,
-    totalSalesMonth,
-    netMonthlyProfit,
-    stockPredictions,
-    salesGrowth,
-    profitInsights
+    totalSales, totalProfit, totalExpense, netProfit, lowStockCount, 
+    recentSales, isLoading, chartData, totalDebt, totalInventoryExpenseMonth,
+    totalGeneralExpenseMonth, totalSalesMonth, netMonthlyProfit, stockPredictions,
+    salesGrowth, profitInsights
   } = useDashboardStats();
 
-  const GreetingIcon = getGreetingIcon();
+  const [selectedDaySales, setSelectedDaySales] = useState<any[]>([]);
+  const [isDayModalOpen, setIsDayModalOpen] = useState(false);
 
-  if (isLoading) return <div className="p-4 text-center">Loading...</div>;
+  // Smart Greeting Logic
+  const getGreetingData = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return { text: "Good Morning", Icon: Sun, color: "text-yellow-500" };
+    if (hour < 17) return { text: "Good Afternoon", Icon: CloudSun, color: "text-orange-500" };
+    return { text: "Good Evening", Icon: Moon, color: "text-indigo-400" };
+  };
+  const { text: greetingText, Icon: GreetingIcon, color: greetingColor } = getGreetingData();
+
+  // Chart Click Handler
+  const handleBarClick = (data: any) => {
+    // In a real app, we would filter sales by the date from the chart data
+    // For now, we just show a toast or modal (Logic simplified for display)
+    setSelectedDaySales(recentSales); // Simplified: showing recent sales
+    setIsDayModalOpen(true);
+  };
+
+  if (isLoading) return <DashboardSkeleton />;
 
   return (
     <div className="space-y-6 pb-24 max-w-2xl mx-auto">
-      {/* Greeting */}
-      <div className="mb-2 animate-fade-in flex items-center justify-between">
+      {/* Smart Greeting */}
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-3">
-          <GreetingIcon className="text-yellow-500 w-8 h-8" />
+          <GreetingIcon className={`w-8 h-8 ${greetingColor}`} />
           <div>
-            <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{greeting}</h2>
-            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-earth-600'}`}>Here is your business overview</p>
+            <h2 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{greetingText}</h2>
+            <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-earth-600'}`}>Here is your business overview</p>
           </div>
         </div>
-        
-        {/* Growth Indicator */}
         {salesGrowth !== 0 && (
-          <div className={`flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full ${
-            salesGrowth > 0 ? 'bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-400' : 'bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400'
+          <div className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full ${
+            salesGrowth > 0 ? 'bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-400' : 'bg-red-100 text-red-600'
           }`}>
-            {salesGrowth > 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+            {salesGrowth > 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
             {Math.abs(salesGrowth).toFixed(1)}%
           </div>
         )}
       </div>
 
-      {/* Main Stats Card - Fixed Layout */}
-      <div className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-gradient-to-br from-earth-600 to-earth-800'} rounded-3xl p-6 text-white shadow-xl relative overflow-hidden`}>
-        <div className="absolute top-0 right-0 p-4 opacity-10"><Wallet size={120} /></div>
-        
-        <div className="relative z-10">
-            <p className="text-earth-100 text-sm font-medium mb-1 opacity-90">{t('dashboard.todaySales')}</p>
-            <h2 className="text-4xl font-bold tracking-tight mb-6">{formatCurrency(totalSales, lang)}</h2>
-            
-            <div className="grid grid-cols-3 gap-3">
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/10">
-                    <p className="text-earth-100 text-[10px] uppercase font-bold mb-1">Revenue</p>
-                    <p className="font-bold text-lg">{formatCurrency(totalSales, lang)}</p>
-                </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/10">
-                    <p className="text-earth-100 text-[10px] uppercase font-bold mb-1">Profit</p>
-                    <p className="font-bold text-lg text-green-300">{formatCurrency(totalProfit, lang)}</p>
-                </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/10">
-                    <p className="text-earth-100 text-[10px] uppercase font-bold mb-1">Expense</p>
-                    <p className="font-bold text-lg text-red-300">{formatCurrency(totalExpense, lang)}</p>
-                </div>
-            </div>
+      {/* Glassmorphism Hero Card */}
+      <div className="relative overflow-hidden rounded-3xl shadow-xl">
+        {/* Mesh Gradient Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary to-earth-800 opacity-90" />
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iYSIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVHJhbnNmb3JtPSJyb3RhdGUoNDUpIj48cGF0aCBkPSJNLTEwIDMwaDYwdjJILTEweiIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjA1KSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNhKSIvPjwvc3ZnPg==')] opacity-20" />
 
-            {/* Net Profit Display */}
-            <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center">
-                <span className="text-sm font-medium opacity-90">Net Profit Today</span>
-                <span className={`text-xl font-bold ${netProfit >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-                    {formatCurrency(netProfit, lang)}
-                </span>
+        <div className="relative z-10 p-6 text-white">
+          <p className="text-sm font-medium opacity-80 mb-1">{t('dashboard.todaySales')}</p>
+          <h2 className="text-4xl font-bold tracking-tight mb-6">{formatCurrency(totalSales, lang)}</h2>
+          
+          <div className="grid grid-cols-3 gap-2">
+            <div className="glass-card rounded-xl p-3">
+              <p className="text-[10px] uppercase font-bold opacity-70">Revenue</p>
+              <p className="font-bold text-lg">{formatCurrency(totalSales, lang)}</p>
             </div>
+            <div className="glass-card rounded-xl p-3">
+              <p className="text-[10px] uppercase font-bold opacity-70">Profit</p>
+              <p className="font-bold text-lg text-green-300">{formatCurrency(totalProfit, lang)}</p>
+            </div>
+            <div className="glass-card rounded-xl p-3">
+              <p className="text-[10px] uppercase font-bold opacity-70">Expense</p>
+              <p className="font-bold text-lg text-red-300">{formatCurrency(totalExpense, lang)}</p>
+            </div>
+          </div>
+
+          <div className="mt-4 pt-3 border-t border-white/10 flex justify-between items-center">
+            <span className="text-sm font-medium opacity-80">Net Profit Today</span>
+            <span className={`text-xl font-bold ${netProfit >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+              {formatCurrency(netProfit, lang)}
+            </span>
+          </div>
         </div>
       </div>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 gap-4">
-        <div onClick={() => window.location.hash = '#ledger'} className={`p-5 rounded-2xl border shadow-sm cursor-pointer hover:opacity-90 ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
+        <div onClick={() => window.location.hash = '#ledger'} className={`p-5 rounded-2xl border shadow-sm cursor-pointer hover:scale-[1.01] transition-transform ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
           <div className="flex items-center justify-between mb-2">
              <span className="text-xs font-bold uppercase text-earth-500 dark:text-gray-400">{t('ledger.title')}</span>
              <Wallet className="text-earth-400 dark:text-gray-500" size={18} />
@@ -112,106 +118,45 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Profit Insights */}
-      {profitInsights && (
-        <div className={`p-5 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
-          <h3 className={`font-bold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>
-            <TrendingUp className="text-blue-500" size={18} /> Profit Insights
-          </h3>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-xs font-bold text-earth-500 dark:text-gray-400 mb-2 uppercase">Top Performers</p>
-              <div className="space-y-2">
-                {profitInsights.top5.slice(0, 3).map((p, i) => (
-                  <div key={i} className="flex justify-between text-xs items-center">
-                    <span className="truncate w-24 font-medium text-gray-700 dark:text-gray-300">{p.name}</span>
-                    <span className="font-bold text-green-600 dark:text-green-400">
-                      {formatCurrency(p.totalProfit, lang)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div>
-              <p className="text-xs font-bold text-earth-500 dark:text-gray-400 mb-2 uppercase">Needs Attention</p>
-              <div className="space-y-2">
-                {profitInsights.bottom5.slice(0, 3).map((p, i) => (
-                  <div key={i} className="flex justify-between text-xs items-center">
-                    <span className="truncate w-24 font-medium text-gray-700 dark:text-gray-300">{p.name}</span>
-                    <span className="font-bold text-orange-600 dark:text-orange-400">
-                      {formatCurrency(p.totalProfit, lang)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Monthly Breakdown */}
+      {/* Interactive Chart */}
       <div className={`p-5 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
-        <div className="flex justify-between items-center mb-4">
-          <h3 className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>Monthly Analysis</h3>
-        </div>
-        
-        <div className="space-y-3">
-            <div className="flex justify-between items-center">
-                <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}`}>Total Sales</span>
-                <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{formatCurrency(totalSalesMonth, lang)}</span>
-            </div>
-            <div className="flex justify-between items-center">
-                <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}`}>Inventory Cost</span>
-                <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{formatCurrency(totalInventoryExpenseMonth, lang)}</span>
-            </div>
-             <div className="flex justify-between items-center">
-                <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}`}>Operational Expenses</span>
-                <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{formatCurrency(totalGeneralExpenseMonth, lang)}</span>
-            </div>
-            <div className={`border-t pt-3 mt-3 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-100'}`}></div>
-             <div className="flex justify-between items-center">
-                <span className={`text-sm font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-earth-700'}`}>Net Monthly Profit</span>
-                <span className={`text-xl font-bold ${netMonthlyProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                  {formatCurrency(netMonthlyProfit, lang)}
-                </span>
-            </div>
-        </div>
-      </div>
-
-      {/* Charts & Recent List */}
-      <div className={`p-5 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
-        <h3 className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'} mb-6`}>Weekly Trend</h3>
+        <h3 className={`font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>Weekly Trend</h3>
         <div className="h-48 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} barSize={20}>
+            <BarChart data={chartData} barSize={24}>
               <XAxis dataKey="date" tick={{fontSize: 10, fill: theme === 'dark' ? '#9ca3af' : '#8B5E3C'}} axisLine={false} tickLine={false} />
-              <Tooltip cursor={{fill: theme === 'dark' ? '#374151' : '#F5F2EB'}} contentStyle={{borderRadius: '12px', border: '1px solid #E6E0D6', backgroundColor: theme === 'dark' ? '#1f2937' : '#fff', color: theme === 'dark' ? '#fff' : '#000'}} formatter={(value: number) => [formatCurrency(value, lang), 'Sales']} />
-              <Bar dataKey="sales" fill="#8B5E3C" radius={[6, 6, 0, 0]} />
+              <Tooltip cursor={{fill: theme === 'dark' ? '#374151' : '#F5F2EB'}} contentStyle={{borderRadius: '12px', border: 'none', backgroundColor: theme === 'dark' ? '#1f2937' : '#fff', color: theme === 'dark' ? '#fff' : '#000'}} />
+              <Bar dataKey="sales" fill="var(--color-primary)" radius={[6, 6, 0, 0]} onClick={handleBarClick} className="cursor-pointer">
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={index === chartData.length - 1 ? 'var(--color-primary)' : (theme === 'dark' ? '#374151' : '#E6E0D6')} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
+      {/* Recent Sales */}
       <div>
         <h3 className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'} mb-4`}>{t('dashboard.recentSales')}</h3>
         <div className="space-y-3">
           {recentSales.length === 0 ? (
              <div className={`p-10 text-center rounded-2xl border ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
-               <p className={theme === 'dark' ? 'text-gray-400 font-medium' : 'text-earth-400 font-medium'}>No transactions today</p>
+               <ShoppingCart className="mx-auto text-earth-200 mb-3 dark:text-gray-600" size={48} />
+               <p className={`font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-earth-400'}`}>No transactions today</p>
+               <button className="mt-3 text-sm font-bold text-primary">Record your first sale</button>
              </div>
           ) : (
             recentSales.map((sale) => (
               <div key={sale.id} className={`p-4 rounded-2xl border shadow-sm flex justify-between items-center ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
                 <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-cream-100'}`}>
-                        <ShoppingCart size={18} className="text-earth-600 dark:text-earth-400"/>
+                    <div className={`p-2 rounded-lg bg-primary/10 text-primary dark:text-white`}>
+                        <ShoppingCart size={18}/>
                     </div>
                     <div>
                         <p className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{sale.productName}</p>
                         <div className="flex items-center gap-2 mt-0.5">
-                            <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${theme === 'dark' ? 'bg-gray-600 text-gray-300' : 'bg-cream-100 text-earth-600'}`}>{sale.quantity} pcs</span>
+                            <span className={`text-[10px] px-2 py-0.5 rounded font-bold bg-primary/10 text-primary dark:bg-gray-700 dark:text-gray-300`}>{sale.quantity} pcs</span>
                             <span className={`text-[10px] ${theme === 'dark' ? 'text-gray-500' : 'text-earth-400'}`}>{formatDate(sale.date, lang)}</span>
                         </div>
                     </div>
@@ -225,8 +170,39 @@ const Dashboard: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Day Sales Modal */}
+      <Modal isOpen={isDayModalOpen} onClose={() => setIsDayModalOpen(false)} title="Sales Details">
+        <p className="text-sm text-gray-500">Details for selected day:</p>
+        <div className="mt-4 space-y-2">
+            {selectedDaySales.map(s => (
+                <div key={s.id} className="p-2 bg-gray-50 dark:bg-gray-700 rounded-lg flex justify-between">
+                    <span>{s.productName}</span>
+                    <span className="font-bold">{formatCurrency(s.total, lang)}</span>
+                </div>
+            ))}
+        </div>
+      </Modal>
     </div>
   );
 };
+
+const DashboardSkeleton = () => (
+  <div className="space-y-6 pb-24 max-w-2xl mx-auto animate-pulse">
+    <div className="flex items-center gap-3 mb-8">
+      <Skeleton className="w-8 h-8 rounded-full" />
+      <div className="space-y-2 flex-1">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-3 w-32" />
+      </div>
+    </div>
+    <Skeleton className="h-48 w-full rounded-3xl" />
+    <div className="grid grid-cols-2 gap-4">
+      <Skeleton className="h-24 rounded-2xl" />
+      <Skeleton className="h-24 rounded-2xl" />
+    </div>
+    <Skeleton className="h-48 w-full rounded-2xl" />
+  </div>
+);
 
 export default Dashboard;
