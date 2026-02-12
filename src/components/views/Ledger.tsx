@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, User, Phone, MapPin, Wallet, Edit3, Trash2, List, CheckCircle, RefreshCw, AlertTriangle, ArrowDownRight, TrendingUp } from 'lucide-react';
+import { Plus, User, Phone, MapPin, Wallet, Edit3, Trash2, List, CheckCircle, ArrowDownRight, TrendingUp } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
 import { useApp } from '../../context/AppContext';
@@ -14,6 +14,7 @@ const Ledger: React.FC = () => {
   const { t, lang } = useLanguage();
   const { theme } = useTheme();
   const { addCustomer, updateCustomer, recordPayment } = useApp();  
+  
   // UI States
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isManageModalOpen, setIsManageModalOpen] = useState(false);
@@ -23,6 +24,7 @@ const Ledger: React.FC = () => {
   const [statementData, setStatementData] = useState<any[]>([]);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentNote, setPaymentNote] = useState('');
+  const [formData, setFormData] = useState({ name: '', phone: '', address: '', notes: '' });
 
   const customers = useLiveQuery(() => db.customers.orderBy('debt').reverse().toArray());  
 
@@ -112,8 +114,9 @@ const Ledger: React.FC = () => {
     const payments = await db.payments.where('customerId').equals(customer.id).toArray();
 
     // 3. Merge and Sort by Date
+    // FIX: Wrapped object in parentheses to avoid syntax error inside map
     const transactions = [
-      ...sales.map(s => {
+      ...sales.map(s => ({
         id: s.id,
         date: new Date(s.date).getTime(),
         type: 'Sale',
@@ -121,7 +124,7 @@ const Ledger: React.FC = () => {
         amount: s.total, // Positive
         balance: 0
       })),
-      ...payments.map(p => {
+      ...payments.map(p => ({
         id: p.id,
         date: new Date(p.date).getTime(),
         type: 'Payment',
@@ -292,7 +295,7 @@ const Ledger: React.FC = () => {
               {formatCurrency(selectedCustomer?.debt || 0, lang)}
             </p>
           </div>
-          <Input label="Payment Amount" type="number" required value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)}} />
+          <Input label="Payment Amount" type="number" required value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} />
           <Input label="Note (Optional)" placeholder="e.g. Monthly installment, partial payment..." value={paymentNote} onChange={(e) => setPaymentNote(e.target.value)} />
           <div className="h-8" />
           <Button variant="success" icon={<CheckCircle size={20}/>}>Confirm Payment</Button>
@@ -318,12 +321,11 @@ const Ledger: React.FC = () => {
            </div>
 
            {/* Table Header */}
-           <div className={`grid grid-cols-4 gap-2 p-3 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-              <div className="text-xs font-bold text-gray-500 dark:text-gray-400">Date</div>
-              <div className="text-xs font-bold text-gray-500 dark:text-gray-400">Type</div>
-              <div className="text-xs font-bold text-gray-500 dark:text-gray-400">Description</div>
-              <div className="text-xs font-bold text-right text-gray-500 dark:text-gray-400">Amount</div>
-              <div className="text-xs font-bold text-right text-gray-500 dark:text-gray-400">Balance</div>
+           <div className={`grid grid-cols-12 gap-2 p-3 border-b text-xs font-bold text-gray-500 dark:text-gray-400 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+              <div className="col-span-3">Date</div>
+              <div className="col-span-5">Description</div>
+              <div className="col-span-2 text-right">Amount</div>
+              <div className="col-span-2 text-right">Balance</div>
            </div>
 
            {/* Statement List */}
@@ -332,33 +334,35 @@ const Ledger: React.FC = () => {
                  <p className="text-center py-8 text-gray-400">No transactions found.</p>
                  ) : (
                  statementData.map((tx, index) => (
-                    <div key={index} className={`grid grid-cols-4 gap-2 p-3 border-b last:border-0 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} items-center`}>
-                       <div className="text-xs text-gray-500 dark:text-gray-400">{formatDate(tx.dateObj, lang)}</div>
-                       
-                       <div className="flex flex-col items-center gap-1">
-                          <div className={`p-1.5 rounded-md ${theme === 'dark' ? 'bg-green-900/20' : 'bg-green-50'}`}>
-                              <tx.type === 'Sale' ? (
-                                <TrendingUp size={14} className="text-green-600 dark:text-green-400"/>
-                              ) : (
-                                <ArrowDownRight size={14} className="text-red-600 dark:text-red-400"/>
-                              )}
-                          </div>
-                          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{tx.desc}</span>
+                    <div key={index} className={`grid grid-cols-12 gap-2 p-3 border-b last:border-0 items-center ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                       <div className="col-span-3 text-xs text-gray-500 dark:text-gray-400">
+                         {formatDate(tx.dateObj, lang)}
                        </div>
                        
-                       <div className="text-right">
-                          <span className={`font-bold ${tx.amount >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                       <div className="col-span-5 flex items-center gap-2">
+                          <div className={`p-1.5 rounded-md ${tx.type === 'Sale' ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'}`}>
+                            {tx.type === 'Sale' ? (
+                               <TrendingUp size={14} className="text-green-600 dark:text-green-400"/>
+                            ) : (
+                               <ArrowDownRight size={14} className="text-red-600 dark:text-red-400"/>
+                            )}
+                          </div>
+                          <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">{tx.desc}</span>
+                       </div>
+                       
+                       <div className="col-span-2 text-right">
+                          <span className={`font-bold text-xs ${tx.amount >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                              {tx.amount > 0 ? '+' : ''}{formatCurrency(tx.amount, lang)}
                           </span>
                        </div>
 
-                       <div className="text-right">
-                          <span className={`font-bold text-gray-700 dark:text-gray-300`}>
+                       <div className="col-span-2 text-right">
+                          <span className={`font-bold text-xs text-gray-700 dark:text-gray-300`}>
                              {formatCurrency(tx.balance, lang)}
                           </span>
                        </div>
                     </div>
-                 ))}
+                 ))
               )}
            </div>
         </div>
