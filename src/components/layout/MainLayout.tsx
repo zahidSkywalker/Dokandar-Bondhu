@@ -9,13 +9,13 @@ import Settings from '../views/Settings';
 import Suppliers from '../views/Suppliers'; 
 import Market from '../views/Market';
 import { useLanguage } from '../../context/LanguageContext';
-import { Settings as SettingsIcon, Moon, Sun } from 'lucide-react';
+import { Settings as SettingsIcon } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
 const MainLayout: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const { t, lang, toggleLang } = useLanguage();
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme(); // We only need 'theme' for styling, no toggle here
 
   const renderContent = () => {
     switch (activeTab) {
@@ -34,13 +34,14 @@ const MainLayout: React.FC = () => {
   return (
     <div className={`min-h-screen font-sans pb-20 transition-colors duration-300 ${theme === 'dark' ? 'bg-gray-900 text-gray-100' : 'bg-[#F9FAFB] text-gray-800'}`}>
       
-      {/* Header - Increased Padding */}
+      {/* Header */}
       <header className={`sticky top-0 z-30 border-b px-6 py-5 flex justify-between items-center backdrop-blur-md ${theme === 'dark' ? 'bg-gray-800/90 border-gray-700' : 'bg-white/80 border-gray-200 shadow-sm'}`}>
         <div>
           <h1 className={`font-bold text-2xl tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t('common.appName')}</h1>
           <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Business Manager</p>
         </div>
         <div className="flex items-center gap-3">
+          {/* Settings Icon */}
           <button 
             onClick={() => setActiveTab(prev => prev === 'settings' ? 'dashboard' : 'settings')}
             className={`p-2 rounded-xl ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-600'}`}
@@ -48,24 +49,18 @@ const MainLayout: React.FC = () => {
             <SettingsIcon size={20} />
           </button>
           
+          {/* Language Toggle */}
           <button 
             onClick={toggleLang}
             className={`text-xs px-4 py-2 rounded-full font-bold border transition-colors ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-gray-100 border-gray-200 text-gray-800'}`}
           >
             {lang === 'en' ? 'বাংলা' : 'English'}
           </button>
-          
-          <button 
-            onClick={toggleTheme}
-            className={`p-2 rounded-xl ${theme === 'dark' ? 'bg-gray-700 text-yellow-400' : 'bg-gray-100 text-yellow-600'}`}
-          >
-            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
         </div>
       </header>
 
-      {/* Main Content - Increased Padding for Breathing Room */}
-      <main className="animate-fade-in px-6 pt-8"> {/* Increased pt-8 */}
+      {/* Main Content */}
+      <main className="animate-fade-in px-6 pt-8">
         {renderContent()}
       </main>
 
