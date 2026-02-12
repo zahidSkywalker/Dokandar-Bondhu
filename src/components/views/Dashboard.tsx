@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowUpRight, ArrowDownRight, Package, TrendingUp, Wallet, AlertTriangle, ShoppingCart, TrendingDown } from 'lucide-react';
+import { TrendingUp, Package, Wallet, AlertTriangle, ShoppingCart, TrendingDown } from 'lucide-react';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useDashboardStats } from '../../hooks/useDashboardStats';
 import { useLanguage } from '../../context/LanguageContext';
@@ -13,7 +13,7 @@ const Dashboard: React.FC = () => {
     totalSales, 
     totalProfit, 
     totalExpense, 
-    netProfit, 
+    netProfit, // Use this
     lowStockCount, 
     recentSales, 
     isLoading, 
@@ -21,11 +21,10 @@ const Dashboard: React.FC = () => {
     greeting,
     totalDebt,
     totalInventoryExpenseMonth,
-    totalExpenseMonth,
+    totalGeneralExpenseMonth,
     totalSalesMonth,
     netMonthlyProfit,
     stockPredictions,
-    // NEW: Feature 5
     salesGrowth,
     profitInsights
   } = useDashboardStats();
@@ -33,12 +32,6 @@ const Dashboard: React.FC = () => {
   const GreetingIcon = getGreetingIcon();
 
   if (isLoading) return <div className="p-4 text-center">Loading...</div>;
-
-  const monthlyData = [
-    { name: 'Sales', value: totalSalesMonth },
-    { name: 'Expenses', value: totalExpenseMonth + totalInventoryExpenseMonth },
-    { name: 'Inventory Cost', value: totalInventoryExpenseMonth },
-  ];
 
   return (
     <div className="space-y-6 pb-24 max-w-2xl mx-auto">
@@ -52,36 +45,74 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
         
-        {/* NEW: Growth Indicator (Feature 5) */}
+        {/* Growth Indicator */}
         {salesGrowth !== 0 && (
           <div className={`flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full ${
             salesGrowth > 0 ? 'bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-400' : 'bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400'
           }`}>
             {salesGrowth > 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-            {Math.abs(salesGrowth).toFixed(1)}% vs Yest.
+            {Math.abs(salesGrowth).toFixed(1)}%
           </div>
         )}
       </div>
 
-      {/* Main Stats Card */}
-      <div className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'} bg-gradient-to-br from-earth-600 to-earth-800 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden`}>
+      {/* Main Stats Card - Fixed Layout */}
+      <div className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-gradient-to-br from-earth-600 to-earth-800'} rounded-3xl p-6 text-white shadow-xl relative overflow-hidden`}>
         <div className="absolute top-0 right-0 p-4 opacity-10"><Wallet size={120} /></div>
-        <p className="text-earth-100 text-sm font-medium mb-1 opacity-90">{t('dashboard.todaySales')}</p>
-        <h2 className="text-4xl font-bold tracking-tight mb-4">{formatCurrency(totalSales, lang)}</h2>
         
-        <div className="flex gap-4">
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 flex-1 border border-white/10">
-            <p className="text-earth-100 text-xs mb-1">Profit</p>
-            <p className="font-bold text-green-300">{formatCurrency(totalProfit, lang)}</p>
-          </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 flex-1 border border-white/10">
-            <p className="text-earth-100 text-xs mb-1">Expense</p>
-            <p className="font-bold text-red-300">{formatCurrency(totalExpense, lang)}</p>
-          </div>
+        <div className="relative z-10">
+            <p className="text-earth-100 text-sm font-medium mb-1 opacity-90">{t('dashboard.todaySales')}</p>
+            <h2 className="text-4xl font-bold tracking-tight mb-6">{formatCurrency(totalSales, lang)}</h2>
+            
+            <div className="grid grid-cols-3 gap-3">
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/10">
+                    <p className="text-earth-100 text-[10px] uppercase font-bold mb-1">Revenue</p>
+                    <p className="font-bold text-lg">{formatCurrency(totalSales, lang)}</p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/10">
+                    <p className="text-earth-100 text-[10px] uppercase font-bold mb-1">Profit</p>
+                    <p className="font-bold text-lg text-green-300">{formatCurrency(totalProfit, lang)}</p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/10">
+                    <p className="text-earth-100 text-[10px] uppercase font-bold mb-1">Expense</p>
+                    <p className="font-bold text-lg text-red-300">{formatCurrency(totalExpense, lang)}</p>
+                </div>
+            </div>
+
+            {/* Net Profit Display */}
+            <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center">
+                <span className="text-sm font-medium opacity-90">Net Profit Today</span>
+                <span className={`text-xl font-bold ${netProfit >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+                    {formatCurrency(netProfit, lang)}
+                </span>
+            </div>
         </div>
       </div>
 
-      {/* NEW: Profit Insights (Feature 5) */}
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 gap-4">
+        <div onClick={() => window.location.hash = '#ledger'} className={`p-5 rounded-2xl border shadow-sm cursor-pointer hover:opacity-90 ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
+          <div className="flex items-center justify-between mb-2">
+             <span className="text-xs font-bold uppercase text-earth-500 dark:text-gray-400">{t('ledger.title')}</span>
+             <Wallet className="text-earth-400 dark:text-gray-500" size={18} />
+          </div>
+          <p className={`text-2xl font-bold ${totalDebt > 0 ? 'text-red-500' : (theme === 'dark' ? 'text-white' : 'text-earth-800')}`}>
+            {formatCurrency(totalDebt, lang)}
+          </p>
+        </div>
+
+        <div className={`p-5 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
+          <div className="flex items-center justify-between mb-2">
+             <span className="text-xs font-bold uppercase text-earth-500 dark:text-gray-400">Low Stock</span>
+             <Package className={lowStockCount > 0 ? 'text-red-500' : 'text-earth-400 dark:text-gray-500'} size={18} />
+          </div>
+          <p className={`text-2xl font-bold ${lowStockCount > 0 ? 'text-red-600' : (theme === 'dark' ? 'text-white' : 'text-earth-800')}`}>
+            {lowStockCount} <span className="text-xs font-normal">items</span>
+          </p>
+        </div>
+      </div>
+
+      {/* Profit Insights */}
       {profitInsights && (
         <div className={`p-5 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
           <h3 className={`font-bold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>
@@ -90,7 +121,7 @@ const Dashboard: React.FC = () => {
           
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-xs font-bold text-earth-500 dark:text-gray-400 mb-2 uppercase">Top Performers (30d)</p>
+              <p className="text-xs font-bold text-earth-500 dark:text-gray-400 mb-2 uppercase">Top Performers</p>
               <div className="space-y-2">
                 {profitInsights.top5.slice(0, 3).map((p, i) => (
                   <div key={i} className="flex justify-between text-xs items-center">
@@ -124,91 +155,29 @@ const Dashboard: React.FC = () => {
       <div className={`p-5 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
         <div className="flex justify-between items-center mb-4">
           <h3 className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>Monthly Analysis</h3>
-          <span className={`text-[10px] px-2 py-1 rounded-md font-bold uppercase ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-cream-100 text-earth-600'}`}>This Month</span>
         </div>
         
-        <div className="grid grid-cols-2 gap-4 mb-4">
-           <div>
-             <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}`}>Total Sales</p>
-             <p className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{formatCurrency(totalSalesMonth, lang)}</p>
-           </div>
-           <div>
-             <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}`}>Inventory Cost</p>
-             <p className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{formatCurrency(totalInventoryExpenseMonth, lang)}</p>
-           </div>
+        <div className="space-y-3">
+            <div className="flex justify-between items-center">
+                <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}`}>Total Sales</span>
+                <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{formatCurrency(totalSalesMonth, lang)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+                <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}`}>Inventory Cost</span>
+                <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{formatCurrency(totalInventoryExpenseMonth, lang)}</span>
+            </div>
+             <div className="flex justify-between items-center">
+                <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}`}>Operational Expenses</span>
+                <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{formatCurrency(totalGeneralExpenseMonth, lang)}</span>
+            </div>
+            <div className={`border-t pt-3 mt-3 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-100'}`}></div>
+             <div className="flex justify-between items-center">
+                <span className={`text-sm font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-earth-700'}`}>Net Monthly Profit</span>
+                <span className={`text-xl font-bold ${netMonthlyProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                  {formatCurrency(netMonthlyProfit, lang)}
+                </span>
+            </div>
         </div>
-
-        <div className={`p-4 rounded-xl mb-4 ${netMonthlyProfit >= 0 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'} border ${netMonthlyProfit >= 0 ? 'border-green-100 dark:border-green-900' : 'border-red-100 dark:border-red-900'} mb-4`}>
-          <p className={`text-xs font-bold mb-1 uppercase ${netMonthlyProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>Net Monthly Profit</p>
-          <p className={`text-2xl font-bold ${netMonthlyProfit >= 0 ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
-            {formatCurrency(netMonthlyProfit, lang)}
-          </p>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-4">
-        <div onClick={() => window.location.hash = '#ledger'} className={`p-4 rounded-2xl border shadow-sm cursor-pointer hover:opacity-90 ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
-          <div className="flex items-center justify-between mb-2">
-             <span className="text-xs font-bold uppercase text-earth-500 dark:text-gray-400">{t('ledger.title')}</span>
-             <Wallet className="text-earth-400 dark:text-gray-500" size={18} />
-          </div>
-          <p className={`text-xl font-bold ${totalDebt > 0 ? 'text-red-500' : (theme === 'dark' ? 'text-white' : 'text-earth-800')}`}>
-            {formatCurrency(totalDebt, lang)}
-          </p>
-        </div>
-
-        <div className={`p-4 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
-          <div className="flex items-center justify-between mb-2">
-             <span className="text-xs font-bold uppercase text-earth-500 dark:text-gray-400">Low Stock</span>
-             <Package className={lowStockCount > 0 ? 'text-red-500' : 'text-earth-400 dark:text-gray-500'} size={18} />
-          </div>
-          <p className={`text-xl font-bold ${lowStockCount > 0 ? 'text-red-600' : (theme === 'dark' ? 'text-white' : 'text-earth-800')}`}>
-            {lowStockCount} <span className="text-xs font-normal">items</span>
-          </p>
-        </div>
-      </div>
-
-      {/* Stock Prediction Alert */}
-      <div className={`p-5 rounded-2xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
-        <h3 className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'} mb-4 flex items-center gap-2`}>
-          <AlertTriangle className="text-yellow-500" size={18} /> Stock Prediction
-        </h3>
-        
-        {!stockPredictions || stockPredictions.length === 0 ? (
-           <div className="p-4 text-center text-gray-400 dark:text-gray-500">
-             <Package size={32} className="mx-auto mb-2 opacity-20" />
-             No stock data available.
-           </div>
-        ) : (
-          <div className="space-y-3">
-             {stockPredictions
-               .filter(p => p.daysLeft < 999)
-               .sort((a, b) => a.daysLeft - b.daysLeft)
-               .slice(0, 5)
-               .map((product) => {
-                  const isCritical = product.daysLeft < 3;
-                  return (
-                    <div key={product.id} className={`flex justify-between items-center p-3 rounded-lg border ${
-                      isCritical 
-                        ? 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900' 
-                        : 'bg-orange-50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900'
-                    }`}>
-                      <div className="flex items-center gap-2">
-                         <div className={`w-2 h-2 rounded-full ${isCritical ? 'bg-red-500' : 'bg-orange-500'}`} />
-                         <span className={`font-bold ${isCritical ? 'text-red-700 dark:text-red-300' : 'text-orange-700 dark:text-orange-300'}`}>
-                           {product.name}
-                         </span>
-                      </div>
-                      <span className={`text-xs font-bold ${isCritical ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'}`}>
-                         {product.daysLeft === 999 ? 'No Sales Data' : `${product.daysLeft} Days Left`}
-                      </span>
-                    </div>
-                  );
-                })
-             }
-          </div>
-        )}
       </div>
 
       {/* Charts & Recent List */}
@@ -235,12 +204,17 @@ const Dashboard: React.FC = () => {
           ) : (
             recentSales.map((sale) => (
               <div key={sale.id} className={`p-4 rounded-2xl border shadow-sm flex justify-between items-center ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
-                <div>
-                  <p className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{sale.productName}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-cream-100 text-earth-600'}`}>{sale.quantity} pcs</span>
-                    <span className={`text-[10px] ${theme === 'dark' ? 'text-gray-500' : 'text-earth-400'}`}>{formatDate(sale.date, lang)}</span>
-                  </div>
+                <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-cream-100'}`}>
+                        <ShoppingCart size={18} className="text-earth-600 dark:text-earth-400"/>
+                    </div>
+                    <div>
+                        <p className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{sale.productName}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                            <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${theme === 'dark' ? 'bg-gray-600 text-gray-300' : 'bg-cream-100 text-earth-600'}`}>{sale.quantity} pcs</span>
+                            <span className={`text-[10px] ${theme === 'dark' ? 'text-gray-500' : 'text-earth-400'}`}>{formatDate(sale.date, lang)}</span>
+                        </div>
+                    </div>
                 </div>
                 <div className="text-right">
                   <p className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{formatCurrency(sale.total, lang)}</p>
