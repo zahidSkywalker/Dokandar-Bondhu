@@ -9,13 +9,13 @@ import Settings from '../views/Settings';
 import Suppliers from '../views/Suppliers'; 
 import Market from '../views/Market';
 import { useLanguage } from '../../context/LanguageContext';
-import { Settings as SettingsIcon } from 'lucide-react';
-import { useTheme } from '../../context/ThemeContext';
+import { Settings as SettingsIcon, Menu } from 'lucide-react';
+import { useSettings } from '../../context/SettingsContext';
 
 const MainLayout: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const { t, lang, toggleLang } = useLanguage();
-  const { theme } = useTheme();
+  const { businessName } = useSettings();
 
   const renderContent = () => {
     switch (activeTab) {
@@ -32,35 +32,35 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen font-sans transition-colors duration-300 ${theme === 'dark' ? 'bg-gray-900 text-gray-100' : 'bg-[#F9FAFB] text-gray-800'}`}>
+    <div className="min-h-screen font-sans bg-alabaster text-prussian">
       
-      {/* Header - Fixed Title to "Dokandar Bondhu" */}
-      <header className={`sticky top-0 z-30 border-b px-6 py-4 flex justify-between items-center backdrop-blur-md ${theme === 'dark' ? 'bg-gray-800/90 border-gray-700' : 'bg-white/80 border-gray-200 shadow-sm'}`}>
+      {/* Header - Prussian Blue Background */}
+      <header className="sticky top-0 z-40 px-6 py-4 flex justify-between items-center bg-prussian text-white shadow-lg">
         <div>
-          <h1 className={`font-bold text-xl tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+          <h1 className="font-display text-2xl tracking-wider">
             {t('common.appName')}
           </h1>
-          <p className={`text-xs font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Business Manager</p>
+          <p className="text-xs font-medium text-alabaster opacity-80">{businessName}</p>
         </div>
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setActiveTab(prev => prev === 'settings' ? 'dashboard' : 'settings')}
-            className={`p-2 rounded-xl ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-600'}`}
+            className="p-2 rounded-xl hover:bg-white/10 transition-colors"
           >
             <SettingsIcon size={20} />
           </button>
           
           <button 
             onClick={toggleLang}
-            className={`text-xs px-4 py-2 rounded-full font-bold border transition-colors ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-800'}`}
+            className="text-xs px-4 py-2 rounded-full font-bold bg-orange text-prussian hover:bg-orange/80 transition-colors"
           >
             {lang === 'en' ? 'বাংলা' : 'English'}
           </button>
         </div>
       </header>
 
-      {/* Main Content - FIXED PADDING: Added pb-28 to clear the floating navbar completely */}
-      <main className="animate-fade-in px-6 pt-6 pb-28">
+      {/* Main Content - Added pb-28 to clear fixed navbar */}
+      <main className="animate-fade-in px-4 pt-6 pb-28 max-w-2xl mx-auto">
         {renderContent()}
       </main>
 
