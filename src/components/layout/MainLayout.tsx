@@ -11,13 +11,11 @@ import Market from '../views/Market';
 import { useLanguage } from '../../context/LanguageContext';
 import { Settings as SettingsIcon } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
-import { useSettings } from '../../context/SettingsContext';
 
 const MainLayout: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const { t, lang, toggleLang } = useLanguage();
   const { theme } = useTheme();
-  const { businessName } = useSettings();
 
   const renderContent = () => {
     switch (activeTab) {
@@ -36,12 +34,11 @@ const MainLayout: React.FC = () => {
   return (
     <div className={`min-h-screen font-sans transition-colors duration-300 ${theme === 'dark' ? 'bg-gray-900 text-gray-100' : 'bg-[#F9FAFB] text-gray-800'}`}>
       
-      {/* Header */}
+      {/* Header - Fixed Title to "Dokandar Bondhu" */}
       <header className={`sticky top-0 z-30 border-b px-6 py-4 flex justify-between items-center backdrop-blur-md ${theme === 'dark' ? 'bg-gray-800/90 border-gray-700' : 'bg-white/80 border-gray-200 shadow-sm'}`}>
         <div>
-          {/* FIX: Dynamic Business Name & Improved Text Color */}
           <h1 className={`font-bold text-xl tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-            {businessName}
+            {t('common.appName')}
           </h1>
           <p className={`text-xs font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Business Manager</p>
         </div>
@@ -62,8 +59,8 @@ const MainLayout: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Content - FIX: Added pb-32 to clear floating navbar */}
-      <main className="animate-fade-in px-6 pt-6 pb-32">
+      {/* Main Content - FIXED PADDING: Added pb-28 to clear the floating navbar completely */}
+      <main className="animate-fade-in px-6 pt-6 pb-28">
         {renderContent()}
       </main>
 
