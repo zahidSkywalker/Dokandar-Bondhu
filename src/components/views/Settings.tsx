@@ -1,18 +1,27 @@
 import React, { useRef } from 'react';
-import { Download, Upload, FileSpreadsheet, Shield, Moon, Sun, Monitor, Palette, Check } from 'lucide-react';
-import { useApp } from '../../context/AppContext';
+import { Download, Upload, FileSpreadsheet, Shield, Monitor, Moon, Sun, Palette, Check, Save, Edit3 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme, ACCENT_COLORS } from '../../context/ThemeContext';
+import { useSettings } from '../../context/SettingsContext';
 import { exportToCSV, backupDatabase, restoreDatabase } from '../../lib/utils';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
+import Input from '../ui/Input';
+import Button from '../ui/Button';
 
 const Settings: React.FC = () => {
   const { t, lang } = useLanguage();
   const { mode, theme, accent, setMode, setAccent } = useTheme();
+  const { businessName, setBusinessName } = useSettings();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
+  const [tempName, setTempName] = React.useState(businessName);
+
   const sales = useLiveQuery(() => db.sales.toArray());
+
+  const handleSaveName = () => {
+    setBusinessName(tempName);
+  };
 
   const handleExportCSV = async () => {
     if (sales) await exportToCSV(sales, 'dokandar_sales_report');
@@ -36,12 +45,29 @@ const Settings: React.FC = () => {
   ];
 
   return (
-    <div className="pb-24 max-w-2xl mx-auto space-y-8">
-      <h1 className={`text-2xl font-bold mt-4 ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>Settings</h1>
+    <div className="space-y-8 max-w-2xl mx-auto">
+      <h1 className={`text-2xl font-bold mt-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Settings</h1>
+
+      {/* Profile / Business Name */}
+      <div className={`p-6 rounded-3xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <h2 className={`font-bold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+          <Edit3 size={18} /> Business Profile
+        </h2>
+        <div className="flex gap-3">
+            <Input 
+                value={tempName} 
+                onChange={(e) => setTempName(e.target.value)} 
+                placeholder="Enter Business Name" 
+            />
+            <button onClick={handleSaveName} className="bg-primary text-white px-4 rounded-xl font-bold text-sm flex items-center gap-2">
+                <Save size={16} />
+            </button>
+        </div>
+      </div>
 
       {/* Appearance Section */}
-      <div className={`p-6 rounded-3xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
-        <h2 className={`font-bold mb-6 flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>
+      <div className={`p-6 rounded-3xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <h2 className={`font-bold mb-6 flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
           <Palette size={18} /> Appearance
         </h2>
 
@@ -56,7 +82,7 @@ const Settings: React.FC = () => {
                   ? 'bg-primary/10 border-primary shadow-md' 
                   : theme === 'dark' 
                     ? 'bg-gray-700 border-gray-600 hover:bg-gray-600' 
-                    : 'bg-cream-50 border-cream-200 hover:bg-cream-100'
+                    : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
               }`}
             >
               <opt.icon className={mode === opt.key ? 'text-primary' : (theme === 'dark' ? 'text-gray-400' : 'text-gray-500')} size={24} />
@@ -86,30 +112,30 @@ const Settings: React.FC = () => {
       </div>
 
       {/* Data Management */}
-      <div className={`p-6 rounded-3xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
-        <h2 className={`font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>Data Management</h2>
+      <div className={`p-6 rounded-3xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <h2 className={`font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Data Management</h2>
         
         <button onClick={handleExportCSV} className="w-full flex items-center gap-3 p-4 mb-3 rounded-2xl border hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors dark:border-gray-600">
           <div className="p-2 bg-green-100 text-green-600 rounded-xl"><FileSpreadsheet size={20} /></div>
           <div className="text-left">
-            <p className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-800'}`}>Export Report</p>
-            <p className="text-xs text-earth-500 dark:text-gray-400">Download Sales as CSV</p>
+            <p className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>Export Report</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Download Sales as CSV</p>
           </div>
         </button>
 
         <button onClick={backupDatabase} className="w-full flex items-center gap-3 p-4 mb-3 rounded-2xl border hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors dark:border-gray-600">
           <div className="p-2 bg-blue-100 text-blue-600 rounded-xl"><Download size={20} /></div>
           <div className="text-left">
-            <p className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-800'}`}>Backup Data</p>
-            <p className="text-xs text-earth-500 dark:text-gray-400">Save full database</p>
+            <p className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>Backup Data</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Save full database</p>
           </div>
         </button>
 
         <button onClick={() => fileInputRef.current?.click()} className="w-full flex items-center gap-3 p-4 rounded-2xl border hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors dark:border-gray-600">
           <div className="p-2 bg-orange-100 text-orange-600 rounded-xl"><Upload size={20} /></div>
           <div className="text-left">
-            <p className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-800'}`}>Restore Data</p>
-            <p className="text-xs text-earth-500 dark:text-gray-400">Load backup file</p>
+            <p className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>Restore Data</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Load backup file</p>
           </div>
         </button>
         <input type="file" ref={fileInputRef} onChange={handleRestore} className="hidden" accept=".json" />
