@@ -1,19 +1,9 @@
-import React, { useState } from 'react';
-import { 
-  RefreshCw, 
-  Wifi, 
-  WifiOff, 
-  Signal, 
-  Clock, 
-  Package, 
-  ChevronRight,
-  CheckCircle,
-  AlertCircle
-} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { RefreshCw, Wifi, WifiOff, Signal, Clock, Package, ChevronRight, CheckCircle, AlertCircle } from 'lucide-react';
 import { useMarketPrices } from '../../hooks/useMarketPrices';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../context/ThemeContext';
-import { formatCurrency, toBanglaDigits } from '../../lib/utils';
+import { formatCurrency } from '../../lib/utils';
 
 const Market: React.FC = () => {
   const { t, lang } = useLanguage();
@@ -48,29 +38,16 @@ const Market: React.FC = () => {
     }).format(date);
   };
 
-  const getConnectionIcon = () => {
-    if (!onlineStatus) return <WifiOff size={12} />;
-    if (connectionType === 'wifi') return <Wifi size={12} />;
-    return <Signal size={12} />;
-  };
-
-  const getConnectionText = () => {
-    if (!onlineStatus) return t('common.offline');
-    if (connectionType === 'wifi') return 'Wi-Fi';
-    return 'Mobile Data';
-  };
-
   return (
     <div className="pb-24 max-w-2xl mx-auto animate-fade-in">
       
-      {/* Header Section */}
       <div className="mb-6 mt-2">
         <div className="flex justify-between items-start">
           <div>
-            <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>
+            <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               {t('market.title')}
             </h1>
-            <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-earth-600'}`}>
+            <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
               {t('market.subtitle')}
             </p>
           </div>
@@ -81,8 +58,8 @@ const Market: React.FC = () => {
                 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
                 : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
             }`}>
-              {getConnectionIcon()}
-              {getConnectionText()}
+              {onlineStatus ? <Wifi size={12} /> : <WifiOff size={12} />}
+              {onlineStatus ? 'Online' : 'Offline'}
             </div>
             
             <button 
@@ -91,7 +68,7 @@ const Market: React.FC = () => {
               className={`p-2 rounded-xl shadow-md active:scale-95 transition-all ${
                 !onlineStatus 
                   ? 'bg-gray-200 dark:bg-gray-700 text-gray-400' 
-                  : 'bg-earth-800 text-white dark:bg-earth-700'
+                  : 'bg-primary text-white'
               }`}
             >
               <RefreshCw size={18} className={isSyncing ? 'animate-spin' : ''} />
@@ -99,46 +76,38 @@ const Market: React.FC = () => {
           </div>
         </div>
 
-        {/* Status Messages */}
         <div className="mt-3 space-y-2">
           {syncStatus === 'success' && (
-            <div className="flex items-center gap-2 text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 p-2 rounded-lg animate-slide-up">
+            <div className="flex items-center gap-2 text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 p-2 rounded-lg">
               <CheckCircle size={14} /> {t('market.syncSuccess')}
             </div>
           )}
           {syncStatus === 'error' && (
-            <div className="flex items-center gap-2 text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-2 rounded-lg animate-slide-up">
+            <div className="flex items-center gap-2 text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-2 rounded-lg">
               <AlertCircle size={14} /> {t('market.syncError')}
             </div>
           )}
-          {isSyncing && (
-            <div className="flex items-center gap-2 text-xs font-bold text-earth-600 dark:text-earth-400 bg-earth-50 dark:bg-earth-900/20 p-2 rounded-lg">
-              <RefreshCw size={14} className="animate-spin" /> {t('market.syncInProgress')}
-            </div>
-          )}
           
-          {!isLoading && (
-            <div className={`text-[10px] flex items-center gap-1 ${theme === 'dark' ? 'text-gray-500' : 'text-earth-400'}`}>
-              <Clock size={10} /> {t('common.lastUpdated')}: {formatLastUpdated(lastUpdated)}
+          {!isLoading && lastUpdated && (
+            <div className={`text-[10px] flex items-center gap-1 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
+              <Clock size={10} /> Last Updated: {formatLastUpdated(lastUpdated)}
             </div>
           )}
         </div>
       </div>
 
       {/* Category Filter */}
-      <div className={`flex gap-2 overflow-x-auto pb-4 no-scrollbar mb-2 ${theme === 'dark' ? 'scrollbar-thumb-gray-700' : 'scrollbar-thumb-earth-200'}`}>
+      <div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar mb-2">
         {categories.map((cat) => (
           <button
             key={cat.key}
             onClick={() => setActiveCategory(cat.key)}
             className={`whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold transition-all border ${
               activeCategory === cat.key
-                ? theme === 'dark'
-                  ? 'bg-earth-700 text-white border-earth-600 shadow-md'
-                  : 'bg-earth-800 text-white border-earth-700 shadow-md'
+                ? 'bg-primary text-white border-primary shadow-md'
                 : theme === 'dark'
                   ? 'bg-gray-800 text-gray-300 border-gray-700 hover:bg-gray-700'
-                  : 'bg-white text-earth-600 border-cream-200 hover:bg-cream-50'
+                  : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
             }`}
           >
             {cat.label}
@@ -146,63 +115,42 @@ const Market: React.FC = () => {
         ))}
       </div>
 
-      {/* Content List with SIMULTANEOUS ANIMATION */}
-      {isLoading ? (
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className={`h-20 rounded-2xl animate-pulse ${theme === 'dark' ? 'bg-gray-800' : 'bg-white border border-cream-200'}`} />
-          ))}
-        </div>
-      ) : prices.length === 0 ? (
-        <div className={`p-10 rounded-2xl text-center border ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
-          <Package size={48} className={`mx-auto mb-4 opacity-20 ${theme === 'dark' ? 'text-gray-400' : 'text-earth-400'}`} />
-          <p className={`font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-earth-600'}`}>
-            {t('market.emptyState')}
-          </p>
-        </div>
+      {/* Content List */}
+      {isLoading || prices.length === 0 ? (
+         <div className="flex flex-col items-center justify-center py-16 text-center">
+             <Package size={48} className="text-gray-300 dark:text-gray-600 mb-4" />
+             <p className="text-gray-500 dark:text-gray-400 font-medium">
+                {isLoading ? 'Loading data...' : 'No data found. Tap sync to load prices.'}
+             </p>
+         </div>
       ) : (
         <div className="space-y-3">
           {prices.map((item, index) => (
             <div 
-              key={item.id} 
-              // ==========================================
-              // ANIMATION LOGIC:
-              // 1. Initial opacity 0
-              // 2. Animation delay based on index (100ms per item)
-              // 3. animate-slide-up-fade class handles the motion
-              // ==========================================
-              className={`p-4 rounded-2xl border shadow-sm flex justify-between items-center transition-all active:scale-[0.99] opacity-0 animate-slide-up-fade ${
-                theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'
+              key={item.id || index} 
+              className={`p-4 rounded-2xl border shadow-sm flex justify-between items-center transition-all active:scale-[0.99] ${
+                theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
               }`}
-              style={{ animationDelay: `${index * 100}ms` }} // Staggered delay
             >
               <div className="flex-1">
-                <h3 className={`font-bold text-base mb-1 ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>
+                <h3 className={`font-bold text-base mb-1 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                   {lang === 'bn' ? item.nameBn : item.nameEn}
                 </h3>
                 <div className="flex items-center gap-2">
-                  <span className={`text-[10px] px-2 py-0.5 rounded bg-earth-50 dark:bg-earth-900/30 text-earth-600 dark:text-earth-400 font-bold uppercase`}>
+                  <span className={`text-[10px] px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-bold uppercase`}>
                     {item.unit}
                   </span>
-                  {item.category !== 'essentials' && (
-                    <span className={`text-[10px] text-gray-500 dark:text-gray-400 capitalize`}>
-                       {item.category}
-                    </span>
-                  )}
                 </div>
               </div>
 
               <div className="text-right">
-                <div className={`text-sm font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>
+                <div className={`text-xs font-bold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                    {t('market.priceRange')}
                 </div>
-                <div className={`text-lg font-bold text-earth-700 dark:text-earth-300`}>
-                  {/* Displaying Min/Max Range from your JSON */}
+                <div className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                   {formatCurrency(item.minPrice, lang)} - {formatCurrency(item.maxPrice, lang)}
                 </div>
               </div>
-              
-              <ChevronRight className={`ml-2 ${theme === 'dark' ? 'text-gray-600' : 'text-earth-200'}`} size={16} />
             </div>
           ))}
         </div>
