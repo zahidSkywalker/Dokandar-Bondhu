@@ -2,142 +2,121 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ==========================================
+   1. CSS VARIABLES FOR DYNAMIC THEMING
+   ========================================== */
 :root {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  /* Default Theme (Teal) - Can be overwritten by JS */
+  --color-primary: #0d9488;
+  --color-primary-50: #f0fdfa;
+  --color-primary-100: #ccfbf1;
+  --color-primary-200: #99f6e4;
+  --color-primary-300: #5eead4;
+  --color-primary-400: #2dd4bf;
+  --color-primary-600: #0f766e;
+  --color-primary-700: #115e59;
+  --color-primary-800: #134e4a;
+  --color-primary-900: #042f2e;
+
+  font-family: 'Inter', 'Noto Sans Bengali', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   padding-bottom: env(safe-area-inset-bottom);
   padding-top: env(safe-area-inset-top, 0px);
 }
 
-body {
-  background-color: #F9FAFB; /* Light Mode: Very light gray/calm */
-  color: #1F2937; /* Light Mode: Soft Black */
-  overflow-x: hidden;
+/* Dark Mode Base */
+.dark {
+  color-scheme: dark;
 }
 
-/* Glassmorphism */
+/* ==========================================
+   2. GLASSMORPHISM UTILITIES
+   ========================================== */
 .glass-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-/* Inputs & Selects - Calm Focus States */
-input, select {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.dark .glass-card {
+  background: rgba(31, 41, 55, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-input:focus, select:focus {
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15); /* Blue Glow in Light Mode */
-  border-color: #3B82F6;
+/* ==========================================
+   3. SKELETON LOADING
+   ========================================== */
+.skeleton {
+  background: linear-gradient(90deg, 
+    rgba(0, 0, 0, 0.04) 25%, 
+    rgba(0, 0, 0, 0.08) 50%, 
+    rgba(0, 0, 0, 0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
 }
 
-/* Dark Mode Inputs */
-.dark input, .dark select {
-  box-shadow: none;
-}
-.dark input:focus, .dark select:focus {
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2); /* Emerald Glow in Dark Mode */
-  border-color: #10B981;
-}
-
-/* Autofill Fix */
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
-input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 30px #FFF inset !important;
-  -webkit-text-fill-color: #1F2937 !important;
-  transition: background-color 5000s ease-in-out 0s;
-}
-.dark input:-webkit-autofill,
-.dark input:-webkit-autofill:hover,
-.dark input:-webkit-autofill:focus,
-.dark input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 30px #1F2937 inset !important;
-  -webkit-text-fill-color: #F3F4F6 !important;
+.dark .skeleton {
+  background: linear-gradient(90deg, 
+    rgba(255, 255, 255, 0.05) 25%, 
+    rgba(255, 255, 255, 0.1) 50%, 
+    rgba(255, 255, 255, 0.05) 75%
+  );
+  background-size: 200% 100%;
 }
 
-/* Scrollbar */
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+/* ==========================================
+   4. ANIMATIONS & KEYFRAMES
+   ========================================== */
+@keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pulse-slow { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+@keyframes bounce { 0%, 100% { transform: translateY(-5%); } 50% { transform: translateY(0); } }
+@keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
 
-/* Custom Scrollbar for Statements */
+.animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+.animate-fade-in { animation: fadeIn 0.3s ease-out; }
+.animate-bounce { animation: bounce 0.5s infinite; }
+
+/* ==========================================
+   5. INTERACTIVE CHART TOOLTIP
+   ========================================== */
+.recharts-tooltip-wrapper {
+  outline: none !important;
+}
+
+/* ==========================================
+   6. SWIPE ACTIONS BACKGROUND
+   ========================================== */
+.swipe-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.swipe-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  display: flex;
+  transform: translateX(100%);
+  transition: transform 0.2s ease-out;
+}
+
+.swipe-content {
+  transition: transform 0.2s ease-out;
+}
+
+/* ==========================================
+   7. SCROLLBAR & SELECTION
+   ========================================== */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }
 .dark ::-webkit-scrollbar-thumb { background: #4B5563; }
 
-/* ==============================
-   ANIMATIONS
-   ============================== */
-@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
-@keyframes slideUpFade {
-  0% { opacity: 0; transform: translateY(20px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-@keyframes bounce {
-  0%, 100% { transform: translateY(-5%); animation-timing-function: cubic-bezier(0.8, 0, 1, 0.68); }
-  50% { transform: translateY(0); animation-timing-function: cubic-bezier(0.8, 0, 1, 0.68); }
-}
-@keyframes pulse-slow {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
-}
-
-/* ==============================
-   FLOW ANIMATION
-   ============================== */
-@keyframes draw-path { to { stroke-dashoffset: 0; } }
-@keyframes move-packet {
-  0% { transform: translate(-50vw, 40vh); opacity: 0; }
-  15% { transform: translate(-40vw, 40vh); opacity: 1; }
-  50% { transform: translate(0, 0); opacity: 1; }
-  85% { transform: translate(40vw, -10vh); opacity: 1; }
-  100% { transform: translate(50vw, -40vh); opacity: 0; }
-}
-@keyframes ping {
-  75%, 100% { transform: scale(2); opacity: 0; }
-}
-
-.animate-draw-path { stroke-dasharray: 150; stroke-dashoffset: 150; animation: draw-path 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.animate-move-packet { animation: move-packet 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-.animate-ping { animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite; }
-
-/* ==============================
-   UTILITY CLASSES
-   ============================== */
-.animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-.animate-fade-in { animation: fadeIn 0.3s ease-out; }
-.animate-slide-up-fade { animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.animate-bounce { animation: bounce 0.5s infinite; }
-.animate-pulse-slow { animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-
-.pb-safe { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
-
-body { user-select: none; }
-input, textarea, [contenteditable] { user-select: text; }
-
-/* Add to src/index.css */
-
-@keyframes bounce-in {
-  0% { transform: scale(0); opacity: 0; }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-.animate-bounce-in {
-  animation: bounce-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-@keyframes confetti-fall {
-  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-}
-
-.animate-confetti-fall {
-  animation: confetti-fall 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-}
+body { user-select: none; -webkit-user-select: none; }
+input, textarea, [contenteditable] { user-select: text; -webkit-user-select: text; }
