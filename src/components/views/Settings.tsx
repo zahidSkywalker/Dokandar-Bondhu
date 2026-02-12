@@ -1,7 +1,6 @@
 import React, { useRef } from 'react';
-import { Download, Upload, FileSpreadsheet, Shield, Monitor, Moon, Sun, Palette, Check, Save, Edit3 } from 'lucide-react';
+import { Download, Upload, FileSpreadsheet, Shield, Save, Edit3 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
-import { useTheme, ACCENT_COLORS } from '../../context/ThemeContext';
 import { useSettings } from '../../context/SettingsContext';
 import { exportToCSV, backupDatabase, restoreDatabase } from '../../lib/utils';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -11,142 +10,79 @@ import Button from '../ui/Button';
 
 const Settings: React.FC = () => {
   const { t, lang } = useLanguage();
-  const { mode, theme, accent, setMode, setAccent } = useTheme();
   const { businessName, setBusinessName } = useSettings();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [tempName, setTempName] = React.useState(businessName);
-
   const sales = useLiveQuery(() => db.sales.toArray());
 
-  const handleSaveName = () => {
-    setBusinessName(tempName);
-  };
-
-  const handleExportCSV = async () => {
-    if (sales) await exportToCSV(sales, 'dokandar_sales_report');
-  };
+  const handleSaveName = () => setBusinessName(tempName);
+  const handleExportCSV = async () => { if (sales) await exportToCSV(sales, 'dokandar_sales_report'); };
 
   const handleRestore = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const confirm = window.confirm("This will replace ALL current data. Are you sure?");
-      if (confirm) {
+      if (confirm("Replace ALL data?")) {
         await restoreDatabase(e.target.files[0]);
-        alert("Database restored successfully!");
         window.location.reload();
       }
     }
   };
 
-  const themeOptions = [
-    { key: 'light', label: 'Light', icon: Sun },
-    { key: 'dark', label: 'Dark', icon: Moon },
-    { key: 'system', label: 'System', icon: Monitor },
-  ];
-
   return (
-    <div className="space-y-8 max-w-2xl mx-auto">
-      <h1 className={`text-2xl font-bold mt-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Settings</h1>
+    <div className="space-y-8">
+      <h1 className="text-2xl font-bold text-prussian font-display mt-4">Settings</h1>
 
-      {/* Profile / Business Name */}
-      <div className={`p-6 rounded-3xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-        <h2 className={`font-bold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+      {/* Profile */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <h2 className="font-bold text-prussian mb-4 flex items-center gap-2">
           <Edit3 size={18} /> Business Profile
         </h2>
         <div className="flex gap-3">
-            <Input 
-                value={tempName} 
-                onChange={(e) => setTempName(e.target.value)} 
-                placeholder="Enter Business Name" 
-            />
-            <button onClick={handleSaveName} className="bg-primary text-white px-4 rounded-xl font-bold text-sm flex items-center gap-2">
-                <Save size={16} />
-            </button>
+          <Input value={tempName} onChange={(e) => setTempName(e.target.value)} placeholder="Enter Business Name" />
+          <button onClick={handleSaveName} className="bg-orange text-prussian px-4 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-orange/80 transition-colors">
+            <Save size={16} />
+          </button>
         </div>
       </div>
 
-      {/* Appearance Section */}
-      <div className={`p-6 rounded-3xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-        <h2 className={`font-bold mb-6 flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-          <Palette size={18} /> Appearance
-        </h2>
-
-        {/* Theme Selector Cards */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          {themeOptions.map((opt) => (
-            <button
-              key={opt.key}
-              onClick={() => setMode(opt.key as 'light' | 'dark' | 'system')}
-              className={`flex flex-col items-center justify-center p-4 rounded-2xl border transition-all ${
-                mode === opt.key 
-                  ? 'bg-primary/10 border-primary shadow-md' 
-                  : theme === 'dark' 
-                    ? 'bg-gray-700 border-gray-600 hover:bg-gray-600' 
-                    : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
-              }`}
-            >
-              <opt.icon className={mode === opt.key ? 'text-primary' : (theme === 'dark' ? 'text-gray-400' : 'text-gray-500')} size={24} />
-              <span className={`text-xs mt-2 font-bold ${mode === opt.key ? 'text-primary' : (theme === 'dark' ? 'text-gray-300' : 'text-gray-700')}`}>
-                {opt.label}
-              </span>
-            </button>
-          ))}
-        </div>
-
-        {/* Accent Color Picker */}
-        <label className={`block text-sm font-medium mb-3 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-          Brand Color
-        </label>
-        <div className="flex gap-3 flex-wrap">
-          {Object.entries(ACCENT_COLORS).map(([key, color]) => (
-            <button
-              key={key}
-              onClick={() => setAccent(key as any)}
-              style={{ backgroundColor: color.value }}
-              className={`w-10 h-10 rounded-full shadow-inner transition-transform ${accent === key ? 'ring-2 ring-offset-2 ring-offset-white dark:ring-offset-gray-800 scale-110' : 'opacity-80 hover:opacity-100'}`}
-            >
-              {accent === key && <Check className="text-white mx-auto" size={20} />}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Data Management */}
-      <div className={`p-6 rounded-3xl border shadow-sm ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-        <h2 className={`font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Data Management</h2>
+      {/* Data */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <h2 className="font-bold text-prussian mb-4">Data Management</h2>
         
-        <button onClick={handleExportCSV} className="w-full flex items-center gap-3 p-4 mb-3 rounded-2xl border hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors dark:border-gray-600">
-          <div className="p-2 bg-green-100 text-green-600 rounded-xl"><FileSpreadsheet size={20} /></div>
-          <div className="text-left">
-            <p className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>Export Report</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Download Sales as CSV</p>
-          </div>
-        </button>
+        <div className="space-y-3">
+          <button onClick={handleExportCSV} className="w-full flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:bg-alabaster transition-colors">
+            <div className="p-2 bg-green-50 text-green-600 rounded-lg"><FileSpreadsheet size={20} /></div>
+            <div className="text-left">
+              <p className="font-bold text-prussian">Export Report</p>
+              <p className="text-xs text-prussian/50">Download Sales as CSV</p>
+            </div>
+          </button>
 
-        <button onClick={backupDatabase} className="w-full flex items-center gap-3 p-4 mb-3 rounded-2xl border hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors dark:border-gray-600">
-          <div className="p-2 bg-blue-100 text-blue-600 rounded-xl"><Download size={20} /></div>
-          <div className="text-left">
-            <p className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>Backup Data</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Save full database</p>
-          </div>
-        </button>
+          <button onClick={backupDatabase} className="w-full flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:bg-alabaster transition-colors">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><Download size={20} /></div>
+            <div className="text-left">
+              <p className="font-bold text-prussian">Backup Data</p>
+              <p className="text-xs text-prussian/50">Save full database</p>
+            </div>
+          </button>
 
-        <button onClick={() => fileInputRef.current?.click()} className="w-full flex items-center gap-3 p-4 rounded-2xl border hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors dark:border-gray-600">
-          <div className="p-2 bg-orange-100 text-orange-600 rounded-xl"><Upload size={20} /></div>
-          <div className="text-left">
-            <p className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>Restore Data</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Load backup file</p>
-          </div>
-        </button>
-        <input type="file" ref={fileInputRef} onChange={handleRestore} className="hidden" accept=".json" />
+          <button onClick={() => fileInputRef.current?.click()} className="w-full flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:bg-alabaster transition-colors">
+            <div className="p-2 bg-orange/10 text-orange rounded-lg"><Upload size={20} /></div>
+            <div className="text-left">
+              <p className="font-bold text-prussian">Restore Data</p>
+              <p className="text-xs text-prussian/50">Load backup file</p>
+            </div>
+          </button>
+          <input type="file" ref={fileInputRef} onChange={handleRestore} className="hidden" accept=".json" />
+        </div>
       </div>
 
-      {/* Danger Zone */}
-      <div className={`p-6 rounded-3xl border border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-900`}>
-        <h2 className="font-bold text-red-700 dark:text-red-400 mb-4 flex items-center gap-2">
+      {/* Danger */}
+      <div className="bg-white p-6 rounded-2xl border border-red-100">
+        <h2 className="font-bold text-red-600 mb-4 flex items-center gap-2">
           <Shield size={16} /> Danger Zone
         </h2>
-        <button onClick={() => { if(confirm("Clear all data?")) { db.delete(); window.location.reload(); } }} className="w-full py-3 rounded-xl bg-red-500 text-white font-bold shadow-lg shadow-red-500/30">
+        <button onClick={() => { if(confirm("Clear all data?")) { db.delete(); window.location.reload(); } }} className="w-full py-3 rounded-xl bg-red-500 text-white font-bold shadow-lg hover:bg-red-600 transition-colors">
           Delete All Data
         </button>
       </div>
