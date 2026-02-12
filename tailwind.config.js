@@ -7,53 +7,30 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Dynamic Primary Color mapped to CSS variable
-        primary: {
-          DEFAULT: 'var(--color-primary)',
-          50: 'var(--color-primary-50)',
-          100: 'var(--color-primary-100)',
-          200: 'var(--color-primary-200)',
-          300: 'var(--color-primary-300)',
-          400: 'var(--color-primary-400)',
-          500: 'var(--color-primary)',
-          600: 'var(--color-primary-600)',
-          700: 'var(--color-primary-700)',
-          800: 'var(--color-primary-800)',
-          900: 'var(--color-primary-900)',
-        },
-        cream: {
-          50: '#FAF9F6',
-          100: '#F5F2EB',
-          200: '#E6E0D6',
-        },
-        earth: {
-          50: '#F2EBE5',
-          100: '#DCC6B3',
-          600: '#8B5E3C',
-          700: '#6D4C41',
-          800: '#4E342E',
-          900: '#3E2723',
-        },
+        'prussian': '#14213D', // Primary Dark Blue
+        'orange': '#FCA311',   // Accent Orange
+        'alabaster': '#E5E5E5', // Background Grey
+        'black': '#000000',     // Text Black
+        'white': '#FFFFFF',     // Cards/Elements
       },
       fontFamily: {
-        sans: ['Inter', 'Noto Sans Bengali', 'Segoe UI', 'sans-serif'],
+        // Federant for English, Hind Siliguri for Bangla
+        sans: ['"Hind Siliguri"', '"Federant"', 'sans-serif'],
+        display: ['"Federant"', 'sans-serif'],
       },
       animation: {
         'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
         'fade-in': 'fadeIn 0.3s ease-out',
-        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'shimmer': 'shimmer 2s infinite linear',
-        'swipe-delete': 'swipeDelete 0.2s ease-out forwards',
       },
       keyframes: {
-        shimmer: {
-          '0%': { backgroundPosition: '-200% 0' },
-          '100%': { backgroundPosition: '200% 0' },
+        slideUp: {
+          '0%': { transform: 'translateY(100%)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
         },
-        swipeDelete: {
-          '0%': { transform: 'translateX(0)' },
-          '100%': { transform: 'translateX(-100%)' },
-        }
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
       }
     },
   },
