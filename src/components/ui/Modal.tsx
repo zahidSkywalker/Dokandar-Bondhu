@@ -13,18 +13,13 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       
-      {/* Content - Added pb-safe for iOS keyboard issues and z-50 to be on top of Navbar */}
-      <div className="relative bg-white dark:bg-gray-800 w-full sm:w-[500px] sm:rounded-2xl rounded-t-3xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto animate-slide-up z-50 pb-safe">
+      <div className="relative bg-white w-full sm:w-[500px] sm:rounded-2xl rounded-t-3xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto animate-slide-up z-50 pb-safe">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-gray-800 dark:text-white">{title}</h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
-            <X className="w-5 h-5 text-gray-500 dark:text-gray-300" />
+          <h2 className="text-xl font-bold text-prussian font-display">{title}</h2>
+          <button onClick={onClose} className="p-2 hover:bg-alabaster rounded-full">
+            <X className="w-5 h-5 text-prussian/50" />
           </button>
         </div>
         {children}
