@@ -2,121 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ==========================================
-   1. CSS VARIABLES FOR DYNAMIC THEMING
-   ========================================== */
 :root {
-  /* Default Theme (Teal) - Can be overwritten by JS */
-  --color-primary: #0d9488;
-  --color-primary-50: #f0fdfa;
-  --color-primary-100: #ccfbf1;
-  --color-primary-200: #99f6e4;
-  --color-primary-300: #5eead4;
-  --color-primary-400: #2dd4bf;
-  --color-primary-600: #0f766e;
-  --color-primary-700: #115e59;
-  --color-primary-800: #134e4a;
-  --color-primary-900: #042f2e;
-
-  font-family: 'Inter', 'Noto Sans Bengali', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Hind Siliguri', 'Federant', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   padding-bottom: env(safe-area-inset-bottom);
   padding-top: env(safe-area-inset-top, 0px);
+  
+  /* Fixed Theme Variables */
+  --color-primary: #14213D;
+  --color-accent: #FCA311;
+  --color-bg: #E5E5E5;
+  --color-card: #FFFFFF;
 }
 
-/* Dark Mode Base */
-.dark {
-  color-scheme: dark;
+body {
+  background-color: var(--color-bg);
+  color: var(--color-primary);
+  overflow-x: hidden;
 }
 
-/* ==========================================
-   2. GLASSMORPHISM UTILITIES
-   ========================================== */
+/* Typography Utilities */
+.font-display {
+  font-family: 'Federant', sans-serif;
+  letter-spacing: 0.05em;
+}
+
+/* Glassmorphism for Overlays */
 .glass-card {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(20, 33, 61, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
 }
 
-.dark .glass-card {
-  background: rgba(31, 41, 55, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+/* Inputs Styling */
+input, select {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: #FFFFFF;
+  border: 1px solid #E5E5E5;
+  color: #14213D;
 }
 
-/* ==========================================
-   3. SKELETON LOADING
-   ========================================== */
-.skeleton {
-  background: linear-gradient(90deg, 
-    rgba(0, 0, 0, 0.04) 25%, 
-    rgba(0, 0, 0, 0.08) 50%, 
-    rgba(0, 0, 0, 0.04) 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 8px;
+input:focus, select:focus {
+  box-shadow: 0 0 0 3px rgba(252, 163, 17, 0.3); /* Orange Glow */
+  border-color: #FCA311;
+  outline: none;
 }
 
-.dark .skeleton {
-  background: linear-gradient(90deg, 
-    rgba(255, 255, 255, 0.05) 25%, 
-    rgba(255, 255, 255, 0.1) 50%, 
-    rgba(255, 255, 255, 0.05) 75%
-  );
-  background-size: 200% 100%;
-}
-
-/* ==========================================
-   4. ANIMATIONS & KEYFRAMES
-   ========================================== */
-@keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes pulse-slow { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-@keyframes bounce { 0%, 100% { transform: translateY(-5%); } 50% { transform: translateY(0); } }
-@keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
-
-.animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-.animate-fade-in { animation: fadeIn 0.3s ease-out; }
-.animate-bounce { animation: bounce 0.5s infinite; }
-
-/* ==========================================
-   5. INTERACTIVE CHART TOOLTIP
-   ========================================== */
-.recharts-tooltip-wrapper {
-  outline: none !important;
-}
-
-/* ==========================================
-   6. SWIPE ACTIONS BACKGROUND
-   ========================================== */
-.swipe-container {
-  position: relative;
-  overflow: hidden;
-}
-
-.swipe-actions {
-  position: absolute;
-  top: 0;
-  right: 0;
-  height: 100%;
-  display: flex;
-  transform: translateX(100%);
-  transition: transform 0.2s ease-out;
-}
-
-.swipe-content {
-  transition: transform 0.2s ease-out;
-}
-
-/* ==========================================
-   7. SCROLLBAR & SELECTION
-   ========================================== */
+/* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }
-.dark ::-webkit-scrollbar-thumb { background: #4B5563; }
+::-webkit-scrollbar-thumb { background: #14213D; border-radius: 10px; }
 
-body { user-select: none; -webkit-user-select: none; }
-input, textarea, [contenteditable] { user-select: text; -webkit-user-select: text; }
+/* Animations */
+.animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+.animate-fade-in { animation: fadeIn 0.3s ease-out; }
+
+/* Safe Area */
+.pb-safe { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
