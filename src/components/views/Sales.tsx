@@ -8,7 +8,8 @@ import { useTheme } from '../../context/ThemeContext';
 import Modal from '../ui/Modal';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
-import FlowAnimation from '../ui/FlowAnimation'; // NEW: Import Flow Animation
+import Skeleton from '../ui/Skeleton';
+import FlowAnimation from '../ui/FlowAnimation';
 import { formatCurrency, formatDate, toEnglishDigits } from '../../lib/utils';
 
 const Sales: React.FC = () => {
@@ -22,46 +23,30 @@ const Sales: React.FC = () => {
   const [quantity, setQuantity] = useState('');
   const [dueDate, setDueDate] = useState<string>('');
   const [marginAlert, setMarginAlert] = useState<string | null>(null);
-  const [showFlowAnimation, setShowFlowAnimation] = useState(false); // NEW: State for Animation
+  const [showFlowAnimation, setShowFlowAnimation] = useState(false);
 
   const products = useLiveQuery(() => db.products.toArray());
   const customers = useLiveQuery(() => db.customers.toArray());
   const staff = useLiveQuery(() => db.staff.toArray());
-  const recentSales = useLiveQuery(
-    () => db.sales.orderBy('date').reverse().limit(10).toArray(),
-    []
-  );
+  const recentSales = useLiveQuery(() => db.sales.orderBy('date').reverse().limit(10).toArray(), []);
 
   const selectedProduct = useMemo(() => products?.find(p => p.id === Number(productId)), [productId, products]);
   const selectedCustomer = useMemo(() => customers?.find(c => c.id === Number(customerId)), [customerId, customers]);
 
   useEffect(() => {
     if (selectedProduct && quantity) {
-      const buy = selectedProduct.buyPrice;
-      const sell = selectedProduct.sellPrice;
-      const margin = sell - buy;
-      const marginPercent = buy > 0 ? (margin / buy) * 100 : 0;
-
-      if (margin < 0) {
-        setMarginAlert("Selling at a loss!");
-      } else if (marginPercent < 10) {
-        setMarginAlert("Low margin (under 10%)");
-      } else {
-        setMarginAlert(null);
-      }
-    } else {
-      setMarginAlert(null);
-    }
+      const margin = selectedProduct.sellPrice - selectedProduct.buyPrice;
+      if (margin < 0) setMarginAlert("Selling at a loss!");
+      else if ((margin/selectedProduct.buyPrice) < 0.1) setMarginAlert("Low margin");
+      else setMarginAlert(null);
+    } else setMarginAlert(null);
   }, [selectedProduct, quantity]);
 
   const handleSale = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProduct) return;
     try {
-      // 1. Trigger Animation
       setShowFlowAnimation(true);
-
-      // 2. Perform DB Operation
       await addSale({
         productId: selectedProduct.id!,
         productName: selectedProduct.name,
@@ -73,55 +58,38 @@ const Sales: React.FC = () => {
         staffId: staffId ? Number(staffId) : undefined,
         dueDate: dueDate ? new Date(dueDate) : undefined,
       });
-
-      // 3. Cleanup UI
       setIsModalOpen(false);
-      setProductId('');
-      setCustomerId('');
-      setStaffId('');
-      setQuantity('');
-      setDueDate('');
-      setMarginAlert(null);
-      
-      // Note: Animation handles its own auto-stop
+      resetForm();
     } catch (err: any) { 
       alert(err.message || "Error"); 
-      setShowFlowAnimation(false); // Stop on error
+      setShowFlowAnimation(false);
     }
+  };
+  
+  const resetForm = () => {
+    setProductId(''); setCustomerId(''); setStaffId(''); setQuantity(''); setDueDate(''); setMarginAlert(null);
   };
 
   return (
     <div className="pb-24 max-w-2xl mx-auto">
-      {/* NEW: Global Flow Animation Layer */}
-      <FlowAnimation 
-        trigger={showFlowAnimation} 
-        color="#10B981" 
-      />
+      <FlowAnimation trigger={showFlowAnimation} color="#10B981" />
 
       <div className="flex justify-between items-center mb-6 mt-2">
         <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{t('sales.title')}</h1>
-        <button onClick={() => setIsModalOpen(true)} className={`p-3 rounded-2xl shadow-xl active:scale-95 transition-transform ${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-earth-800 text-white'}`}><Plus size={24} /></button>
+        <button onClick={() => setIsModalOpen(true)} className={`p-3 rounded-2xl shadow-xl active:scale-95 transition-transform bg-primary text-white`}><Plus size={24} /></button>
       </div>
 
       <div className="space-y-4">
-        {!recentSales ? <p>Loading...</p> : recentSales.map((sale) => (
-          <div key={sale.id} className={`p-5 rounded-2xl border shadow-sm flex justify-between items-center ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
+        {!recentSales ? <SalesSkeleton /> : recentSales.map((sale) => (
+          <div key={sale.id} className={`p-4 rounded-2xl border shadow-sm flex justify-between items-center ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
             <div className="flex items-center gap-4">
-               <div className={`p-2 rounded-xl ${theme === 'dark' ? 'bg-gray-700 text-earth-600' : 'bg-cream-100 text-earth-600'}`}><ShoppingCart size={20} /></div>
+               <div className={`p-2 rounded-xl bg-primary/10 text-primary`}><ShoppingCart size={20} /></div>
                <div>
                 <h3 className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>{sale.productName}</h3>
-                
                 <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}`}>
-                  {formatDate(sale.date, lang)} • {sale.quantity} {products?.find(p => p.id === sale.productId)?.unit || 'pcs'}
+                  {formatDate(sale.date, lang)} • {sale.quantity} pcs
                 </div>
-
                 {sale.customerId && <span className="text-[10px] text-blue-500 flex items-center gap-1"><User size={10}/> Due Customer</span>}
-                
-                {sale.dueDate && (
-                   <span className="text-[10px] text-orange-500 flex items-center gap-1">
-                      <Calendar size={10} /> Due: {new Date(sale.dueDate).toLocaleDateString()}
-                   </span>
-                )}
               </div>
             </div>
             <div className="text-right">
@@ -131,67 +99,27 @@ const Sales: React.FC = () => {
         ))}
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={t('sales.newSale')}>
+      <Modal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); resetForm(); }} title={t('sales.newSale')}>
         <form onSubmit={handleSale} className="space-y-2">
-          <label className={`block text-sm font-bold mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-earth-700'}`}>{t('sales.selectProduct')}</label>
-          <select className={`w-full mb-2 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-cream-200 text-earth-800'}`} value={productId} onChange={(e) => setProductId(e.target.value)} required>
+          <select className={`w-full mb-2 px-4 py-3 rounded-xl ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-cream-200 text-earth-800'}`} value={productId} onChange={(e) => setProductId(e.target.value)} required>
             <option value="">Select Product</option>
-            {products?.map(p => <option key={p.id} value={p.id}>{p.name} (Stock: {p.stock} {p.unit})</option>)}
+            {products?.map(p => <option key={p.id} value={p.id}>{p.name} (Stock: {p.stock})</option>)}
           </select>
-
-          {/* Baki Khata Dropdown */}
-          <label className={`block text-sm font-bold mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-earth-700'}`}>Baki Khata (Optional)</label>
-          <select className={`w-full mb-2 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-cream-200 text-earth-800'}`} value={customerId} onChange={(e) => setCustomerId(e.target.value)}>
+          <select className={`w-full mb-2 px-4 py-3 rounded-xl ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-cream-200 text-earth-800'}`} value={customerId} onChange={(e) => setCustomerId(e.target.value)}>
             <option value="">Cash Payment</option>
-            {customers?.map(c => <option key={c.id} value={c.id}>{c.name} (Due: {c.debt})</option>)}
+            {customers?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
-
-          {/* Staff Dropdown */}
-          <label className={`block text-sm font-bold mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-earth-700'}`}>Sold By (Optional)</label>
-          <select className={`w-full mb-2 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-cream-200 text-earth-800'}`} value={staffId} onChange={(e) => setStaffId(e.target.value)}>
-            <option value="">Self</option>
-            {staff?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
-
-          {selectedCustomer && (
-             <div className="mb-4">
-               <label className={`block text-sm font-bold mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-earth-700'}`}>Due Date (Optional)</label>
-               <input 
-                 type="date" 
-                 className={`w-full px-4 py-3 rounded-xl focus:outline-none focus:ring-2 ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-cream-200 text-earth-800'}`}
-                 value={dueDate}
-                 onChange={(e) => setDueDate(e.target.value)}
-               />
-             </div>
-          )}
-
-          {selectedProduct && (
-            <div className={`p-4 rounded-xl mb-4 border ${theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-cream-50 border-cream-100'}`}>
-              <div className="flex justify-between text-sm mb-1">
-                 <span className={theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}>Price:</span>
-                 <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-800'}`}>{formatCurrency(selectedProduct.sellPrice, lang)} / {selectedProduct.unit}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                 <span className={theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}>Stock:</span>
-                 <span className={`font-bold ${selectedProduct.stock < 5 ? 'text-red-500' : (theme === 'dark' ? 'text-white' : 'text-earth-700')}`}>{selectedProduct.stock} {selectedProduct.unit}</span>
-              </div>
-            </div>
-          )}
-
+          
           {marginAlert && (
-             <div className={`p-3 rounded-lg mb-4 flex items-center gap-2 text-xs font-bold ${
-                marginAlert.includes("loss") 
-                ? "bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400" 
-                : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400"
-             }`}>
+             <div className={`p-3 rounded-lg mb-4 flex items-center gap-2 text-xs font-bold bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400`}>
                 <AlertTriangle size={14} /> {marginAlert}
              </div>
           )}
 
           <Input label={t('sales.quantity')} type="number" min="1" required value={quantity} onChange={(e) => setQuantity(e.target.value)} />
           {selectedProduct && quantity && (
-             <div className={`mb-4 p-4 rounded-xl flex justify-between items-center shadow-lg ${selectedCustomer ? 'bg-blue-600 text-white' : 'bg-earth-800 text-white'}`}>
-                <span className="font-medium">{selectedCustomer ? 'Total Due' : 'Total'}</span>
+             <div className={`mb-4 p-4 rounded-xl flex justify-between items-center shadow-lg bg-primary text-white`}>
+                <span className="font-medium">Total</span>
                 <span className="text-2xl font-bold">{formatCurrency(selectedProduct.sellPrice * parseInt(toEnglishDigits(quantity)), lang)}</span>
              </div>
           )}
@@ -201,5 +129,11 @@ const Sales: React.FC = () => {
     </div>
   );
 };
+
+const SalesSkeleton = () => (
+  <div className="space-y-4">
+    {[1,2,3].map(i => <Skeleton key={i} className="h-24 rounded-2xl" />)}
+  </div>
+);
 
 export default Sales;
