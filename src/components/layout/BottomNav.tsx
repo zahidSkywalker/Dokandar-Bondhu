@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Package, ShoppingCart, Receipt, Wallet, TrendingUp, Store, Menu } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, Receipt, Wallet, TrendingUp } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { cn } from '../../lib/utils';
 import { useTheme } from '../../context/ThemeContext';
@@ -12,31 +12,25 @@ interface NavItemProps {
 }
 
 const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, isActive, onClick }) => {
-  const { theme } = useTheme(); 
-
   return (
     <button
       onClick={onClick}
       className={cn(
-        "flex flex-col items-center justify-center p-1 w-full transition-all duration-300", // Changed p-2 to p-1 for compactness with 7 tabs
-        isActive ? "text-earth-800 dark:text-white" : "text-gray-500 dark:text-gray-400" // FIXED: Dark mode inactive text color
+        "flex flex-col items-center justify-center p-2 w-full transition-all duration-300 relative",
+        isActive ? "text-white z-10" : "text-gray-400 dark:text-gray-500"
       )}
     >
-      {/* Icon Container */}
-      <div 
-        className={cn(
-          "p-2 rounded-2xl transition-transform duration-300 flex items-center justify-center", // Added centering
-          isActive 
-            ? "bg-earth-800 text-white shadow-lg scale-110 animate-bounce" 
-            : "bg-transparent dark:bg-transparent"
-        )}
-        style={{ minWidth: '2rem' }} // FIXED: Prevent icon cutoff
-      >
-        <Icon className={cn("w-6 h-6", isActive && "stroke-[2.5px]")} />
+      {/* Active Background Blob */}
+      {isActive && (
+        <div className="absolute inset-x-2 top-0 bottom-0 bg-primary rounded-2xl shadow-lg scale-110" />
+      )}
+      
+      <div className="relative z-10 flex flex-col items-center">
+        <Icon className={cn("w-6 h-6 mb-1 transition-transform", isActive && "scale-110")} />
+        <span className={cn("text-[10px] font-semibold transition-all", isActive ? "opacity-100" : "opacity-70")}>
+          {label}
+        </span>
       </div>
-      <span className={cn("text-[9px] mt-2 font-semibold", isActive ? "opacity-100" : "opacity-60")}>
-        {label}
-      </span>
     </button>
   );
 };
@@ -51,21 +45,18 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, setActiveTab }) => {
   const { theme } = useTheme();
 
   return (
-    <div className={`fixed bottom-0 left-0 right-0 backdrop-blur-lg border-t pb-safe pt-2 px-4 z-40 ${
-      theme === 'dark' ? 'bg-gray-900/90 border-gray-800' : 'bg-white/90 border-cream-200'
-    }`}>
-      <div className="flex justify-between items-center max-w-2xl mx-auto"> {/* FIXED: Increased width to max-w-2xl for 7 tabs */}
-        
-        <NavItem icon={LayoutDashboard} label={t('dashboard.title')} isActive={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
-        <NavItem icon={ShoppingCart} label={t('sales.title')} isActive={activeTab === 'sales'} onClick={() => setActiveTab('sales')} />
-        <NavItem icon={Receipt} label={t('expenses.title')} isActive={activeTab === 'expenses'} onClick={() => setActiveTab('expenses')} />
-        <NavItem icon={Wallet} label={t('ledger.title')} isActive={activeTab === 'ledger'} onClick={() => setActiveTab('ledger')} />
-        
-        {/* Suppliers Tab */}
-        <NavItem icon={Store} label="Suppliers" isActive={activeTab === 'suppliers'} onClick={() => setActiveTab('suppliers')} />
-        
-        <NavItem icon={TrendingUp} label={t('market.title')} isActive={activeTab === 'market'} onClick={() => setActiveTab('market')} />
-        <NavItem icon={Package} label={t('inventory.title')} isActive={activeTab === 'inventory'} onClick={() => setActiveTab('inventory')} />
+    <div className="fixed bottom-4 left-4 right-4 z-50">
+      <div className={`rounded-3xl shadow-2xl border pb-safe pt-2 px-2 backdrop-blur-xl ${
+        theme === 'dark' ? 'bg-gray-800/80 border-gray-700' : 'bg-white/80 border-gray-100'
+      }`}>
+        <div className="flex justify-between items-center max-w-lg mx-auto h-16">
+          <NavItem icon={LayoutDashboard} label={t('dashboard.title')} isActive={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
+          <NavItem icon={ShoppingCart} label={t('sales.title')} isActive={activeTab === 'sales'} onClick={() => setActiveTab('sales')} />
+          <NavItem icon={Receipt} label={t('expenses.title')} isActive={activeTab === 'expenses'} onClick={() => setActiveTab('expenses')} />
+          <NavItem icon={Wallet} label={t('ledger.title')} isActive={activeTab === 'ledger'} onClick={() => setActiveTab('ledger')} />
+          <NavItem icon={TrendingUp} label={t('market.title')} isActive={activeTab === 'market'} onClick={() => setActiveTab('market')} />
+          <NavItem icon={Package} label={t('inventory.title')} isActive={activeTab === 'inventory'} onClick={() => setActiveTab('inventory')} />
+        </div>
       </div>
     </div>
   );
