@@ -11,11 +11,13 @@ import Market from '../views/Market';
 import { useLanguage } from '../../context/LanguageContext';
 import { Settings as SettingsIcon } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import { useSettings } from '../../context/SettingsContext';
 
 const MainLayout: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const { t, lang, toggleLang } = useLanguage();
-  const { theme } = useTheme(); // We only need 'theme' for styling, no toggle here
+  const { theme } = useTheme();
+  const { businessName } = useSettings();
 
   const renderContent = () => {
     switch (activeTab) {
@@ -32,16 +34,18 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen font-sans pb-20 transition-colors duration-300 ${theme === 'dark' ? 'bg-gray-900 text-gray-100' : 'bg-[#F9FAFB] text-gray-800'}`}>
+    <div className={`min-h-screen font-sans transition-colors duration-300 ${theme === 'dark' ? 'bg-gray-900 text-gray-100' : 'bg-[#F9FAFB] text-gray-800'}`}>
       
       {/* Header */}
-      <header className={`sticky top-0 z-30 border-b px-6 py-5 flex justify-between items-center backdrop-blur-md ${theme === 'dark' ? 'bg-gray-800/90 border-gray-700' : 'bg-white/80 border-gray-200 shadow-sm'}`}>
+      <header className={`sticky top-0 z-30 border-b px-6 py-4 flex justify-between items-center backdrop-blur-md ${theme === 'dark' ? 'bg-gray-800/90 border-gray-700' : 'bg-white/80 border-gray-200 shadow-sm'}`}>
         <div>
-          <h1 className={`font-bold text-2xl tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t('common.appName')}</h1>
-          <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Business Manager</p>
+          {/* FIX: Dynamic Business Name & Improved Text Color */}
+          <h1 className={`font-bold text-xl tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+            {businessName}
+          </h1>
+          <p className={`text-xs font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Business Manager</p>
         </div>
         <div className="flex items-center gap-3">
-          {/* Settings Icon */}
           <button 
             onClick={() => setActiveTab(prev => prev === 'settings' ? 'dashboard' : 'settings')}
             className={`p-2 rounded-xl ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-600'}`}
@@ -49,18 +53,17 @@ const MainLayout: React.FC = () => {
             <SettingsIcon size={20} />
           </button>
           
-          {/* Language Toggle */}
           <button 
             onClick={toggleLang}
-            className={`text-xs px-4 py-2 rounded-full font-bold border transition-colors ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-gray-100 border-gray-200 text-gray-800'}`}
+            className={`text-xs px-4 py-2 rounded-full font-bold border transition-colors ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-800'}`}
           >
             {lang === 'en' ? 'বাংলা' : 'English'}
           </button>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="animate-fade-in px-6 pt-8">
+      {/* Main Content - FIX: Added pb-32 to clear floating navbar */}
+      <main className="animate-fade-in px-6 pt-6 pb-32">
         {renderContent()}
       </main>
 
