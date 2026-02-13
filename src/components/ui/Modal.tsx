@@ -14,7 +14,6 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center animate-fade-in">
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      
       <div className="relative bg-white w-full sm:w-[500px] sm:rounded-2xl rounded-t-3xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto animate-slide-up z-50 pb-safe">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-prussian font-display">{title}</h2>
