@@ -15,13 +15,13 @@ const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, isActive, onClick 
     <button
       onClick={onClick}
       className={cn(
-        "flex flex-col items-center justify-center p-2 w-full transition-all duration-200 relative z-10 rounded-xl",
-        isActive && "bg-orange shadow-md" // Orange Background when active
+        "flex flex-col items-center justify-center p-2 w-full transition-all duration-300 relative rounded-xl",
+        isActive && "bg-orange shadow-lg scale-110" 
       )}
     >
       <div className="flex flex-col items-center gap-1">
-        <Icon className={cn("w-5 h-5", isActive ? "text-prussian" : "text-prussian/50")} />
-        <span className={cn("text-[10px] font-bold", isActive ? "text-prussian" : "text-prussian/50")}>
+        <Icon className={cn("w-5 h-5 transition-colors", isActive ? "text-prussian" : "text-prussian/50")} />
+        <span className={cn("text-[10px] font-bold transition-colors", isActive ? "text-prussian" : "text-prussian/50")}>
           {label}
         </span>
       </div>
@@ -33,8 +33,8 @@ const BottomNav: React.FC<{ activeTab: string; setActiveTab: (tab: string) => vo
   const { t } = useLanguage();
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50">
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 px-2 py-2">
+    <div className="fixed bottom-4 left-4 right-4 z-50 animate-slide-up">
+      <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 px-2 py-2">
         <div className="flex justify-between items-center h-16">
           <NavItem icon={LayoutDashboard} label={t('dashboard.title')} isActive={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
           <NavItem icon={ShoppingCart} label={t('sales.title')} isActive={activeTab === 'sales'} onClick={() => setActiveTab('sales')} />
