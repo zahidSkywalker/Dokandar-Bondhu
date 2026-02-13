@@ -27,7 +27,6 @@ interface AppContextType {
   logPriceHistory: (productId: number, buyPrice: number, sellPrice: number) => Promise<void>;
   getLastPurchasePrice: (productId: number) => Promise<number | undefined>;
   
-  // NEW: Record Payment for Statement
   recordPayment: (payment: Omit<Payment, 'id'>) => Promise<void>;
 }
 
@@ -64,8 +63,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const total = saleData.sellPrice * saleData.quantity;
         const profit = (saleData.sellPrice - saleData.buyPrice) * saleData.quantity;
 
+        // Update Stock
         await db.products.update(product.id!, { stock: product.stock - saleData.quantity, updatedAt: new Date() });
+        
+        // Save Sale (Unit is automatically included via ...saleData if passed)
         await db.sales.add({ ...saleData, total, profit });
+        
+        // Log Price History
         await db.priceHistory.add({
           productId: product.id!,
           buyPrice: saleData.buyPrice,
@@ -73,6 +77,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           date: new Date()
         });
 
+        // Update Customer Debt if Credit Sale
         if (saleData.customerId) {
           const customer = await db.customers.get(saleData.customerId);
           if (customer) {
@@ -179,20 +184,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return history?.buyPrice;
   };
 
-  // NEW: Record Payment Logic
   const recordPayment = async (paymentData: Omit<Payment, 'id'>) => {
     try {
       await db.transaction('rw', db.payments, db.customers, async () => {
-        // 1. Log the payment
         await db.payments.add({
           ...paymentData,
           date: paymentData.date || new Date()
         });
 
-        // 2. Update Customer Debt
         const customer = await db.customers.get(paymentData.customerId);
         if (customer) {
-          const newDebt = customer.debt - paymentData.amount; // Payment reduces debt
+          const newDebt = customer.debt - paymentData.amount; 
           if (newDebt < 0) throw new Error("Payment exceeds total debt");
           
           await db.customers.update(customer.id!, {
@@ -215,7 +217,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     addStaff,
     addSupplier, getSuppliers,
     logPriceHistory, getLastPurchasePrice,
-    recordPayment // NEW
+    recordPayment
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
