@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Search, Trash2, Package, Edit3, AlertTriangle } from 'lucide-react';
+import { Plus, Search, Trash2, Package, Edit3, AlertTriangle, Tag, Scale } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
 import { useApp } from '../../context/AppContext';
@@ -8,6 +8,7 @@ import Modal from '../ui/Modal';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
 import { formatCurrency, toEnglishDigits } from '../../lib/utils';
+import { UNITS, CATEGORIES } from '../../lib/constants'; // Import Constants
 
 const Inventory: React.FC = () => {
   const { t, lang } = useLanguage();
@@ -69,6 +70,7 @@ const Inventory: React.FC = () => {
         </button>
       </div>
 
+      {/* Search */}
       <div className="relative mb-6">
         <Search className="absolute left-4 top-3.5 text-prussian/40 w-5 h-5" />
         <input 
@@ -78,13 +80,14 @@ const Inventory: React.FC = () => {
         />
       </div>
 
+      {/* Product List */}
       <div className="space-y-3">
         {!products ? (
             <div className="text-center p-8 text-prussian">Loading...</div>
         ) : products.length === 0 ? (
            <div className="p-16 text-center border-2 border-dashed border-gray-200 rounded-3xl bg-white">
              <Package className="mx-auto text-prussian/20 mb-4" size={64} />
-             <p className="text-xl font-medium text-prussian/50">Inventory Empty</p>
+             <p className="text-prussian/50 font-medium">Inventory Empty</p>
              <button onClick={() => setIsModalOpen(true)} className="mt-4 bg-orange/10 text-orange px-6 py-3 rounded-xl font-bold hover:bg-orange/20 transition-colors">
                Add First Product
              </button>
@@ -93,7 +96,12 @@ const Inventory: React.FC = () => {
           products.map((product, i) => (
             <div key={product.id} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center stagger-item" style={{ animationDelay: `${i * 50}ms` }}>
               <div className="flex-1">
-                <h3 className="font-bold text-prussian text-lg">{product.name}</h3>
+                <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-bold text-prussian text-lg">{product.name}</h3>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-prussian/5 text-prussian/60 font-bold uppercase">
+                        {product.category}
+                    </span>
+                </div>
                 <p className="text-xs text-prussian/50 mt-1 font-medium">
                   Buy: {formatCurrency(product.buyPrice, lang)} • Sell: {formatCurrency(product.sellPrice, lang)}
                 </p>
@@ -121,20 +129,48 @@ const Inventory: React.FC = () => {
         )}
       </div>
 
+      {/* Add/Edit Modal */}
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingProduct ? "Edit Product" : t('inventory.addProduct')}>
-        <form onSubmit={handleSubmit} className="space-y-2">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <Input label={t('inventory.productName')} required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
+          
           <div className="grid grid-cols-2 gap-4">
             <Input label={t('inventory.buyPrice')} type="number" required value={formData.buyPrice} onChange={(e) => setFormData({...formData, buyPrice: e.target.value})} />
             <Input label={t('inventory.sellPrice')} type="number" required value={formData.sellPrice} onChange={(e) => setFormData({...formData, sellPrice: e.target.value})} />
           </div>
+          
           <Input label={t('inventory.stock')} type="number" required value={formData.stock} onChange={(e) => setFormData({...formData, stock: e.target.value})} />
-          <div className="grid grid-cols-2 gap-4">
-             <Input label={t('inventory.category')} value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} />
-             <Input label="Unit" value={formData.unit} onChange={(e) => setFormData({...formData, unit: e.target.value})} />
+
+          {/* Category Dropdown */}
+          <div>
+            <label className="block text-sm font-bold mb-1 text-prussian flex items-center gap-1">
+                <Tag size={12} /> {t('inventory.category')}
+            </label>
+            <select 
+                className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 text-prussian focus:ring-2 focus:ring-orange focus:border-orange transition-all"
+                value={formData.category} 
+                onChange={(e) => setFormData({...formData, category: e.target.value})}
+            >
+              {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+            </select>
           </div>
+
+          {/* Unit Dropdown */}
+          <div>
+            <label className="block text-sm font-bold mb-1 text-prussian flex items-center gap-1">
+                <Scale size={12} /> {t('inventory.unit')}
+            </label>
+            <select 
+                className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 text-prussian focus:ring-2 focus:ring-orange focus:border-orange transition-all"
+                value={formData.unit} 
+                onChange={(e) => setFormData({...formData, unit: e.target.value})}
+            >
+              {UNITS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
+            </select>
+          </div>
+
           <div className="h-6" />
-          <Button icon={<Plus size={20} />}>{editingProduct ? "Update" : t('common.save')}</Button>
+          <Button icon={<Plus size={20} />}>{editingProduct ? "Update Product" : t('common.save')}</Button>
         </form>
       </Modal>
     </div>
