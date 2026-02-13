@@ -16,20 +16,27 @@ const Settings: React.FC = () => {
   const [tempName, setTempName] = React.useState(businessName);
   const sales = useLiveQuery(() => db.sales.toArray());
 
-  const handleSaveName = () => setBusinessName(tempName);
-  const handleExportCSV = async () => { if (sales) await exportToCSV(sales, 'dokandar_sales_report'); };
+  const handleSaveName = () => {
+    setBusinessName(tempName);
+    alert("Business name saved!");
+  };
+
+  const handleExportCSV = async () => {
+    if (sales) await exportToCSV(sales, 'dokandar_sales_report');
+  };
 
   const handleRestore = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      if (confirm("Replace ALL data?")) {
+      if (confirm("This will replace ALL current data. Are you sure?")) {
         await restoreDatabase(e.target.files[0]);
+        alert("Database restored successfully!");
         window.location.reload();
       }
     }
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-2xl mx-auto animate-fade-in">
       <h1 className="text-2xl font-bold text-prussian font-display mt-4">Settings</h1>
 
       {/* Profile */}
@@ -45,13 +52,13 @@ const Settings: React.FC = () => {
         </div>
       </div>
 
-      {/* Data */}
+      {/* Data Management */}
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <h2 className="font-bold text-prussian mb-4">Data Management</h2>
         
         <div className="space-y-3">
           <button onClick={handleExportCSV} className="w-full flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:bg-alabaster transition-colors">
-            <div className="p-2 bg-green-50 text-green-600 rounded-lg"><FileSpreadsheet size={20} /></div>
+            <div className="p-2 bg-green-50 text-green-600 rounded-xl"><FileSpreadsheet size={20} /></div>
             <div className="text-left">
               <p className="font-bold text-prussian">Export Report</p>
               <p className="text-xs text-prussian/50">Download Sales as CSV</p>
@@ -59,7 +66,7 @@ const Settings: React.FC = () => {
           </button>
 
           <button onClick={backupDatabase} className="w-full flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:bg-alabaster transition-colors">
-            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><Download size={20} /></div>
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl"><Download size={20} /></div>
             <div className="text-left">
               <p className="font-bold text-prussian">Backup Data</p>
               <p className="text-xs text-prussian/50">Save full database</p>
@@ -67,7 +74,7 @@ const Settings: React.FC = () => {
           </button>
 
           <button onClick={() => fileInputRef.current?.click()} className="w-full flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:bg-alabaster transition-colors">
-            <div className="p-2 bg-orange/10 text-orange rounded-lg"><Upload size={20} /></div>
+            <div className="p-2 bg-orange/10 text-orange rounded-xl"><Upload size={20} /></div>
             <div className="text-left">
               <p className="font-bold text-prussian">Restore Data</p>
               <p className="text-xs text-prussian/50">Load backup file</p>
@@ -77,7 +84,7 @@ const Settings: React.FC = () => {
         </div>
       </div>
 
-      {/* Danger */}
+      {/* Danger Zone */}
       <div className="bg-white p-6 rounded-2xl border border-red-100">
         <h2 className="font-bold text-red-600 mb-4 flex items-center gap-2">
           <Shield size={16} /> Danger Zone
