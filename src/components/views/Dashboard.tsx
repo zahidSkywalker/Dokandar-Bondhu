@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, Package, Wallet, ShoppingCart, TrendingDown, Sun, CloudSun, Moon } from 'lucide-react';
+import { TrendingUp, Package, Wallet, ShoppingCart, TrendingDown, Sun, CloudSun, Moon, AlertTriangle } from 'lucide-react';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useDashboardStats } from '../../hooks/useDashboardStats';
 import { useLanguage } from '../../context/LanguageContext';
@@ -11,7 +11,9 @@ const Dashboard: React.FC = () => {
   const { businessName } = useSettings();
   const { 
     totalSales, totalProfit, totalExpense, netProfit, lowStockCount, 
-    recentSales, isLoading, chartData, totalDebt, salesGrowth 
+    recentSales, isLoading, chartData, totalDebt, totalInventoryExpenseMonth,
+    totalGeneralExpenseMonth, totalSalesMonth, netMonthlyProfit, stockPredictions,
+    salesGrowth, profitInsights
   } = useDashboardStats();
 
   const getGreetingData = () => {
@@ -95,6 +97,64 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* Profit Insights */}
+      {profitInsights && (
+        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+          <h3 className="font-bold text-prussian mb-4 flex items-center gap-2">
+            <TrendingUp className="text-orange" size={18} /> Profit Insights
+          </h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs font-bold text-prussian/50 mb-2 uppercase">Top Performers (30d)</p>
+              <div className="space-y-2">
+                {profitInsights.top5.slice(0, 3).map((p, i) => (
+                  <div key={i} className="flex justify-between text-xs items-center">
+                    <span className="truncate w-24 font-medium text-prussian">{p.name}</span>
+                    <span className="font-bold text-green-600">{formatCurrency(p.totalProfit, lang)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-bold text-prussian/50 mb-2 uppercase">Needs Attention</p>
+              <div className="space-y-2">
+                {profitInsights.bottom5.slice(0, 3).map((p, i) => (
+                  <div key={i} className="flex justify-between text-xs items-center">
+                    <span className="truncate w-24 font-medium text-prussian">{p.name}</span>
+                    <span className="font-bold text-orange">{formatCurrency(p.totalProfit, lang)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Monthly Analysis */}
+      <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+        <h3 className="font-bold text-prussian mb-4">Monthly Analysis</h3>
+        <div className="space-y-2 mb-4">
+           <div className="flex justify-between items-center">
+             <span className="text-sm text-prussian/60">Total Sales</span>
+             <span className="font-bold text-prussian">{formatCurrency(totalSalesMonth, lang)}</span>
+           </div>
+           <div className="flex justify-between items-center">
+             <span className="text-sm text-prussian/60">Inventory Cost</span>
+             <span className="font-bold text-prussian">{formatCurrency(totalInventoryExpenseMonth, lang)}</span>
+           </div>
+           <div className="flex justify-between items-center">
+             <span className="text-sm text-prussian/60">Op. Expenses</span>
+             <span className="font-bold text-prussian">{formatCurrency(totalGeneralExpenseMonth, lang)}</span>
+           </div>
+        </div>
+        <div className={`p-4 rounded-xl ${netMonthlyProfit >= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
+          <p className={`text-xs font-bold mb-1 uppercase ${netMonthlyProfit >= 0 ? 'text-green-700' : 'text-red-700'}`}>Net Monthly Profit</p>
+          <p className={`text-2xl font-bold ${netMonthlyProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {formatCurrency(netMonthlyProfit, lang)}
+          </p>
+        </div>
+      </div>
+
       {/* Chart */}
       <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
         <h3 className="font-bold text-prussian mb-4">Weekly Trend</h3>
@@ -109,6 +169,25 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* Stock Prediction */}
+      {stockPredictions && stockPredictions.length > 0 && (
+         <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+            <h3 className="font-bold text-prussian mb-4 flex items-center gap-2">
+               <AlertTriangle className="text-orange" size={18} /> Stock Prediction
+            </h3>
+            <div className="space-y-2">
+               {stockPredictions.filter(p => p.daysLeft < 999).sort((a,b) => a.daysLeft - b.daysLeft).slice(0, 3).map(p => (
+                  <div key={p.id} className="flex justify-between items-center p-2 rounded-lg bg-alabaster">
+                     <span className="font-bold text-sm text-prussian">{p.name}</span>
+                     <span className={`text-xs font-bold ${p.daysLeft < 3 ? 'text-red-600' : 'text-orange'}`}>
+                        {p.daysLeft} Days Left
+                     </span>
+                  </div>
+               ))}
+            </div>
+         </div>
+      )}
+
       {/* Recent Sales */}
       <div>
         <h3 className="font-bold text-prussian mb-4">{t('dashboard.recentSales')}</h3>
@@ -120,15 +199,9 @@ const Dashboard: React.FC = () => {
             </div>
           ) : (
             recentSales.map((sale, i) => (
-              <div 
-                key={sale.id} 
-                className="bg-white p-4 rounded-2xl shadow-sm flex justify-between items-center border border-gray-100 stagger-item hover:border-orange/30 transition-colors"
-                style={{ animationDelay: `${i * 50}ms` }}
-              >
+              <div key={sale.id} className="bg-white p-4 rounded-2xl shadow-sm flex justify-between items-center border border-gray-100 stagger-item" style={{ animationDelay: `${i * 50}ms` }}>
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-alabaster rounded-lg text-prussian">
-                    <ShoppingCart size={18}/>
-                  </div>
+                  <div className="p-2 bg-alabaster rounded-lg text-prussian"><ShoppingCart size={18}/></div>
                   <div>
                     <p className="font-bold text-prussian">{sale.productName}</p>
                     <p className="text-[10px] text-prussian/50">{formatDate(sale.date, lang)}</p>
