@@ -10,11 +10,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, label, error, ...props }, ref) => {
     return (
       <div className="w-full mb-4">
-        {label && (
-          <label className="block text-sm font-bold text-prussian mb-1">
-            {label}
-          </label>
-        )}
+        {label && <label className="block text-sm font-bold text-prussian mb-1">{label}</label>}
         <input
           ref={ref}
           className={cn(
@@ -29,6 +25,5 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     );
   }
 );
-
 Input.displayName = "Input";
 export default Input;
