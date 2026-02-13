@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, ShoppingCart, User, Plus, Minus, Check, X, Package } from 'lucide-react';
+import { Search, ShoppingCart, User, Plus, Minus, Check, Package } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
 import { useApp } from '../../context/AppContext';
@@ -40,8 +40,8 @@ const Sales: React.FC = () => {
   // Handlers
   const openSaleModal = (product: any) => {
     setSelectedProduct(product);
-    setQuantity('1'); // Reset quantity
-    setCustomerId(''); // Reset customer
+    setQuantity('1'); 
+    setCustomerId(''); 
   };
 
   const closeModal = () => {
@@ -75,12 +75,11 @@ const Sales: React.FC = () => {
         sellPrice: selectedProduct.sellPrice,
         date: new Date(),
         customerId: customerId ? Number(customerId) : undefined,
+        unit: selectedProduct.unit, // FIX: Passing unit here
       });
 
-      // Success Animation
       setShowFlowAnimation(true);
       
-      // Close modal after short delay
       setTimeout(() => {
         closeModal();
         setIsProcessing(false);
@@ -92,11 +91,9 @@ const Sales: React.FC = () => {
     }
   };
 
-  // Helper for quantity increment
   const adjustQuantity = (amount: number) => {
     const current = parseFloat(quantity) || 0;
-    const newQty = Math.max(0.1, current + amount); // Prevent 0 or negative
-    // Handle floating point issues if needed, simple string conversion for now
+    const newQty = Math.max(0.1, current + amount); 
     setQuantity(String(newQty));
   };
 
@@ -139,7 +136,6 @@ const Sales: React.FC = () => {
               style={{ animationDelay: `${i * 30}ms` }}
             >
               <div className="w-full flex justify-between items-start mb-1">
-                 {/* Stock Badge */}
                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
                    product.stock < 5 
                      ? 'bg-red-50 text-red-500' 
@@ -147,18 +143,15 @@ const Sales: React.FC = () => {
                  }`}>
                    {product.stock} {product.unit}
                  </span>
-                 {/* Price */}
                  <span className="text-xs font-bold text-orange">{formatCurrency(product.sellPrice, lang)}</span>
               </div>
               
-              {/* Product Name */}
               <div className="flex-1 flex items-center justify-center w-full">
                 <h3 className="text-sm font-bold text-prussian text-center leading-tight line-clamp-2">
                   {product.name}
                 </h3>
               </div>
               
-              {/* Category Badge */}
               <div className="w-full mt-1 text-center">
                  <span className="text-[9px] text-prussian/40 font-medium">{product.category}</span>
               </div>
@@ -167,7 +160,7 @@ const Sales: React.FC = () => {
         )}
       </div>
 
-      {/* Recent Sales Summary (Bottom Section) */}
+      {/* Recent Sales Summary */}
       {recentSales && recentSales.length > 0 && (
         <div className="mt-4">
           <h3 className="text-sm font-bold text-prussian/60 mb-2 px-1">Recent Transactions</h3>
@@ -178,7 +171,9 @@ const Sales: React.FC = () => {
                    <div className="p-2 bg-alabaster rounded-lg text-prussian"><ShoppingCart size={14}/></div>
                    <div>
                      <p className="text-xs font-bold text-prussian">{sale.productName}</p>
-                     <p className="text-[10px] text-prussian/40">{sale.quantity} {sale.unit || 'pcs'}</p>
+                     <p className="text-[10px] text-prussian/40">
+                       {sale.quantity} {sale.unit || 'pcs'}
+                     </p>
                    </div>
                  </div>
                  <p className="text-sm font-bold text-prussian">{formatCurrency(sale.total, lang)}</p>
@@ -188,12 +183,11 @@ const Sales: React.FC = () => {
         </div>
       )}
 
-      {/* ==================== SALE MODAL (Bottom Sheet Style) ==================== */}
+      {/* Sale Modal */}
       <Modal isOpen={!!selectedProduct} onClose={closeModal} title={selectedProduct?.name || 'New Sale'}>
         {selectedProduct && (
           <form onSubmit={handleSale} className="space-y-4">
             
-            {/* Product Info Header */}
             <div className="flex justify-between items-center bg-alabaster p-4 rounded-xl mb-2">
               <div>
                 <p className="text-xs text-prussian/50">Price per {selectedProduct.unit}</p>
@@ -207,7 +201,6 @@ const Sales: React.FC = () => {
               </div>
             </div>
 
-            {/* Quantity Selector */}
             <div>
               <label className="block text-sm font-bold mb-2 text-prussian">{t('sales.quantity')}</label>
               <div className="flex items-center gap-2">
@@ -216,7 +209,7 @@ const Sales: React.FC = () => {
                 </button>
                 <input 
                   type="number" 
-                  step="any" // Allows decimals for kg/liter
+                  step="any"
                   className="flex-1 text-center text-xl font-bold bg-white border border-gray-200 rounded-xl py-2 focus:outline-none focus:ring-2 focus:ring-orange text-prussian"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
@@ -228,7 +221,6 @@ const Sales: React.FC = () => {
               </div>
             </div>
 
-            {/* Customer Selection (Due) */}
             <div>
               <label className="block text-sm font-bold mb-1 text-prussian flex items-center gap-1">
                 <User size={12} /> Customer (Due)
@@ -245,7 +237,6 @@ const Sales: React.FC = () => {
               </select>
             </div>
 
-            {/* Total Calculation */}
             <div className="pt-4 border-t border-gray-100">
               <div className="flex justify-between items-center mb-4">
                 <span className="text-sm text-prussian/60">Subtotal</span>
@@ -254,7 +245,6 @@ const Sales: React.FC = () => {
                 </span>
               </div>
               
-              {/* Profit Indicator */}
               <div className="flex justify-between items-center text-xs mb-4 px-1">
                 <span className="text-prussian/40">Est. Profit</span>
                 <span className="text-green-600 font-bold">
