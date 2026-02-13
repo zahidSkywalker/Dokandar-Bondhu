@@ -23,7 +23,18 @@ export interface Sale {
   date: Date;
   customerId?: number;
   staffId?: number;
-  dueDate?: Date; 
+  dueDate?: Date;
+  unit?: string; // <--- ADDED THIS LINE
+}
+
+export interface Product {
+  id?: number;
+  name: string;
+  buyPrice: number;
+  sellPrice: number;
+  stock: number;
+  category: string;
+  unit: string;
 }
 
 export interface Expense {
