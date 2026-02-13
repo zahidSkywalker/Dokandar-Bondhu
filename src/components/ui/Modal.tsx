@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -9,19 +9,46 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) document.body.style.overflow = 'hidden';
+    else document.body.style.overflow = 'unset';
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center animate-fade-in">
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white w-full sm:w-[500px] sm:rounded-2xl rounded-t-3xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto animate-slide-up z-50 pb-safe">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-prussian font-display">{title}</h2>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 bg-prussian/40 backdrop-blur-sm transition-opacity animate-fade-in"
+        onClick={onClose}
+      />
+      
+      {/* Content Container */}
+      <div className="relative bg-white w-full sm:w-[500px] sm:rounded-2xl rounded-t-3xl shadow-2xl max-h-[90vh] overflow-y-auto animate-slide-up z-50 flex flex-col">
+        
+        {/* Handle Bar (Mobile) */}
+        <div className="flex justify-center pt-3 pb-2 sm:hidden">
+          <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
+        </div>
+
+        {/* Header */}
+        <div className="sticky top-0 bg-white z-10 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+          <h2 className="text-lg font-bold text-prussian font-display">{title}</h2>
           <button onClick={onClose} className="p-2 hover:bg-alabaster rounded-full transition-colors">
             <X className="w-5 h-5 text-prussian/50" />
           </button>
         </div>
-        {children}
+
+        {/* Body */}
+        <div className="p-6 flex-1 overflow-y-auto">
+          {children}
+        </div>
+        
+        {/* Safe Area Padding for iOS */}
+        <div className="pb-safe bg-white" />
       </div>
     </div>
   );
