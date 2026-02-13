@@ -1,5 +1,32 @@
 import { Translation } from '../types';
 
+// ==========================================
+// NEW: STANDARDIZED UNITS & CATEGORIES
+// ==========================================
+export const UNITS = [
+  { value: 'pcs', label: 'Pieces (pcs)' },
+  { value: 'kg', label: 'Kilogram (kg)' },
+  { value: 'g', label: 'Gram (g)' },
+  { value: 'lb', label: 'Pound (lb)' },
+  { value: 'liter', label: 'Liter (l)' },
+  { value: 'ml', label: 'Milliliter (ml)' },
+  { value: 'dozen', label: 'Dozen' },
+  { value: 'pack', label: 'Pack' },
+];
+
+export const CATEGORIES = [
+  { value: 'General', label: 'General' },
+  { value: 'Grocery', label: 'Grocery' },
+  { value: 'Vegetable', label: 'Vegetable' },
+  { value: 'Fruits', label: 'Fruits' },
+  { value: 'Food', label: 'Food & Snacks' },
+  { value: 'Dairy', label: 'Dairy' },
+  { value: 'Meat', label: 'Meat & Fish' },
+  { value: 'Stationary', label: 'Stationary' },
+  { value: 'Electronics', label: 'Electronics' },
+  { value: 'Household', label: 'Household' },
+];
+
 export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
   en: {
     // ==========================================
