@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Building2, Phone, FileText, Edit3 } from 'lucide-react';
+import { Plus, Trash2, Building2, Phone, Edit3 } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
 import { useApp } from '../../context/AppContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { useTheme } from '../../context/ThemeContext';
 import Modal from '../ui/Modal';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
 
 const Suppliers: React.FC = () => {
   const { t, lang } = useLanguage();
-  const { theme } = useTheme();
   const { addSupplier } = useApp();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -30,9 +28,7 @@ const Suppliers: React.FC = () => {
       });
       setIsModalOpen(false);
       setFormData({ name: '', phone: '', notes: '', totalDue: '' });
-    } catch (err) {
-      alert("Error adding supplier");
-    }
+    } catch (err) { alert("Error adding supplier"); }
   };
 
   const handleDelete = async (id?: number) => {
@@ -43,68 +39,40 @@ const Suppliers: React.FC = () => {
   };
 
   return (
-    <div className="pb-24 max-w-2xl mx-auto">
-      <div className="flex justify-between items-center mb-6 mt-2">
-        <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>
-          {t('suppliers.title')}
-        </h1>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className={`p-3 rounded-2xl shadow-xl active:scale-95 transition-transform ${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-earth-800 text-white'}`}
-        >
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-prussian font-display">{t('suppliers.title')}</h1>
+        <button onClick={() => setIsModalOpen(true)} className="bg-orange text-prussian p-3 rounded-2xl shadow-xl active:scale-95 transition-transform">
           <Plus size={24} />
         </button>
       </div>
 
-      <div className="space-y-4">
-        {!suppliers ? (
-          <p className="text-center text-gray-400 mt-10">Loading...</p>
-        ) : suppliers.length === 0 ? (
-          <div className={`p-10 text-center rounded-2xl border ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}>
-            <Building2 className="mx-auto text-earth-200 mb-3 dark:text-gray-600" size={48} />
-            <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-earth-400'}`}>{t('common.noData')}</p>
+      <div className="space-y-3">
+        {!suppliers ? <div className="text-center p-8">Loading...</div> : suppliers.length === 0 ? (
+          <div className="p-16 text-center border-2 border-dashed border-gray-200 rounded-3xl bg-white">
+            <Building2 className="mx-auto text-prussian/20 mb-4" size={64} />
+            <p className="text-prussian/50 font-medium">No suppliers yet.</p>
           </div>
         ) : (
-          suppliers.map((supplier) => (
-            <div 
-              key={supplier.id} 
-              className={`p-5 rounded-2xl border shadow-sm flex justify-between items-start ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-cream-200'}`}
-            >
+          suppliers.map((supplier, i) => (
+            <div key={supplier.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-start stagger-item" style={{ animationDelay: `${i * 50}ms` }}>
               <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-xl ${theme === 'dark' ? 'bg-gray-700 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+                <div className="p-3 rounded-xl bg-blue-50 text-blue-600">
                   <Building2 size={24} />
                 </div>
                 <div>
-                  <h3 className={`font-bold text-lg ${theme === 'dark' ? 'text-white' : 'text-earth-900'}`}>
-                    {supplier.name}
-                  </h3>
-                  {supplier.phone && (
-                    <div className={`flex items-center gap-2 text-sm mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-earth-500'}`}>
-                      <Phone size={12} /> {supplier.phone}
-                    </div>
-                  )}
-                  {supplier.notes && (
-                    <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-500' : 'text-earth-400'}`}>
-                      {supplier.notes}
-                    </p>
-                  )}
+                  <h3 className="font-bold text-prussian text-lg">{supplier.name}</h3>
+                  {supplier.phone && <p className="text-xs text-prussian/50 flex items-center gap-1"><Phone size={10}/> {supplier.phone}</p>}
+                  {supplier.notes && <p className="text-xs text-prussian/40 mt-1">{supplier.notes}</p>}
                 </div>
               </div>
-
               <div className="flex flex-col items-end gap-2">
                  {supplier.totalDue && supplier.totalDue > 0 ? (
-                   <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400">
-                     Due: ৳{supplier.totalDue}
-                   </span>
+                   <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-600">Due: ৳{supplier.totalDue}</span>
                  ) : (
-                   <span className="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
-                     Cleared
-                   </span>
+                   <span className="px-3 py-1 rounded-full text-xs font-bold bg-green-50 text-green-600">Cleared</span>
                  )}
-                 <button 
-                   onClick={() => handleDelete(supplier.id)}
-                   className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-500' : 'bg-cream-50 hover:bg-red-50 hover:text-red-500 text-earth-400'}`}
-                 >
+                 <button onClick={() => handleDelete(supplier.id)} className="p-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors">
                    <Trash2 size={16} />
                  </button>
               </div>
@@ -115,29 +83,10 @@ const Suppliers: React.FC = () => {
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={t('suppliers.addSupplier')}>
         <form onSubmit={handleAdd} className="space-y-2">
-          <Input 
-            label="Name" 
-            required 
-            value={formData.name} 
-            onChange={(e) => setFormData({...formData, name: e.target.value})} 
-          />
-          <Input 
-            label={t('suppliers.phone')} 
-            type="tel" 
-            value={formData.phone} 
-            onChange={(e) => setFormData({...formData, phone: e.target.value})} 
-          />
-          <Input 
-            label="Total Due (Optional)" 
-            type="number" 
-            value={formData.totalDue} 
-            onChange={(e) => setFormData({...formData, totalDue: e.target.value})} 
-          />
-          <Input 
-            label={t('suppliers.notes')} 
-            value={formData.notes} 
-            onChange={(e) => setFormData({...formData, notes: e.target.value})} 
-          />
+          <Input label="Name" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
+          <Input label="Phone" type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} />
+          <Input label="Total Due (Optional)" type="number" value={formData.totalDue} onChange={(e) => setFormData({...formData, totalDue: e.target.value})} />
+          <Input label="Notes" value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} />
           <div className="h-6" />
           <Button icon={<Plus size={20} />}>Save Supplier</Button>
         </form>
