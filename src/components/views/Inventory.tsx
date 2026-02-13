@@ -28,24 +28,18 @@ const Inventory: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const data = {
+        name: formData.name,
+        buyPrice: parseFloat(toEnglishDigits(formData.buyPrice)),
+        sellPrice: parseFloat(toEnglishDigits(formData.sellPrice)),
+        stock: parseInt(toEnglishDigits(formData.stock)),
+        category: formData.category,
+        unit: formData.unit
+      };
       if (editingProduct) {
-        await updateProduct(editingProduct.id, {
-          name: formData.name,
-          buyPrice: parseFloat(toEnglishDigits(formData.buyPrice)),
-          sellPrice: parseFloat(toEnglishDigits(formData.sellPrice)),
-          stock: parseInt(toEnglishDigits(formData.stock)),
-          category: formData.category,
-          unit: formData.unit
-        });
+        await updateProduct(editingProduct.id, data);
       } else {
-        await addProduct({
-          name: formData.name,
-          buyPrice: parseFloat(toEnglishDigits(formData.buyPrice)),
-          sellPrice: parseFloat(toEnglishDigits(formData.sellPrice)),
-          stock: parseInt(toEnglishDigits(formData.stock)),
-          category: formData.category,
-          unit: formData.unit
-        });
+        await addProduct(data);
       }
       closeModal();
     } catch (err) { alert("Error saving product"); }
@@ -97,11 +91,7 @@ const Inventory: React.FC = () => {
            </div>
         ) : (
           products.map((product, i) => (
-            <div 
-                key={product.id} 
-                className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center stagger-item"
-                style={{ animationDelay: `${i * 50}ms` }}
-            >
+            <div key={product.id} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center stagger-item" style={{ animationDelay: `${i * 50}ms` }}>
               <div className="flex-1">
                 <h3 className="font-bold text-prussian text-lg">{product.name}</h3>
                 <p className="text-xs text-prussian/50 mt-1 font-medium">
@@ -113,6 +103,9 @@ const Inventory: React.FC = () => {
                   <div className={`w-1.5 h-1.5 rounded-full ${product.stock < 10 ? 'bg-red-500' : 'bg-green-500'}`} />
                   Stock: {product.stock} {product.unit}
                 </div>
+                {(product.sellPrice - product.buyPrice) < (product.buyPrice * 0.1) && product.buyPrice > 0 && (
+                   <div className="mt-1 text-[10px] text-orange flex items-center gap-1"><AlertTriangle size={10}/> Low Margin</div>
+                )}
               </div>
               
               <div className="flex gap-2 ml-4">
