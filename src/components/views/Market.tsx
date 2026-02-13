@@ -19,6 +19,7 @@ const Market: React.FC = () => {
     { key: 'spices', label: t('market.categories.spices') },
     { key: 'meat', label: t('market.categories.meat') },
     { key: 'fruits', label: t('market.categories.fruits') },
+    { key: 'essentials', label: t('market.categories.essentials') },
   ];
 
   return (
@@ -41,8 +42,13 @@ const Market: React.FC = () => {
       </div>
       
       {syncStatus === 'success' && (
-        <div className="flex items-center gap-2 text-xs font-bold text-green-600 bg-green-50 p-2 rounded-lg border border-green-100">
+        <div className="flex items-center gap-2 text-xs font-bold text-green-600 bg-green-50 p-2 rounded-lg border border-green-100 animate-fade-in">
           <CheckCircle size={14} /> {t('market.syncSuccess')}
+        </div>
+      )}
+      {syncStatus === 'error' && (
+        <div className="flex items-center gap-2 text-xs font-bold text-red-600 bg-red-50 p-2 rounded-lg border border-red-100 animate-fade-in">
+          <AlertCircle size={14} /> {t('market.syncError')}
         </div>
       )}
 
@@ -62,6 +68,12 @@ const Market: React.FC = () => {
         ))}
       </div>
 
+      {!isLoading && lastUpdated && (
+        <div className="text-[10px] flex items-center gap-1 text-prussian/50">
+            <Clock size={10} /> Last Updated: {new Intl.DateTimeFormat(lang === 'bn' ? 'bn-BD' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(lastUpdated)}
+        </div>
+      )}
+
       {isLoading || prices.length === 0 ? (
          <div className="flex flex-col items-center justify-center py-16 text-center">
              <Package size={48} className="text-prussian/20 mb-4" />
@@ -72,11 +84,7 @@ const Market: React.FC = () => {
       ) : (
         <div className="space-y-3">
           {prices.map((item, i) => (
-            <div 
-              key={item.id || i} 
-              className="p-4 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center bg-white stagger-item"
-              style={{ animationDelay: `${i * 30}ms` }}
-            >
+            <div key={item.id || i} className="p-4 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center bg-white stagger-item" style={{ animationDelay: `${i * 30}ms` }}>
               <div className="flex-1">
                 <h3 className="font-bold text-prussian">{lang === 'bn' ? item.nameBn : item.nameEn}</h3>
                 <span className="text-[10px] px-2 py-0.5 rounded bg-alabaster text-prussian/60 font-bold uppercase mt-1 inline-block">
