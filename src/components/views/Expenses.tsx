@@ -66,23 +66,23 @@ const Expenses: React.FC = () => {
           </div>
         ) : (
           list.map((item: any, i) => (
-            <div 
-                key={item.id} 
-                className="group p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4 transition-all hover:border-orange/30 stagger-item"
-                style={{ animationDelay: `${i * 50}ms` }}
-            >
+            <div key={item.id} className="group p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4 transition-all hover:border-orange/30 stagger-item" style={{ animationDelay: `${i * 50}ms` }}>
               <div className={`p-3 rounded-xl shrink-0 ${activeTab === 'general' ? 'bg-red-50 text-red-500' : 'bg-blue-50 text-blue-500'}`}>
                 {activeTab === 'general' ? <Receipt size={20} /> : <ShoppingCart size={20} />}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold truncate text-prussian">
-                    {activeTab === 'general' ? item.category : item.description}
-                </h3>
-                <span className="text-[10px] text-prussian/50">{formatDate(item.date, lang)}</span>
+                <h3 className="font-bold truncate text-prussian">{activeTab === 'general' ? item.category : item.description}</h3>
+                <div className="flex items-center gap-2">
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${activeTab === 'general' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}`}>
+                        {activeTab === 'general' ? 'OpEx' : 'Inventory'}
+                    </span>
+                    <span className="text-[10px] text-prussian/50">{formatDate(item.date, lang)}</span>
+                    {item.note && <span className="text-[10px] italic truncate text-prussian/50">{item.note}</span>}
+                </div>
               </div>
               <div className="flex flex-col items-end justify-between gap-2">
                   <p className="text-xl font-bold text-prussian">- {formatCurrency(item.amount, lang)}</p>
-                  <button onClick={() => handleDelete(activeTab, item.id)} className="text-xs text-red-500 hover:underline">Delete</button>
+                  <button onClick={() => handleDelete(activeTab, item.id)} className="text-xs text-red-500 hover:underline opacity-0 group-hover:opacity-100 transition-opacity">Delete</button>
               </div>
             </div>
           ))
