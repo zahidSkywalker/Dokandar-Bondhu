@@ -18,7 +18,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
 
   return (
-    {/* FIXED: Updated z-index to 100 */}
+    // FIXED: Updated z-index to 100
     <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
       <div 
         className="fixed inset-0 bg-prussian/40 backdrop-blur-sm transition-opacity animate-fade-in"
