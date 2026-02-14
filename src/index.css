@@ -66,15 +66,3 @@ body.sheet-open {
 }
 /* Prevent scroll when sheet is open */
 body.no-scroll { overflow: hidden; }
-
-/* NEW: Hide Bottom Nav when Sheet is Open */
-body.sheet-open .bottom-nav {
-  transform: translateY(100%);
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* Ensure bottom nav has transition */
-.bottom-nav {
-  transition: transform 300ms ease-out, opacity 200ms ease-out;
-}
