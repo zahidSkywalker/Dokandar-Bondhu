@@ -64,3 +64,13 @@ body.sheet-open {
     transform: translateY(0);
   }
 }
+  /* Hide Bottom Nav when Sheet is Open */
+body.sheet-open .bottom-nav {
+  transform: translateY(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.bottom-nav {
+  transition: transform 300ms ease-out, opacity 200ms ease-out;
+}
