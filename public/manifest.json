@@ -2,7 +2,7 @@
   "name": "Dokandar Bondhu",
   "short_name": "Dokandar",
   "description": "Smart business management for Bangladeshi retailers",
-  "start_url": "/",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#f8fafc",
   "theme_color": "#0d9488",
