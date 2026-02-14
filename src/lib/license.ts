@@ -6,54 +6,96 @@
  */
 
 // --- CONFIGURATION ---
-const SECRET_KEY = "BONDHU-PRO-2024"; // <--- CHANGE THIS TO YOUR DESIRED LICENSE KEY
+// CHANGE THIS to your own secret license key
+const SECRET_KEY = "BONDHU-PRO-2024"; 
 const TRIAL_DAYS = 7;
 
 // --- STORAGE KEYS ---
 const KEY_INSTALL_DATE = 'dokandar_install_date';
 const KEY_PAID_STATUS = 'dokandar_paid_status';
 
+// --- HELPER FUNCTIONS FOR UI (Used in Settings.tsx) ---
+
 /**
- * 1. Checks if user is Paid.
- * 2. If not, checks/generates Trial.
- * 3. If Trial expired, blocks access and shows Activation Screen.
+ * Returns current license status for UI display.
  */
-export function checkLicenseAndAccess(): boolean {
-  // 1. Check Paid Status First
-  const paidStatus = localStorage.getItem(KEY_PAID_STATUS);
-  if (paidStatus === 'ACTIVE') {
-    return true; // Unlimited Access
+export const getLicenseStatus = (): { status: 'active' | 'trial' | 'expired', daysLeft: number } => {
+  // 1. Check if Paid
+  if (localStorage.getItem(KEY_PAID_STATUS) === 'ACTIVE') {
+    return { status: 'active', daysLeft: 999 };
   }
 
-  // 2. Check Trial Dates
+  // 2. Check Trial
+  const installDateStr = localStorage.getItem(KEY_INSTALL_DATE);
+  if (!installDateStr) {
+    // Fallback if install date missing (shouldn't happen normally)
+    return { status: 'trial', daysLeft: TRIAL_DAYS }; 
+  }
+
+  const installDate = new Date(installDateStr);
+  const now = new Date();
+  const diffTime = now.getTime() - installDate.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  const daysLeft = TRIAL_DAYS - diffDays;
+
+  if (daysLeft <= 0) return { status: 'expired', daysLeft: 0 };
+  return { status: 'trial', daysLeft };
+};
+
+/**
+ * Validates a key and activates if correct.
+ * Used by both the Lock Screen and Settings Page.
+ */
+export const validateAndActivate = (key: string): { success: boolean; message: string } => {
+  if (key.trim() === SECRET_KEY) {
+    localStorage.setItem(KEY_PAID_STATUS, 'ACTIVE');
+    return { success: true, message: "Activation Successful!" };
+  }
+  return { success: false, message: "Invalid License Key" };
+};
+
+// --- MAIN ACCESS CHECK (Used in main.tsx) ---
+
+/**
+ * Main function to check license status.
+ * Returns true if access is allowed.
+ * Returns false and blocks UI if trial is expired.
+ */
+export function checkLicenseAndAccess(): boolean {
+  // 1. Check if user is already paid
+  const paidStatus = localStorage.getItem(KEY_PAID_STATUS);
+  if (paidStatus === 'ACTIVE') {
+    return true; // Allow access indefinitely
+  }
+
+  // 2. Check Trial Start Date
   let installDateStr = localStorage.getItem(KEY_INSTALL_DATE);
   const now = new Date();
 
   if (!installDateStr) {
-    // First Time Launch: Start Trial
+    // First time load: Set the install date
     localStorage.setItem(KEY_INSTALL_DATE, now.toISOString());
-    console.log("Dokandar Bondhu: Trial Started (7 Days)");
+    console.log("Trial started: 7 days remaining.");
     return true;
   }
 
-  // 3. Calculate Remaining Days
+  // 3. Calculate Expiration
   const installDate = new Date(installDateStr);
-  const diffTime = now.getTime() - installDate.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  const diffTime = Math.abs(now.getTime() - installDate.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  if (diffDays <= TRIAL_DAYS) {
-    const remaining = TRIAL_DAYS - diffDays;
-    console.log(`Trial Active: Day ${diffDays + 1} of ${TRIAL_DAYS}. ${remaining} days remaining.`);
-    return true;
+  if (diffDays > TRIAL_DAYS) {
+    // Trial Expired - Block Access
+    showActivationScreen();
+    return false;
   }
 
-  // 4. Trial Expired - Block Access
-  showActivationScreen();
-  return false;
+  console.log(`Trial Day: ${diffDays} of ${TRIAL_DAYS}`);
+  return true;
 }
 
 /**
- * Replaces the DOM with a styled Activation Screen
+ * Replaces the entire screen with the Activation UI.
  */
 function showActivationScreen() {
   // Expose validate function to global scope for the button onclick
@@ -63,20 +105,23 @@ function showActivationScreen() {
     
     if (!input) return;
 
-    const userKey = input.value.trim();
+    const result = validateAndActivate(input.value);
 
-    if (userKey === SECRET_KEY) {
-      localStorage.setItem(KEY_PAID_STATUS, 'ACTIVE');
-      alert("✅ Activation Successful! Welcome to Dokandar Bondhu Pro.");
+    if (result.success) {
+      alert("✅ Activation Successful! Reloading...");
       window.location.reload();
     } else {
-      if (errorEl) errorEl.style.display = 'block';
-      input.style.borderColor = '#EF4444'; // Red border for error
-      input.value = ''; // Clear input
+      if (errorEl) {
+        errorEl.style.display = 'block';
+        errorEl.textContent = "❌ Invalid Code. Please try again.";
+      }
+      input.style.borderColor = '#EF4444'; // Red border
+      input.value = '';
     }
   };
 
-  // UI Styles matching the App Theme (Prussian Blue & Orange)
+  // Inject the Activation UI
+  // Using inline styles ensures it looks good even if CSS bundles fail
   document.body.innerHTML = `
     <div style="
       display: flex; 
@@ -86,7 +131,7 @@ function showActivationScreen() {
       height: 100vh; 
       background-color: #14213D; 
       color: white; 
-      font-family: 'Hind Siliguri', sans-serif; 
+      font-family: 'Segoe UI', sans-serif; 
       text-align: center; 
       padding: 24px; 
       margin: 0;
@@ -146,7 +191,7 @@ function showActivationScreen() {
           margin: 0 0 16px 0; 
           font-weight: bold;
         ">
-          ❌ Invalid Code. Please try again.
+          Invalid Code.
         </p>
         
         <button 
@@ -161,8 +206,10 @@ function showActivationScreen() {
             font-weight: 800; 
             font-size: 16px; 
             cursor: pointer; 
-            transition: transform 0.1s;
+            transition: background 0.2s;
           "
+          onmouseover="this.style.backgroundColor='#e69b10'"
+          onmouseout="this.style.backgroundColor='#FCA311'"
         >
           Activate Now
         </button>
