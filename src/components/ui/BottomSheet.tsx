@@ -20,7 +20,8 @@ const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title, child
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
+    {/* FIXED: Changed z-50 to z-[100] to guarantee it sits on top of BottomNav (z-30) */}
+    <div className="fixed inset-0 z-[100] flex items-end justify-center">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-prussian/30 backdrop-blur-sm animate-fade-in" 
@@ -29,7 +30,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title, child
 
       {/* Container */}
       <div 
-        className="relative w-full md:max-w-md bg-white rounded-t-3xl shadow-sheet animate-slide-up flex flex-col max-h-[92vh]"
+        className="relative w-full md:max-w-md bg-white rounded-t-3xl shadow-sheet animate-slide-up flex flex-col max-h-[90vh]"
       >
         {/* Handle */}
         <div className="flex justify-center pt-3 pb-2 cursor-grab">
@@ -49,9 +50,9 @@ const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title, child
           {children}
         </div>
 
-        {/* Footer */}
+        {/* Footer - FIXED: Added extra padding at bottom (pb-10) to clear the nav bar visually */}
         {footer && (
-          <div className="flex-shrink-0 p-6 pt-4 bg-white border-t border-gray-border rounded-b-3xl">
+          <div className="flex-shrink-0 px-6 pt-4 pb-10 bg-white border-t border-gray-border rounded-b-3xl">
             {footer}
           </div>
         )}
