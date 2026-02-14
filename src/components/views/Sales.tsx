@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { Search, ShoppingCart, User, Plus, Minus, Check, Package } from 'lucide-react';
+import { Search, ShoppingCart, User, Plus, Minus, Check, Package, TrendingUp } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
 import { useApp } from '../../context/AppContext';
 import { useLanguage } from '../../context/LanguageContext';
-import Modal from '../ui/Modal';
+import BottomSheet from '../ui/BottomSheet';
 import Button from '../ui/Button';
+import Card from '../ui/Card';
 import FlowAnimation from '../ui/FlowAnimation';
 import { formatCurrency, toEnglishDigits } from '../../lib/utils';
 
@@ -28,7 +29,7 @@ const Sales: React.FC = () => {
   const customers = useLiveQuery(() => db.customers.toArray());
   const recentSales = useLiveQuery(() => db.sales.orderBy('date').reverse().limit(5).toArray(), []);
 
-  // Filtered Products for Grid
+  // Filtered Products
   const filteredProducts = useMemo(() => {
     if (!products) return [];
     return products.filter(p => 
@@ -40,8 +41,8 @@ const Sales: React.FC = () => {
   // Handlers
   const openSaleModal = (product: any) => {
     setSelectedProduct(product);
-    setQuantity('1'); 
-    setCustomerId(''); 
+    setQuantity('1');
+    setCustomerId('');
   };
 
   const closeModal = () => {
@@ -75,11 +76,10 @@ const Sales: React.FC = () => {
         sellPrice: selectedProduct.sellPrice,
         date: new Date(),
         customerId: customerId ? Number(customerId) : undefined,
-        unit: selectedProduct.unit, // FIX: Passing unit here
+        unit: selectedProduct.unit,
       });
 
       setShowFlowAnimation(true);
-      
       setTimeout(() => {
         closeModal();
         setIsProcessing(false);
@@ -93,7 +93,7 @@ const Sales: React.FC = () => {
 
   const adjustQuantity = (amount: number) => {
     const current = parseFloat(quantity) || 0;
-    const newQty = Math.max(0.1, current + amount); 
+    const newQty = Math.max(0.1, current + amount);
     setQuantity(String(newQty));
   };
 
@@ -102,8 +102,9 @@ const Sales: React.FC = () => {
       <FlowAnimation trigger={showFlowAnimation} color="#FCA311" />
 
       {/* Header Section */}
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold text-prussian font-display mb-4">{t('sales.title')}</h1>
+      <div className="mb-6">
+        {/* 1. H1 Typography */}
+        <h1 className="text-h1 text-prussian font-display mb-6">{t('sales.title')}</h1>
         
         {/* Search Bar */}
         <div className="relative">
@@ -111,7 +112,7 @@ const Sales: React.FC = () => {
           <input 
             type="text" 
             placeholder="Search products..."
-            className="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange focus:border-orange transition-all text-prussian shadow-sm"
+            className="w-full bg-white border border-gray-border rounded-md pl-12 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange focus:border-orange transition-all text-body text-prussian shadow-card"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -119,114 +120,124 @@ const Sales: React.FC = () => {
       </div>
 
       {/* Product Grid */}
-      <div className="grid grid-cols-3 gap-3 mb-8">
-        {!filteredProducts ? (
-           <div className="col-span-3 text-center py-10 text-prussian/50">Loading inventory...</div>
-        ) : filteredProducts.length === 0 ? (
-           <div className="col-span-3 flex flex-col items-center justify-center py-10 text-center bg-white rounded-2xl border border-gray-100 border-dashed">
-             <Package size={40} className="text-prussian/20 mb-2" />
-             <p className="text-sm font-medium text-prussian/50">No products found</p>
-           </div>
-        ) : (
-          filteredProducts.map((product, i) => (
-            <button
-              key={product.id}
-              onClick={() => openSaleModal(product)}
-              className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-between text-left transition-all hover:border-orange active:scale-95 h-36 stagger-item"
-              style={{ animationDelay: `${i * 30}ms` }}
-            >
-              <div className="w-full flex justify-between items-start mb-1">
-                 <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                   product.stock < 5 
-                     ? 'bg-red-50 text-red-500' 
-                     : 'bg-green-50 text-green-600'
-                 }`}>
-                   {product.stock} {product.unit}
-                 </span>
-                 <span className="text-xs font-bold text-orange">{formatCurrency(product.sellPrice, lang)}</span>
-              </div>
-              
-              <div className="flex-1 flex items-center justify-center w-full">
-                <h3 className="text-sm font-bold text-prussian text-center leading-tight line-clamp-2">
-                  {product.name}
-                </h3>
-              </div>
-              
-              <div className="w-full mt-1 text-center">
-                 <span className="text-[9px] text-prussian/40 font-medium">{product.category}</span>
-              </div>
-            </button>
-          ))
-        )}
+      {/* 8. Visual Sections */}
+      <div className="mb-8">
+        <h2 className="text-small font-semibold text-secondary uppercase tracking-wide mb-3 px-1">In Stock</h2>
+        <div className="grid grid-cols-3 gap-3">
+          {!filteredProducts ? (
+             <div className="col-span-3 text-center py-10 text-secondary">Loading...</div>
+          ) : filteredProducts.length === 0 ? (
+             <div className="col-span-3 flex flex-col items-center justify-center py-10 text-center bg-white rounded-xl border border-gray-border border-dashed">
+               <Package size={40} className="text-prussian/20 mb-2" />
+               <p className="text-sm font-medium text-secondary">No products found</p>
+             </div>
+          ) : (
+            filteredProducts.map((product, i) => (
+              <button
+                key={product.id}
+                onClick={() => openSaleModal(product)}
+                className="bg-white p-3 rounded-md shadow-card flex flex-col items-center justify-between text-left transition-all hover:shadow-float active:scale-[0.98] h-36 stagger-item border border-transparent hover:border-orange/30"
+                style={{ animationDelay: `${i * 40}ms` }}
+              >
+                {/* Stock Badge */}
+                <div className="w-full flex justify-between items-start mb-1">
+                   <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                     product.stock < 5 
+                       ? 'bg-red-50 text-red-500' 
+                       : 'bg-green-50 text-green-600'
+                   }`}>
+                     {product.stock} {product.unit}
+                   </span>
+                 </div>
+                
+                {/* Centered Name */}
+                <div className="flex-1 flex items-center justify-center w-full">
+                  <h3 className="text-sm font-bold text-prussian text-center leading-tight line-clamp-2">
+                    {product.name}
+                  </h3>
+                </div>
+                
+                {/* Price Footer */}
+                <div className="w-full mt-1 flex justify-between items-center">
+                   <span className="text-[9px] text-secondary font-medium truncate pr-1">{product.category}</span>
+                   <span className="text-sm font-bold text-orange">{formatCurrency(product.sellPrice, lang)}</span>
+                </div>
+              </button>
+            ))
+          )}
+        </div>
       </div>
 
-      {/* Recent Sales Summary */}
+      {/* Recent Sales Section */}
       {recentSales && recentSales.length > 0 && (
-        <div className="mt-4">
-          <h3 className="text-sm font-bold text-prussian/60 mb-2 px-1">Recent Transactions</h3>
+        <div className="mt-6">
+          <h2 className="text-small font-semibold text-secondary uppercase tracking-wide mb-3 px-1">Recent Transactions</h2>
           <div className="space-y-2">
              {recentSales.map(sale => (
-               <div key={sale.id} className="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
+               <Card key={sale.id} className="flex items-center justify-between">
                  <div className="flex items-center gap-3">
-                   <div className="p-2 bg-alabaster rounded-lg text-prussian"><ShoppingCart size={14}/></div>
+                   <div className="p-2 bg-alabaster rounded-sm text-prussian"><ShoppingCart size={14}/></div>
                    <div>
-                     <p className="text-xs font-bold text-prussian">{sale.productName}</p>
-                     <p className="text-[10px] text-prussian/40">
+                     <p className="text-sm font-semibold text-prussian">{sale.productName}</p>
+                     <p className="text-small text-secondary">
                        {sale.quantity} {sale.unit || 'pcs'}
                      </p>
                    </div>
                  </div>
-                 <p className="text-sm font-bold text-prussian">{formatCurrency(sale.total, lang)}</p>
-               </div>
+                 <p className="text-body-lg font-bold text-prussian">{formatCurrency(sale.total, lang)}</p>
+               </Card>
              ))}
           </div>
         </div>
       )}
 
-      {/* Sale Modal */}
-      <Modal isOpen={!!selectedProduct} onClose={closeModal} title={selectedProduct?.name || 'New Sale'}>
+      {/* ==================== SALE BOTTOM SHEET ==================== */}
+      <BottomSheet isOpen={!!selectedProduct} onClose={closeModal} title={selectedProduct?.name || 'New Sale'}>
         {selectedProduct && (
-          <form onSubmit={handleSale} className="space-y-4">
+          <form onSubmit={handleSale} className="flex flex-col h-full">
             
-            <div className="flex justify-between items-center bg-alabaster p-4 rounded-xl mb-2">
+            {/* Product Info Header */}
+            <div className="flex justify-between items-center bg-alabaster p-4 rounded-md mb-6">
               <div>
-                <p className="text-xs text-prussian/50">Price per {selectedProduct.unit}</p>
-                <p className="text-2xl font-bold text-prussian font-display">{formatCurrency(selectedProduct.sellPrice, lang)}</p>
+                <p className="text-small text-secondary mb-1">Price per {selectedProduct.unit}</p>
+                <p className="text-h1 text-prussian font-display">{formatCurrency(selectedProduct.sellPrice, lang)}</p>
               </div>
               <div className="text-right">
-                <p className="text-xs text-prussian/50">In Stock</p>
-                <p className={`text-lg font-bold ${selectedProduct.stock < 5 ? 'text-red-500' : 'text-prussian'}`}>
-                  {selectedProduct.stock} <span className="text-xs font-normal">{selectedProduct.unit}</span>
+                <p className="text-small text-secondary mb-1">In Stock</p>
+                <p className={`text-h2 ${selectedProduct.stock < 5 ? 'text-red-500' : 'text-prussian'}`}>
+                  {selectedProduct.stock}
                 </p>
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-bold mb-2 text-prussian">{t('sales.quantity')}</label>
+            {/* Quantity Selector */}
+            <div className="mb-6">
+              <label className="block text-small font-semibold mb-2 text-prussian">{t('sales.quantity')}</label>
               <div className="flex items-center gap-2">
-                <button type="button" onClick={() => adjustQuantity(-1)} className="bg-alabaster text-prussian p-3 rounded-xl font-bold text-lg hover:bg-gray-200 transition-colors">
+                <button type="button" onClick={() => adjustQuantity(-1)} className="bg-alabaster text-prussian p-3 rounded-md font-bold text-lg hover:bg-gray-200 transition-colors active:scale-95">
                   <Minus size={20} />
                 </button>
                 <input 
                   type="number" 
                   step="any"
-                  className="flex-1 text-center text-xl font-bold bg-white border border-gray-200 rounded-xl py-2 focus:outline-none focus:ring-2 focus:ring-orange text-prussian"
+                  className="flex-1 text-center text-h1 font-bold bg-white border border-gray-border rounded-md py-2 focus:outline-none focus:ring-2 focus:ring-orange text-prussian"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
                   required
                 />
-                <button type="button" onClick={() => adjustQuantity(1)} className="bg-alabaster text-prussian p-3 rounded-xl font-bold text-lg hover:bg-gray-200 transition-colors">
+                <button type="button" onClick={() => adjustQuantity(1)} className="bg-alabaster text-prussian p-3 rounded-md font-bold text-lg hover:bg-gray-200 transition-colors active:scale-95">
                   <Plus size={20} />
                 </button>
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-bold mb-1 text-prussian flex items-center gap-1">
+            {/* Customer Selection */}
+            <div className="mb-6">
+              <label className="block text-small font-semibold mb-2 text-prussian flex items-center gap-1">
                 <User size={12} /> Customer (Due)
               </label>
               <select 
-                className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 text-prussian focus:ring-2 focus:ring-orange"
+                className="w-full px-4 py-3 rounded-md bg-white border border-gray-border text-prussian focus:ring-2 focus:ring-orange text-body"
                 value={customerId}
                 onChange={(e) => setCustomerId(e.target.value)}
               >
@@ -237,25 +248,27 @@ const Sales: React.FC = () => {
               </select>
             </div>
 
-            <div className="pt-4 border-t border-gray-100">
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-sm text-prussian/60">Subtotal</span>
-                <span className="text-lg font-bold text-prussian">
+            {/* Calculation Summary */}
+            <div className="mt-auto pt-4 border-t border-gray-border">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-body text-secondary">Subtotal</span>
+                <span className="text-h2 font-bold text-prussian">
                   {formatCurrency(selectedProduct.sellPrice * parseFloat(toEnglishDigits(quantity) || '0'), lang)}
                 </span>
               </div>
               
-              <div className="flex justify-between items-center text-xs mb-4 px-1">
-                <span className="text-prussian/40">Est. Profit</span>
+              {/* Profit Indicator */}
+              <div className="flex justify-between items-center text-small mb-6 px-1">
+                <span className="text-secondary flex items-center gap-1"><TrendingUp size={12}/> Est. Profit</span>
                 <span className="text-green-600 font-bold">
                   +{formatCurrency((selectedProduct.sellPrice - selectedProduct.buyPrice) * parseFloat(toEnglishDigits(quantity) || '0'), lang)}
                 </span>
               </div>
 
+              {/* 10. Primary CTA */}
               <Button 
                 isLoading={isProcessing} 
                 icon={<Check size={20} />}
-                className="text-base py-4"
               >
                 {customerId ? 'Record Due Sale' : 'Confirm Cash Sale'}
               </Button>
@@ -263,7 +276,7 @@ const Sales: React.FC = () => {
 
           </form>
         )}
-      </Modal>
+      </BottomSheet>
     </div>
   );
 };
