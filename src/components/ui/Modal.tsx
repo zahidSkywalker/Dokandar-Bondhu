@@ -46,7 +46,8 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
         <div className="p-6 flex-1 overflow-y-auto">
           {children}
         </div>
-    </div>
+      </div>
+    </div> 
   );
 };
 
