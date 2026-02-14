@@ -20,7 +20,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title, child
   if (!isOpen) return null;
 
   return (
-    {/* FIXED: Changed z-50 to z-[100] to guarantee it sits on top of BottomNav (z-30) */}
+    // FIXED: Changed z-50 to z-[100] to guarantee it sits on top of BottomNav (z-30)
     <div className="fixed inset-0 z-[100] flex items-end justify-center">
       {/* Backdrop */}
       <div 
