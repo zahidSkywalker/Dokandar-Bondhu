@@ -8,6 +8,7 @@ import BottomSheet from '../ui/BottomSheet';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import FlowAnimation from '../ui/FlowAnimation';
+import AmountInput from '../ui/AmountInput'; // NEW: Import the formatting input
 import { formatCurrency, toEnglishDigits } from '../../lib/utils';
 
 const Sales: React.FC = () => {
@@ -21,6 +22,9 @@ const Sales: React.FC = () => {
   const [customerId, setCustomerId] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showFlowAnimation, setShowFlowAnimation] = useState(false);
+  
+  // NEW: State for custom amount (discount/override)
+  const [customAmount, setCustomAmount] = useState<number>(0);
 
   // Data
   const products = useLiveQuery(() => 
@@ -43,12 +47,14 @@ const Sales: React.FC = () => {
     setSelectedProduct(product);
     setQuantity('1');
     setCustomerId('');
+    setCustomAmount(0); // Reset custom amount
   };
 
   const closeModal = () => {
     setSelectedProduct(null);
     setQuantity('1');
     setCustomerId('');
+    setCustomAmount(0);
   };
 
   const handleSale = async (e: React.FormEvent) => {
@@ -64,12 +70,19 @@ const Sales: React.FC = () => {
 
     setIsProcessing(true);
     try {
+      // Logic: Use custom amount if set, otherwise calculate standard total
+      const standardTotal = selectedProduct.sellPrice * qty;
+      const finalTotal = customAmount > 0 ? customAmount : standardTotal;
+      
+      // Calculate profit based on final total
+      const profit = finalTotal - (selectedProduct.buyPrice * qty);
+
       await addSale({
         productId: selectedProduct.id!,
         productName: selectedProduct.name,
         quantity: qty,
         buyPrice: selectedProduct.buyPrice,
-        sellPrice: selectedProduct.sellPrice,
+        sellPrice: finalTotal / qty, // Store the effective sell price per unit
         date: new Date(),
         customerId: customerId ? Number(customerId) : undefined,
         unit: selectedProduct.unit,
@@ -93,13 +106,18 @@ const Sales: React.FC = () => {
     setQuantity(String(newQty));
   };
 
+  // Calculate display totals
+  const standardTotal = selectedProduct ? selectedProduct.sellPrice * parseFloat(toEnglishDigits(quantity) || '0') : 0;
+  const profitValue = selectedProduct 
+    ? (customAmount > 0 ? customAmount : standardTotal) - (selectedProduct.buyPrice * parseFloat(toEnglishDigits(quantity) || '0'))
+    : 0;
+
   return (
     <div className="pb-32 animate-fade-in">
       <FlowAnimation trigger={showFlowAnimation} color="#FCA311" />
 
-      {/* --- Header Section --- */}
+      {/* Header Section */}
       <div className="mb-6">
-        {/* 1. H1 Typography */}
         <h1 className="text-h1 text-prussian font-display mb-6">{t('sales.title')}</h1>
         
         {/* Search Input */}
@@ -115,7 +133,7 @@ const Sales: React.FC = () => {
         </div>
       </div>
 
-      {/* --- Product Grid Section (Req 8) --- */}
+      {/* Product Grid Section */}
       <div className="mb-8">
         <h2 className="text-small font-semibold text-secondary uppercase tracking-wide mb-3 px-1">In Stock</h2>
         <div className="grid grid-cols-3 gap-3">
@@ -131,7 +149,6 @@ const Sales: React.FC = () => {
               <button
                 key={product.id}
                 onClick={() => openSaleModal(product)}
-                // 5. Breathing space (p-3), 7. Motion (tap-scale), 4. Elevation (shadow-card)
                 className="bg-white p-3 rounded-md shadow-card flex flex-col items-center justify-between text-left transition-all hover:shadow-float active:scale-[0.98] h-36 stagger-item border border-transparent hover:border-orange/30"
                 style={{ animationDelay: `${i * 40}ms` }}
               >
@@ -161,7 +178,7 @@ const Sales: React.FC = () => {
         </div>
       </div>
 
-      {/* --- Recent Sales Section --- */}
+      {/* Recent Sales Section */}
       {recentSales && recentSales.length > 0 && (
         <div className="mt-6">
           <h2 className="text-small font-semibold text-secondary uppercase tracking-wide mb-3 px-1">Recent Transactions</h2>
@@ -184,22 +201,21 @@ const Sales: React.FC = () => {
         </div>
       )}
 
-      {/* --- SALE BOTTOM SHEET --- */}
+      {/* SALE BOTTOM SHEET */}
       <BottomSheet 
         isOpen={!!selectedProduct} 
         onClose={closeModal} 
         title={selectedProduct?.name || 'New Sale'}
-        // 3. Sticky Footer Implementation
+        // Footer is now sticky and handled by BottomSheet component
         footer={
           selectedProduct && (
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="flex justify-between items-center text-small px-1">
                  <span className="text-secondary flex items-center gap-1"><TrendingUp size={12}/> Est. Profit</span>
-                 <span className="text-green-600 font-bold">
-                   +{formatCurrency((selectedProduct.sellPrice - selectedProduct.buyPrice) * parseFloat(toEnglishDigits(quantity) || '0'), lang)}
+                 <span className={`font-bold ${profitValue < 0 ? 'text-red-500' : 'text-green-600'}`}>
+                   {profitValue < 0 ? '-' : '+'}{formatCurrency(Math.abs(profitValue), lang)}
                  </span>
               </div>
-              {/* 10. Primary CTA */}
               <Button 
                 onClick={handleSale}
                 isLoading={isProcessing} 
@@ -217,7 +233,6 @@ const Sales: React.FC = () => {
             <div className="flex justify-between items-center bg-alabaster p-4 rounded-md">
               <div>
                 <p className="text-small text-secondary mb-1">Price per {selectedProduct.unit}</p>
-                {/* 1. H1 Typography */}
                 <p className="text-h1 text-prussian font-display">{formatCurrency(selectedProduct.sellPrice, lang)}</p>
               </div>
               <div className="text-right">
@@ -249,6 +264,20 @@ const Sales: React.FC = () => {
               </div>
             </div>
 
+            {/* Custom Amount / Discount Input */}
+            <div>
+              <label className="block text-small font-semibold mb-2 text-prussian">Custom Amount (Optional)</label>
+              <AmountInput 
+                value={customAmount}
+                onChange={(val) => setCustomAmount(val)}
+                currency="BDT" // Adjust based on your locale logic
+                placeholder="Leave empty for standard price"
+              />
+              <p className="text-[10px] text-secondary mt-1 px-1">
+                Standard: {formatCurrency(standardTotal, lang)}
+              </p>
+            </div>
+
             {/* Customer Selection */}
             <div>
               <label className="block text-small font-semibold mb-2 text-prussian flex items-center gap-1">
@@ -266,11 +295,11 @@ const Sales: React.FC = () => {
               </select>
             </div>
             
-            {/* Subtotal Display */}
+            {/* Subtotal Display (Calculated) */}
             <div className="flex justify-between items-center pt-4 border-t border-gray-border">
-              <span className="text-body text-secondary">Subtotal</span>
+              <span className="text-body text-secondary">Total</span>
               <span className="text-h2 font-bold text-prussian">
-                {formatCurrency(selectedProduct.sellPrice * parseFloat(toEnglishDigits(quantity) || '0'), lang)}
+                {formatCurrency(customAmount > 0 ? customAmount : standardTotal, lang)}
               </span>
             </div>
           </div>
