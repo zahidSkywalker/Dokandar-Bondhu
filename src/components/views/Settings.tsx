@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { Download, Upload, FileSpreadsheet, Shield, Save, Edit3, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Download, Upload, FileSpreadsheet, Shield, Save, Edit3, Trash2, Crown, Clock, CheckCircle } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useSettings } from '../../context/SettingsContext';
 import { exportToCSV, backupDatabase, restoreDatabase } from '../../lib/utils';
@@ -7,6 +7,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
+import { getLicenseStatus, validateAndActivate } from '../../lib/license';
 
 const Settings: React.FC = () => {
   const { t } = useLanguage();
@@ -15,6 +16,16 @@ const Settings: React.FC = () => {
   
   const [tempName, setTempName] = React.useState(businessName);
   const sales = useLiveQuery(() => db.sales.toArray());
+
+  // --- LICENSE STATE ---
+  const [licenseStatus, setLicenseStatus] = useState<{ status: 'active' | 'trial' | 'expired', daysLeft: number }>({ status: 'trial', daysLeft: 7 });
+  const [licenseKey, setLicenseKey] = useState('');
+  const [licenseError, setLicenseError] = useState('');
+  const [licenseSuccess, setLicenseSuccess] = useState(false);
+
+  useEffect(() => {
+    setLicenseStatus(getLicenseStatus());
+  }, []);
 
   const handleSaveName = () => {
     setBusinessName(tempName);
@@ -35,9 +46,74 @@ const Settings: React.FC = () => {
     }
   };
 
+  const handleActivation = () => {
+    const result = validateAndActivate(licenseKey);
+    if (result.success) {
+      setLicenseSuccess(true);
+      setLicenseError('');
+      setLicenseStatus(getLicenseStatus()); // Refresh status
+      setTimeout(() => window.location.reload(), 1500); // Reload to reflect changes everywhere
+    } else {
+      setLicenseError(result.message);
+      setLicenseSuccess(false);
+    }
+  };
+
   return (
     <div className="space-y-8 max-w-2xl mx-auto animate-fade-in">
       <h1 className="text-2xl font-bold text-prussian font-display mt-4">Settings</h1>
+
+      {/* --- SUBSCRIPTION CARD (NEW) --- */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <h2 className="font-bold text-prussian mb-4 flex items-center gap-2 text-lg">
+          <Crown size={18} className="text-orange" /> Subscription Status
+        </h2>
+
+        {/* Status Indicator */}
+        <div className="flex items-center gap-3 p-4 rounded-xl mb-4 bg-alabaster">
+          {licenseStatus.status === 'active' ? (
+            <>
+              <div className="p-2 bg-green-100 rounded-full"><CheckCircle className="text-green-600" size={20} /></div>
+              <div>
+                <p className="font-bold text-green-700">Pro Version Active</p>
+                <p className="text-xs text-green-600">Unlimited access enabled</p>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="p-2 bg-orange/10 rounded-full"><Clock className="text-orange" size={20} /></div>
+              <div>
+                <p className="font-bold text-prussian">Free Trial</p>
+                <p className="text-xs text-prussian/60">
+                  {licenseStatus.daysLeft > 0 ? `${licenseStatus.daysLeft} days remaining` : 'Trial Expired'}
+                </p>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Activation Input (Hide if already active) */}
+        {licenseStatus.status !== 'active' && (
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-prussian">Activate License</label>
+            <div className="flex gap-2">
+              <Input 
+                value={licenseKey}
+                onChange={(e) => setLicenseKey(e.target.value)}
+                placeholder="Enter License Key"
+                className="mb-0 flex-1"
+                error={licenseError}
+              />
+              <Button onClick={handleActivation} className="w-auto px-6">
+                {licenseSuccess ? "Done" : "Activate"}
+              </Button>
+            </div>
+            <p className="text-xs text-secondary mt-2">
+              Purchase a key to unlock lifetime access.
+            </p>
+          </div>
+        )}
+      </div>
 
       {/* Profile */}
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
