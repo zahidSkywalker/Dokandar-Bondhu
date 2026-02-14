@@ -18,13 +18,14 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+    {/* FIXED: Updated z-index to 100 */}
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
       <div 
         className="fixed inset-0 bg-prussian/40 backdrop-blur-sm transition-opacity animate-fade-in"
         onClick={onClose}
       />
       
-      <div className="relative bg-white w-full sm:w-[480px] sm:rounded-2xl rounded-t-3xl shadow-2xl max-h-[90vh] overflow-y-auto animate-slide-up z-50 flex flex-col">
+      <div className="relative bg-white w-full sm:w-[480px] sm:rounded-2xl rounded-t-3xl shadow-2xl max-h-[90vh] overflow-y-auto animate-slide-up z-[101] flex flex-col">
         
         {/* Handle */}
         <div className="flex justify-center pt-3 pb-2 sm:hidden">
@@ -40,7 +41,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
         </div>
 
         {/* Body */}
-        <div className="p-6 flex-1 overflow-y-auto">
+        <div className="p-6 flex-1 overflow-y-auto pb-10">
           {children}
         </div>
       </div>
