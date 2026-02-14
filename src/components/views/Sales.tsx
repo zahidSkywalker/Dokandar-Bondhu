@@ -8,7 +8,7 @@ import BottomSheet from '../ui/BottomSheet';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import FlowAnimation from '../ui/FlowAnimation';
-import AmountInput from '../ui/AmountInput'; // NEW: Import the formatting input
+import AmountInput from '../ui/AmountInput';
 import { formatCurrency, toEnglishDigits } from '../../lib/utils';
 
 const Sales: React.FC = () => {
@@ -23,7 +23,7 @@ const Sales: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showFlowAnimation, setShowFlowAnimation] = useState(false);
   
-  // NEW: State for custom amount (discount/override)
+  // State for custom amount (discount/override)
   const [customAmount, setCustomAmount] = useState<number>(0);
 
   // Data
@@ -47,7 +47,7 @@ const Sales: React.FC = () => {
     setSelectedProduct(product);
     setQuantity('1');
     setCustomerId('');
-    setCustomAmount(0); // Reset custom amount
+    setCustomAmount(0);
   };
 
   const closeModal = () => {
@@ -101,7 +101,7 @@ const Sales: React.FC = () => {
   };
 
   const adjustQuantity = (amount: number) => {
-    const current = parseFloat(quantity) || 0;
+    const current = parseFloat(toEnglishDigits(quantity)) || 0;
     const newQty = Math.max(0.1, current + amount);
     setQuantity(String(newQty));
   };
@@ -125,7 +125,7 @@ const Sales: React.FC = () => {
           <Search className="absolute left-4 top-3.5 text-prussian/40 w-5 h-5" />
           <input 
             type="text" 
-            placeholder="Search products..."
+            placeholder={t('sales.searchPlaceholder')}
             className="w-full bg-white border border-gray-border rounded-md pl-12 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange focus:border-orange transition-all text-body text-prussian shadow-card"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -135,14 +135,14 @@ const Sales: React.FC = () => {
 
       {/* Product Grid Section */}
       <div className="mb-8">
-        <h2 className="text-small font-semibold text-secondary uppercase tracking-wide mb-3 px-1">In Stock</h2>
+        <h2 className="text-small font-semibold text-secondary uppercase tracking-wide mb-3 px-1">{t('sales.inStock')}</h2>
         <div className="grid grid-cols-3 gap-3">
           {!filteredProducts ? (
-             <div className="col-span-3 text-center py-10 text-secondary">Loading...</div>
+             <div className="col-span-3 text-center py-10 text-secondary">{t('common.loading')}</div>
           ) : filteredProducts.length === 0 ? (
              <div className="col-span-3 flex flex-col items-center justify-center py-10 text-center bg-white rounded-xl border border-gray-border border-dashed">
                <Package size={40} className="text-prussian/20 mb-2" />
-               <p className="text-sm font-medium text-secondary">No products found</p>
+               <p className="text-sm font-medium text-secondary">{t('sales.noProducts')}</p>
              </div>
           ) : (
             filteredProducts.map((product, i) => (
@@ -181,7 +181,7 @@ const Sales: React.FC = () => {
       {/* Recent Sales Section */}
       {recentSales && recentSales.length > 0 && (
         <div className="mt-6">
-          <h2 className="text-small font-semibold text-secondary uppercase tracking-wide mb-3 px-1">Recent Transactions</h2>
+          <h2 className="text-small font-semibold text-secondary uppercase tracking-wide mb-3 px-1">{t('sales.recent')}</h2>
           <div className="space-y-2">
              {recentSales.map(sale => (
                <Card key={sale.id} className="flex items-center justify-between">
@@ -205,13 +205,12 @@ const Sales: React.FC = () => {
       <BottomSheet 
         isOpen={!!selectedProduct} 
         onClose={closeModal} 
-        title={selectedProduct?.name || 'New Sale'}
-        // Footer is now sticky and handled by BottomSheet component
+        title={selectedProduct?.name || t('sales.newSale')}
         footer={
           selectedProduct && (
             <div className="space-y-3">
               <div className="flex justify-between items-center text-small px-1">
-                 <span className="text-secondary flex items-center gap-1"><TrendingUp size={12}/> Est. Profit</span>
+                 <span className="text-secondary flex items-center gap-1"><TrendingUp size={12}/> {t('sales.profit')}</span>
                  <span className={`font-bold ${profitValue < 0 ? 'text-red-500' : 'text-green-600'}`}>
                    {profitValue < 0 ? '-' : '+'}{formatCurrency(Math.abs(profitValue), lang)}
                  </span>
@@ -221,7 +220,7 @@ const Sales: React.FC = () => {
                 isLoading={isProcessing} 
                 icon={<Check size={20} />}
               >
-                {customerId ? 'Record Due Sale' : 'Confirm Cash Sale'}
+                {customerId ? t('sales.confirmDue') : t('sales.confirmCash')}
               </Button>
             </div>
           )
@@ -232,11 +231,11 @@ const Sales: React.FC = () => {
             {/* Product Info Header */}
             <div className="flex justify-between items-center bg-alabaster p-4 rounded-md">
               <div>
-                <p className="text-small text-secondary mb-1">Price per {selectedProduct.unit}</p>
+                <p className="text-small text-secondary mb-1">{t('sales.unit')}</p>
                 <p className="text-h1 text-prussian font-display">{formatCurrency(selectedProduct.sellPrice, lang)}</p>
               </div>
               <div className="text-right">
-                <p className="text-small text-secondary mb-1">In Stock</p>
+                <p className="text-small text-secondary mb-1">{t('sales.inStock')}</p>
                 <p className={`text-h2 ${selectedProduct.stock < 5 ? 'text-red-500' : 'text-prussian'}`}>
                   {selectedProduct.stock}
                 </p>
@@ -265,39 +264,33 @@ const Sales: React.FC = () => {
             </div>
 
             {/* Custom Amount / Discount Input */}
-            <div>
-              <label className="block text-small font-semibold mb-2 text-prussian">Custom Amount (Optional)</label>
-              <AmountInput 
-                value={customAmount}
-                onChange={(val) => setCustomAmount(val)}
-                currency="BDT" // Adjust based on your locale logic
-                placeholder="Leave empty for standard price"
-              />
-              <p className="text-[10px] text-secondary mt-1 px-1">
-                Standard: {formatCurrency(standardTotal, lang)}
-              </p>
-            </div>
+            <AmountInput 
+              value={customAmount}
+              onChange={(val) => setCustomAmount(val)}
+              label={t('sales.customAmount')}
+              placeholder={t('sales.standardPrice')}
+            />
 
             {/* Customer Selection */}
             <div>
               <label className="block text-small font-semibold mb-2 text-prussian flex items-center gap-1">
-                <User size={12} /> Customer (Due)
+                <User size={12} /> {t('ledger.title')}
               </label>
               <select 
                 className="w-full px-4 py-3 rounded-md bg-white border border-gray-border text-prussian focus:ring-2 focus:ring-orange text-body"
                 value={customerId}
                 onChange={(e) => setCustomerId(e.target.value)}
               >
-                <option value="">Cash Payment</option>
+                <option value="">{t('sales.confirmCash')}</option>
                 {customers?.map(c => (
-                  <option key={c.id} value={c.id}>{c.name} (Due: {formatCurrency(c.debt, lang)})</option>
+                  <option key={c.id} value={c.id}>{c.name} ({t('ledger.debt')}: {formatCurrency(c.debt, lang)})</option>
                 ))}
               </select>
             </div>
             
-            {/* Subtotal Display (Calculated) */}
+            {/* Subtotal Display */}
             <div className="flex justify-between items-center pt-4 border-t border-gray-border">
-              <span className="text-body text-secondary">Total</span>
+              <span className="text-body text-secondary">{t('sales.total')}</span>
               <span className="text-h2 font-bold text-prussian">
                 {formatCurrency(customAmount > 0 ? customAmount : standardTotal, lang)}
               </span>
