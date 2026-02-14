@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Download, Upload, FileSpreadsheet, Shield, Save, Edit3, Trash2, Crown, Clock, CheckCircle } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useSettings } from '../../context/SettingsContext';
@@ -63,7 +63,7 @@ const Settings: React.FC = () => {
     <div className="space-y-8 max-w-2xl mx-auto animate-fade-in">
       <h1 className="text-2xl font-bold text-prussian font-display mt-4">Settings</h1>
 
-      {/* --- SUBSCRIPTION CARD (NEW) --- */}
+      {/* --- SUBSCRIPTION CARD --- */}
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <h2 className="font-bold text-prussian mb-4 flex items-center gap-2 text-lg">
           <Crown size={18} className="text-orange" /> Subscription Status
