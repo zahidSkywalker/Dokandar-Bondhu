@@ -25,7 +25,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title, child
 
   // Assuming standard Bottom Nav height is 64px (h-16) + 16px buffer = 80px
   // This ensures the sheet sits exactly on top of the nav
-  const NAVBAR_OFFSET = '80px'; 
+  const NAVBAR_OFFSET = '60px'; 
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
