@@ -4,27 +4,27 @@ import { Translation } from '../types';
 // NEW: STANDARDIZED UNITS & CATEGORIES
 // ==========================================
 export const UNITS = [
-  { value: 'pcs', label: 'Pieces (pcs)' },
-  { value: 'kg', label: 'Kilogram (kg)' },
-  { value: 'g', label: 'Gram (g)' },
-  { value: 'lb', label: 'Pound (lb)' },
-  { value: 'liter', label: 'Liter (l)' },
-  { value: 'ml', label: 'Milliliter (ml)' },
-  { value: 'dozen', label: 'Dozen' },
-  { value: 'pack', label: 'Pack' },
+  { value: 'pcs', label: 'Pieces (pcs)', labelBn: 'পিস (pcs)' },
+  { value: 'kg', label: 'Kilogram (kg)', labelBn: 'কেজি (kg)' },
+  { value: 'g', label: 'Gram (g)', labelBn: 'গ্রাম (g)' },
+  { value: 'lb', label: 'Pound (lb)', labelBn: 'পাউন্ড (lb)' },
+  { value: 'liter', label: 'Liter (l)', labelBn: 'লিটার (l)' },
+  { value: 'ml', label: 'Milliliter (ml)', labelBn: 'মিলি (ml)' },
+  { value: 'dozen', label: 'Dozen', labelBn: 'ডজন' },
+  { value: 'pack', label: 'Pack', labelBn: 'প্যাকেট' },
 ];
 
 export const CATEGORIES = [
-  { value: 'General', label: 'General' },
-  { value: 'Grocery', label: 'Grocery' },
-  { value: 'Vegetable', label: 'Vegetable' },
-  { value: 'Fruits', label: 'Fruits' },
-  { value: 'Food', label: 'Food & Snacks' },
-  { value: 'Dairy', label: 'Dairy' },
-  { value: 'Meat', label: 'Meat & Fish' },
-  { value: 'Stationary', label: 'Stationary' },
-  { value: 'Electronics', label: 'Electronics' },
-  { value: 'Household', label: 'Household' },
+  { value: 'General', label: 'General', labelBn: 'সাধারণ' },
+  { value: 'Grocery', label: 'Grocery', labelBn: 'মুদি' },
+  { value: 'Vegetable', label: 'Vegetable', labelBn: 'সবজি' },
+  { value: 'Fruits', label: 'Fruits', labelBn: 'ফলমূল' },
+  { value: 'Food', label: 'Food & Snacks', labelBn: 'খাবার' },
+  { value: 'Dairy', label: 'Dairy', labelBn: 'দুগ্ধ' },
+  { value: 'Meat', label: 'Meat & Fish', labelBn: 'মাছ ও মাংস' },
+  { value: 'Stationary', label: 'Stationary', labelBn: 'স্টেশনারি' },
+  { value: 'Electronics', label: 'Electronics', labelBn: 'ইলেকট্রনিক্স' },
+  { value: 'Household', label: 'Household', labelBn: 'গৃহস্থালি' },
 ];
 
 export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
@@ -77,7 +77,16 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
       quantity: "Quantity",
       total: "Total",
       date: "Date",
-      profit: "Profit"
+      profit: "Profit",
+      // ADDED MISSING KEYS FOR UI REDESIGN
+      recent: "Recent Transactions",
+      inStock: "In Stock",
+      searchPlaceholder: "Search products...",
+      customAmount: "Custom Amount (Optional)",
+      standardPrice: "Standard",
+      confirmCash: "Confirm Cash Sale",
+      confirmDue: "Record Due Sale",
+      noProducts: "No products found"
     },
 
     // ==========================================
@@ -246,7 +255,16 @@ export const TRANSLATIONS: Record<'en' | 'bn', Translation> = {
       quantity: "পরিমাণ",
       total: "মোট টাকা",
       date: "তারিখ",
-      profit: "লাভ"
+      profit: "লাভ",
+      // ADDED MISSING KEYS FOR UI REDESIGN
+      recent: "সাম্প্রতিক লেনদেন",
+      inStock: "স্টকে আছে",
+      searchPlaceholder: "পণ্য খুঁজুন...",
+      customAmount: "কাস্টম টাকা (ঐচ্ছিক)",
+      standardPrice: "স্বাভাবিক",
+      confirmCash: "নগদ বিক্রয় নিশ্চিত করুন",
+      confirmDue: "বাকিতে বিক্রয় করুন",
+      noProducts: "কোনো পণ্য পাওয়া যায়নি"
     },
 
     // ==========================================
