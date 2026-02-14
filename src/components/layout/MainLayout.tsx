@@ -33,23 +33,30 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen font-sans bg-alabaster text-prussian">
-      <header className="sticky top-0 z-40 px-6 py-4 flex justify-between items-center bg-prussian text-white shadow-lg">
-        <div>
-          <h1 className="font-display text-2xl tracking-wider">{t('common.appName')}</h1>
-          <p className="text-xs font-medium text-alabaster opacity-80">{businessName}</p>
+    <div className="app-container min-h-screen font-sans text-prussian flex flex-col">
+      <header className="sticky top-0 z-30 px-5 py-4 flex justify-between items-center bg-prussian text-white shadow-md">
+        <div className="flex-1 min-w-0">
+          <h1 className="font-display text-xl tracking-wider truncate">{t('common.appName')}</h1>
+          <p className="text-[11px] font-medium text-white/70 truncate">{businessName}</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={() => setActiveTab(prev => prev === 'settings' ? 'dashboard' : 'settings')} className="p-2 rounded-xl hover:bg-white/10 transition-colors">
+        <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+          <button 
+            onClick={() => setActiveTab(prev => prev === 'settings' ? 'dashboard' : 'settings')} 
+            className="p-2 rounded-xl hover:bg-white/10 transition-colors"
+            aria-label="Settings"
+          >
             <SettingsIcon size={20} />
           </button>
-          <button onClick={toggleLang} className="text-xs px-4 py-2 rounded-full font-bold bg-orange text-prussian hover:bg-orange/80 transition-all hover:scale-105 active:scale-95">
+          <button 
+            onClick={toggleLang} 
+            className="text-xs px-3 py-1.5 rounded-lg font-bold bg-orange text-prussian hover:bg-orange/80 transition-all active:scale-95"
+          >
             {lang === 'en' ? 'বাংলা' : 'English'}
           </button>
         </div>
       </header>
 
-      <main className="px-4 pt-6 pb-28 max-w-2xl mx-auto">
+      <main className="flex-1 px-4 pt-6 pb-24 max-w-2xl mx-auto w-full overflow-x-hidden">
         {renderContent()}
       </main>
 
