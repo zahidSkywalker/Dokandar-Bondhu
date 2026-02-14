@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 interface BottomSheetProps {
@@ -19,18 +20,18 @@ const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title, child
 
   if (!isOpen) return null;
 
-  return (
-    // FIXED: Changed z-50 to z-[100] to guarantee it sits on top of BottomNav (z-30)
+  // We use a Portal to render this directly to <body>, bypassing any z-index traps
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-end justify-center">
-      {/* Backdrop */}
+      {/* Backdrop - Sits at the bottom of this stacking context */}
       <div 
         className="absolute inset-0 bg-prussian/30 backdrop-blur-sm animate-fade-in" 
         onClick={onClose} 
       />
 
-      {/* Container */}
+      {/* Container - Sits on top of backdrop */}
       <div 
-        className="relative w-full md:max-w-md bg-white rounded-t-3xl shadow-sheet animate-slide-up flex flex-col max-h-[90vh]"
+        className="relative w-full md:max-w-md bg-white rounded-t-3xl shadow-sheet animate-slide-up flex flex-col max-h-[92vh] safe-bottom"
       >
         {/* Handle */}
         <div className="flex justify-center pt-3 pb-2 cursor-grab">
@@ -38,7 +39,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title, child
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pb-4 border-b border-gray-border flex-shrink-0">
+        <div className="flex items-center justify-between px-6 pb-4 border-b border-gray-border flex-shrink-0 bg-white rounded-t-3xl">
           <h2 className="text-xl font-bold text-prussian">{title}</h2>
           <button onClick={onClose} className="p-2 -mr-2 rounded-full hover:bg-alabaster text-prussian/60 active:scale-90 transition-transform">
             <X size={22} />
@@ -50,14 +51,15 @@ const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title, child
           {children}
         </div>
 
-        {/* Footer - FIXED: Added extra padding at bottom (pb-10) to clear the nav bar visually */}
+        {/* Footer - Fixed at bottom of sheet with Safe Area Padding */}
         {footer && (
-          <div className="flex-shrink-0 px-6 pt-4 pb-10 bg-white border-t border-gray-border rounded-b-3xl">
+          <div className="flex-shrink-0 px-6 pt-4 pb-2 bg-white border-t border-gray-border modal-footer-safe">
             {footer}
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body // Teleport to body
   );
 };
 
