@@ -1,31 +1,51 @@
 import React from 'react';
-import { cn } from '../../lib/utils';
+import { Loader2 } from 'lucide-react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'danger' | 'ghost' | 'success';
-  children: React.ReactNode;
+  variant?: 'primary' | 'secondary';
   isLoading?: boolean;
   icon?: React.ReactNode;
+  children: React.ReactNode;
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', isLoading, children, icon, ...props }, ref) => {
-    const baseStyles = "w-full py-3 px-4 rounded-xl font-bold text-sm transition-all active:scale-[0.98] disabled:opacity-60 flex justify-center items-center gap-2 shadow-md hover:shadow-lg";
-    
-    const variants = {
-      primary: "bg-orange text-prussian hover:bg-orange/80",
-      danger: "bg-red-500 text-white hover:bg-red-600",
-      ghost: "bg-alabaster text-prussian hover:bg-gray-200 border border-gray-200",
-      success: "bg-green-600 text-white hover:bg-green-700"
-    };
+const Button: React.FC<ButtonProps> = ({
+  children,
+  variant = 'primary',
+  isLoading = false,
+  icon,
+  className = '',
+  disabled,
+  ...props
+}) => {
+  const baseStyles = `
+    w-full flex items-center justify-center gap-2 
+    h-[50px] rounded-md font-semibold text-base
+    transition-all duration-150 ease-out 
+    active:scale-[0.98] tap-effect
+    disabled:opacity-50 disabled:cursor-not-allowed
+  `;
 
-    return (
-      <button ref={ref} className={cn(baseStyles, variants[variant], className)} disabled={isLoading} {...props}>
-        {icon && <span className="scale-110">{icon}</span>}
-        {isLoading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : children}
-      </button>
-    );
-  }
-);
-Button.displayName = "Button";
+  const variants = {
+    primary: 'bg-orange text-white shadow-float hover:bg-orange/90',
+    secondary: 'bg-white text-prussian border-2 border-gray-200 hover:bg-alabaster'
+  };
+
+  return (
+    <button
+      className={`${baseStyles} ${variants[variant]} ${className}`}
+      disabled={disabled || isLoading}
+      {...props}
+    >
+      {isLoading ? (
+        <Loader2 className="w-5 h-5 animate-spin" />
+      ) : (
+        <>
+          {icon && <span className="opacity-90">{icon}</span>}
+          {children}
+        </>
+      )}
+    </button>
+  );
+};
+
 export default Button;
