@@ -99,29 +99,27 @@ const Sales: React.FC = () => {
     <div className="pb-32 animate-fade-in">
       <FlowAnimation trigger={showFlowAnimation} color="#FCA311" />
 
-      {/* Header */}
       <div className="mb-6">
-        <h1 className="text-h1 text-prussian font-display mb-6">{t('sales.title')}</h1>
+        <h1 className="text-h1 text-prussian font-display mb-4">{t('sales.title')}</h1>
         <div className="relative">
-          <Search className="absolute left-4 top-3.5 text-prussian/40 w-5 h-5" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-prussian/40 w-5 h-5" />
           <input 
             type="text" 
             placeholder={t('sales.searchPlaceholder')}
-            className="w-full bg-white border border-gray-border rounded-md pl-12 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange text-body text-prussian shadow-card"
+            className="w-full bg-white border border-gray-border rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange/20 text-body text-prussian shadow-card"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
 
-      {/* Grid */}
       <div className="mb-8">
         <h2 className="text-small font-semibold text-secondary uppercase tracking-wide mb-3 px-1">{t('sales.inStock')}</h2>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {!filteredProducts ? (
-             <div className="col-span-3 text-center py-10 text-secondary">{t('common.loading')}</div>
+             <div className="col-span-full text-center py-10 text-secondary">{t('common.loading')}</div>
           ) : filteredProducts.length === 0 ? (
-             <div className="col-span-3 flex flex-col items-center justify-center py-10 text-center bg-white rounded-xl border-dashed border-gray-border">
+             <div className="col-span-full flex flex-col items-center justify-center py-10 text-center bg-white rounded-2xl border-dashed border-2 border-gray-border">
                <Package size={40} className="text-prussian/20 mb-2" />
                <p className="text-sm font-medium text-secondary">{t('sales.noProducts')}</p>
              </div>
@@ -130,20 +128,19 @@ const Sales: React.FC = () => {
               <button
                 key={product.id}
                 onClick={() => openSaleModal(product)}
-                className="bg-white p-3 rounded-md shadow-card flex flex-col items-center justify-between text-left transition-all hover:shadow-float active:scale-[0.98] h-36 stagger-item border border-transparent hover:border-orange/30"
-                style={{ animationDelay: `${i * 40}ms` }}
+                className="bg-white p-4 rounded-2xl shadow-card flex flex-col items-center justify-between text-left transition-all hover:shadow-float active:scale-[0.98] min-h-[140px] border border-transparent hover:border-orange/20"
               >
-                <div className="w-full flex justify-between items-start mb-1">
-                   <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${product.stock < 5 ? 'bg-red-50 text-red-500' : 'bg-green-50 text-green-600'}`}>
-                     {product.stock} {product.unit}
+                <div className="w-full flex justify-between items-start mb-2">
+                   <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${product.stock < 5 ? 'bg-red-50 text-red-500' : 'bg-green-50 text-green-600'}`}>
+                     {product.stock} left
                    </span>
                  </div>
                 <div className="flex-1 flex items-center justify-center w-full">
                   <h3 className="text-sm font-bold text-prussian text-center leading-tight line-clamp-2">{product.name}</h3>
                 </div>
-                <div className="w-full mt-1 flex justify-between items-center">
-                   <span className="text-[9px] text-secondary font-medium truncate pr-1">{product.category}</span>
-                   <span className="text-sm font-bold text-orange">{formatCurrency(product.sellPrice, lang)}</span>
+                <div className="w-full mt-2 flex justify-between items-end">
+                   <span className="text-xs text-secondary font-medium truncate">{product.category}</span>
+                   <span className="text-base font-bold text-orange">{formatCurrency(product.sellPrice, lang)}</span>
                 </div>
               </button>
             ))
@@ -151,28 +148,26 @@ const Sales: React.FC = () => {
         </div>
       </div>
 
-      {/* Recent Sales */}
       {recentSales && recentSales.length > 0 && (
         <div className="mt-6">
           <h2 className="text-small font-semibold text-secondary uppercase tracking-wide mb-3 px-1">{t('sales.recent')}</h2>
           <div className="space-y-2">
              {recentSales.map(sale => (
-               <Card key={sale.id} className="flex items-center justify-between">
+               <Card key={sale.id} className="flex items-center justify-between p-4">
                  <div className="flex items-center gap-3">
-                   <div className="p-2 bg-alabaster rounded-sm text-prussian"><ShoppingCart size={14}/></div>
+                   <div className="p-2 bg-alabaster rounded-xl text-prussian"><ShoppingCart size={14}/></div>
                    <div>
                      <p className="text-sm font-semibold text-prussian">{sale.productName}</p>
                      <p className="text-small text-secondary">{sale.quantity} {sale.unit || 'pcs'}</p>
                    </div>
                  </div>
-                 <p className="text-body-lg font-bold text-prussian">{formatCurrency(sale.total, lang)}</p>
+                 <p className="text-base font-bold text-prussian">{formatCurrency(sale.total, lang)}</p>
                </Card>
              ))}
           </div>
         </div>
       )}
 
-      {/* Bottom Sheet */}
       <BottomSheet 
         isOpen={!!selectedProduct} 
         onClose={closeModal} 
@@ -180,7 +175,7 @@ const Sales: React.FC = () => {
         footer={
           selectedProduct && (
             <div className="space-y-3">
-              <div className="flex justify-between items-center text-small px-1">
+              <div className="flex justify-between items-center text-sm px-1">
                  <span className="text-secondary flex items-center gap-1"><TrendingUp size={12}/> {t('sales.profit')}</span>
                  <span className={`font-bold ${profitValue < 0 ? 'text-red-500' : 'text-green-600'}`}>
                    {profitValue < 0 ? '-' : '+'}{formatCurrency(Math.abs(profitValue), lang)}
@@ -195,36 +190,36 @@ const Sales: React.FC = () => {
       >
         {selectedProduct && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center bg-alabaster p-4 rounded-md">
+            <div className="flex justify-between items-center bg-alabaster p-4 rounded-xl">
               <div>
                 <p className="text-small text-secondary mb-1">Price per {selectedProduct.unit}</p>
-                <p className="text-h1 text-prussian font-display">{formatCurrency(selectedProduct.sellPrice, lang)}</p>
+                <p className="text-2xl font-bold text-prussian">{formatCurrency(selectedProduct.sellPrice, lang)}</p>
               </div>
               <div className="text-right">
                 <p className="text-small text-secondary mb-1">{t('sales.inStock')}</p>
-                <p className={`text-h2 ${selectedProduct.stock < 5 ? 'text-red-500' : 'text-prussian'}`}>{selectedProduct.stock}</p>
+                <p className={`text-xl font-bold ${selectedProduct.stock < 5 ? 'text-red-500' : 'text-prussian'}`}>{selectedProduct.stock}</p>
               </div>
             </div>
 
             <div>
-              <label className="block text-small font-semibold mb-2 text-prussian">{t('sales.quantity')}</label>
+              <label className="block text-sm font-bold mb-2 text-prussian">{t('sales.quantity')}</label>
               <div className="flex items-center gap-2">
-                <button type="button" onClick={() => adjustQuantity(-1)} className="bg-alabaster text-prussian p-3 rounded-md font-bold text-lg hover:bg-gray-200 active:scale-95 transition-all"><Minus size={20} /></button>
+                <button type="button" onClick={() => adjustQuantity(-1)} className="bg-alabaster text-prussian p-3 rounded-xl font-bold text-lg hover:bg-gray-200 active:scale-95 transition-all h-[52px] w-[52px] flex items-center justify-center"><Minus size={20} /></button>
                 <input 
                   type="number" step="any"
-                  className="flex-1 text-center text-h1 font-bold bg-white border border-gray-border rounded-md py-2 focus:outline-none focus:ring-2 focus:ring-orange text-prussian"
+                  className="flex-1 text-center text-xl font-bold bg-white border border-gray-border rounded-xl py-2 focus:outline-none focus:ring-2 focus:ring-orange/20 text-prussian h-[52px]"
                   value={quantity} onChange={(e) => setQuantity(e.target.value)} required
                 />
-                <button type="button" onClick={() => adjustQuantity(1)} className="bg-alabaster text-prussian p-3 rounded-md font-bold text-lg hover:bg-gray-200 active:scale-95 transition-all"><Plus size={20} /></button>
+                <button type="button" onClick={() => adjustQuantity(1)} className="bg-alabaster text-prussian p-3 rounded-xl font-bold text-lg hover:bg-gray-200 active:scale-95 transition-all h-[52px] w-[52px] flex items-center justify-center"><Plus size={20} /></button>
               </div>
             </div>
 
             <AmountInput value={customAmount} onChange={setCustomAmount} label={t('sales.customAmount')} placeholder={t('sales.standardPrice')} />
 
             <div>
-              <label className="block text-small font-semibold mb-2 text-prussian flex items-center gap-1"><User size={12} /> {t('ledger.title')}</label>
+              <label className="block text-sm font-bold mb-2 text-prussian flex items-center gap-1"><User size={12} /> {t('ledger.title')}</label>
               <select 
-                className="w-full px-4 py-3 rounded-md bg-white border border-gray-border text-prussian focus:ring-2 focus:ring-orange text-body"
+                className="w-full px-4 py-3 rounded-xl bg-white border border-gray-border text-prussian focus:ring-2 focus:ring-orange/20 h-[52px]"
                 value={customerId} onChange={(e) => setCustomerId(e.target.value)}
               >
                 <option value="">{t('sales.confirmCash')}</option>
@@ -233,8 +228,8 @@ const Sales: React.FC = () => {
             </div>
             
             <div className="flex justify-between items-center pt-4 border-t border-gray-border">
-              <span className="text-body text-secondary">{t('sales.total')}</span>
-              <span className="text-h2 font-bold text-prussian">{formatCurrency(customAmount > 0 ? customAmount : standardTotal, lang)}</span>
+              <span className="text-base text-secondary">{t('sales.total')}</span>
+              <span className="text-2xl font-bold text-prussian">{formatCurrency(customAmount > 0 ? customAmount : standardTotal, lang)}</span>
             </div>
           </div>
         )}
