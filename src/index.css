@@ -91,3 +91,14 @@ input, select, textarea {
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
+
+/* Safe Area Utilities for PWA */
+.safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* Sticky Footer for Modals */
+.modal-footer-safe {
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  background: white;
+}
