@@ -11,32 +11,36 @@ interface BottomSheetProps {
 
 const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title, children, footer }) => {
   
-  // 1. Lock scroll & Hide Navbar
+  // Lock background scroll
   useEffect(() => {
     if (isOpen) {
-      document.body.classList.add('sheet-open', 'no-scroll');
+      document.body.classList.add('no-scroll');
     } else {
-      document.body.classList.remove('sheet-open', 'no-scroll');
+      document.body.classList.remove('no-scroll');
     }
-    return () => document.body.classList.remove('sheet-open', 'no-scroll');
+    return () => document.body.classList.remove('no-scroll');
   }, [isOpen]);
 
   if (!isOpen) return null;
 
+  // Assuming standard Bottom Nav height is 64px (h-16) + 16px buffer = 80px
+  // This ensures the sheet sits exactly on top of the nav
+  const NAVBAR_OFFSET = '80px'; 
+
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
-      {/* Backdrop - High z-index to cover everything */}
+      {/* Backdrop - Covers the content but not the nav (visually) */}
       <div 
         className="absolute inset-0 bg-prussian/30 backdrop-blur-sm animate-fade-in" 
         onClick={onClose} 
       />
 
-      {/* Sheet Container */}
+      {/* Sheet Container - Positioned above the navbar */}
       <div 
         className="relative w-full max-w-lg bg-white rounded-t-xl shadow-sheet animate-slide-up flex flex-col"
         style={{ 
-          maxHeight: '85vh',      // Constraint height
-          minHeight: '50vh',      // Optional: min height for feel
+          bottom: NAVBAR_OFFSET, // KEY CHANGE: Sit on top of navbar
+          maxHeight: `calc(85vh - ${NAVBAR_OFFSET})`, // Adjust max height accordingly
         }}
       >
         {/* Handle */}
@@ -57,15 +61,9 @@ const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title, child
           {children}
         </div>
 
-        {/* Sticky Footer - Always visible above keyboard/nav */}
+        {/* Sticky Footer */}
         {footer && (
-          <div 
-            className="flex-shrink-0 p-6 pt-4 bg-white border-t border-gray-border"
-            style={{ 
-              // Safe area padding + extra buffer for visual comfort
-              paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' 
-            }}
-          >
+          <div className="flex-shrink-0 p-6 pt-4 bg-white border-t border-gray-border">
             {footer}
           </div>
         )}
