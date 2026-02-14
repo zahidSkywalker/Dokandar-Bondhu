@@ -56,14 +56,10 @@ const Sales: React.FC = () => {
     if (!selectedProduct) return;
     
     const qty = parseFloat(toEnglishDigits(quantity));
-    if (isNaN(qty) || qty <= 0) {
-      alert("Invalid quantity");
-      return;
-    }
+    if (isNaN(qty) || qty <= 0) return alert("Invalid quantity");
 
     if (qty > selectedProduct.stock) {
-      alert(`Insufficient stock. Available: ${selectedProduct.stock} ${selectedProduct.unit}`);
-      return;
+      return alert(`Insufficient stock. Available: ${selectedProduct.stock} ${selectedProduct.unit}`);
     }
 
     setIsProcessing(true);
@@ -101,12 +97,12 @@ const Sales: React.FC = () => {
     <div className="pb-32 animate-fade-in">
       <FlowAnimation trigger={showFlowAnimation} color="#FCA311" />
 
-      {/* Header Section */}
+      {/* --- Header Section --- */}
       <div className="mb-6">
         {/* 1. H1 Typography */}
         <h1 className="text-h1 text-prussian font-display mb-6">{t('sales.title')}</h1>
         
-        {/* Search Bar */}
+        {/* Search Input */}
         <div className="relative">
           <Search className="absolute left-4 top-3.5 text-prussian/40 w-5 h-5" />
           <input 
@@ -119,8 +115,7 @@ const Sales: React.FC = () => {
         </div>
       </div>
 
-      {/* Product Grid */}
-      {/* 8. Visual Sections */}
+      {/* --- Product Grid Section (Req 8) --- */}
       <div className="mb-8">
         <h2 className="text-small font-semibold text-secondary uppercase tracking-wide mb-3 px-1">In Stock</h2>
         <div className="grid grid-cols-3 gap-3">
@@ -136,10 +131,10 @@ const Sales: React.FC = () => {
               <button
                 key={product.id}
                 onClick={() => openSaleModal(product)}
+                // 5. Breathing space (p-3), 7. Motion (tap-scale), 4. Elevation (shadow-card)
                 className="bg-white p-3 rounded-md shadow-card flex flex-col items-center justify-between text-left transition-all hover:shadow-float active:scale-[0.98] h-36 stagger-item border border-transparent hover:border-orange/30"
                 style={{ animationDelay: `${i * 40}ms` }}
               >
-                {/* Stock Badge */}
                 <div className="w-full flex justify-between items-start mb-1">
                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
                      product.stock < 5 
@@ -150,14 +145,12 @@ const Sales: React.FC = () => {
                    </span>
                  </div>
                 
-                {/* Centered Name */}
                 <div className="flex-1 flex items-center justify-center w-full">
                   <h3 className="text-sm font-bold text-prussian text-center leading-tight line-clamp-2">
                     {product.name}
                   </h3>
                 </div>
                 
-                {/* Price Footer */}
                 <div className="w-full mt-1 flex justify-between items-center">
                    <span className="text-[9px] text-secondary font-medium truncate pr-1">{product.category}</span>
                    <span className="text-sm font-bold text-orange">{formatCurrency(product.sellPrice, lang)}</span>
@@ -168,7 +161,7 @@ const Sales: React.FC = () => {
         </div>
       </div>
 
-      {/* Recent Sales Section */}
+      {/* --- Recent Sales Section --- */}
       {recentSales && recentSales.length > 0 && (
         <div className="mt-6">
           <h2 className="text-small font-semibold text-secondary uppercase tracking-wide mb-3 px-1">Recent Transactions</h2>
@@ -191,15 +184,40 @@ const Sales: React.FC = () => {
         </div>
       )}
 
-      {/* ==================== SALE BOTTOM SHEET ==================== */}
-      <BottomSheet isOpen={!!selectedProduct} onClose={closeModal} title={selectedProduct?.name || 'New Sale'}>
+      {/* --- SALE BOTTOM SHEET --- */}
+      <BottomSheet 
+        isOpen={!!selectedProduct} 
+        onClose={closeModal} 
+        title={selectedProduct?.name || 'New Sale'}
+        // 3. Sticky Footer Implementation
+        footer={
+          selectedProduct && (
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-small px-1">
+                 <span className="text-secondary flex items-center gap-1"><TrendingUp size={12}/> Est. Profit</span>
+                 <span className="text-green-600 font-bold">
+                   +{formatCurrency((selectedProduct.sellPrice - selectedProduct.buyPrice) * parseFloat(toEnglishDigits(quantity) || '0'), lang)}
+                 </span>
+              </div>
+              {/* 10. Primary CTA */}
+              <Button 
+                onClick={handleSale}
+                isLoading={isProcessing} 
+                icon={<Check size={20} />}
+              >
+                {customerId ? 'Record Due Sale' : 'Confirm Cash Sale'}
+              </Button>
+            </div>
+          )
+        }
+      >
         {selectedProduct && (
-          <form onSubmit={handleSale} className="flex flex-col h-full">
-            
+          <div className="space-y-6">
             {/* Product Info Header */}
-            <div className="flex justify-between items-center bg-alabaster p-4 rounded-md mb-6">
+            <div className="flex justify-between items-center bg-alabaster p-4 rounded-md">
               <div>
                 <p className="text-small text-secondary mb-1">Price per {selectedProduct.unit}</p>
+                {/* 1. H1 Typography */}
                 <p className="text-h1 text-prussian font-display">{formatCurrency(selectedProduct.sellPrice, lang)}</p>
               </div>
               <div className="text-right">
@@ -211,7 +229,7 @@ const Sales: React.FC = () => {
             </div>
 
             {/* Quantity Selector */}
-            <div className="mb-6">
+            <div>
               <label className="block text-small font-semibold mb-2 text-prussian">{t('sales.quantity')}</label>
               <div className="flex items-center gap-2">
                 <button type="button" onClick={() => adjustQuantity(-1)} className="bg-alabaster text-prussian p-3 rounded-md font-bold text-lg hover:bg-gray-200 transition-colors active:scale-95">
@@ -232,7 +250,7 @@ const Sales: React.FC = () => {
             </div>
 
             {/* Customer Selection */}
-            <div className="mb-6">
+            <div>
               <label className="block text-small font-semibold mb-2 text-prussian flex items-center gap-1">
                 <User size={12} /> Customer (Due)
               </label>
@@ -247,34 +265,15 @@ const Sales: React.FC = () => {
                 ))}
               </select>
             </div>
-
-            {/* Calculation Summary */}
-            <div className="mt-auto pt-4 border-t border-gray-border">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-body text-secondary">Subtotal</span>
-                <span className="text-h2 font-bold text-prussian">
-                  {formatCurrency(selectedProduct.sellPrice * parseFloat(toEnglishDigits(quantity) || '0'), lang)}
-                </span>
-              </div>
-              
-              {/* Profit Indicator */}
-              <div className="flex justify-between items-center text-small mb-6 px-1">
-                <span className="text-secondary flex items-center gap-1"><TrendingUp size={12}/> Est. Profit</span>
-                <span className="text-green-600 font-bold">
-                  +{formatCurrency((selectedProduct.sellPrice - selectedProduct.buyPrice) * parseFloat(toEnglishDigits(quantity) || '0'), lang)}
-                </span>
-              </div>
-
-              {/* 10. Primary CTA */}
-              <Button 
-                isLoading={isProcessing} 
-                icon={<Check size={20} />}
-              >
-                {customerId ? 'Record Due Sale' : 'Confirm Cash Sale'}
-              </Button>
+            
+            {/* Subtotal Display */}
+            <div className="flex justify-between items-center pt-4 border-t border-gray-border">
+              <span className="text-body text-secondary">Subtotal</span>
+              <span className="text-h2 font-bold text-prussian">
+                {formatCurrency(selectedProduct.sellPrice * parseFloat(toEnglishDigits(quantity) || '0'), lang)}
+              </span>
             </div>
-
-          </form>
+          </div>
         )}
       </BottomSheet>
     </div>
