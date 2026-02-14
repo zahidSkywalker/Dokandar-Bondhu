@@ -9,7 +9,7 @@ import Input from '../ui/Input';
 import Button from '../ui/Button';
 
 const Suppliers: React.FC = () => {
-  const { t, lang } = useLanguage();
+  const { t } = useLanguage();
   const { addSupplier } = useApp();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,7 +39,7 @@ const Suppliers: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in pb-20">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-prussian font-display">{t('suppliers.title')}</h1>
         <button onClick={() => setIsModalOpen(true)} className="bg-orange text-prussian p-3 rounded-2xl shadow-xl active:scale-95 transition-transform">
@@ -55,7 +55,7 @@ const Suppliers: React.FC = () => {
           </div>
         ) : (
           suppliers.map((supplier, i) => (
-            <div key={supplier.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-start stagger-item" style={{ animationDelay: `${i * 50}ms` }}>
+            <div key={supplier.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-start">
               <div className="flex items-center gap-4">
                 <div className="p-3 rounded-xl bg-blue-50 text-blue-600">
                   <Building2 size={24} />
@@ -87,7 +87,7 @@ const Suppliers: React.FC = () => {
           <Input label="Phone" type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} />
           <Input label="Total Due (Optional)" type="number" value={formData.totalDue} onChange={(e) => setFormData({...formData, totalDue: e.target.value})} />
           <Input label="Notes" value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} />
-          <div className="h-6" />
+          <div className="h-4" />
           <Button icon={<Plus size={20} />}>Save Supplier</Button>
         </form>
       </Modal>
