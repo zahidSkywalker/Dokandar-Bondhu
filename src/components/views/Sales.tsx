@@ -15,25 +15,18 @@ const Sales: React.FC = () => {
   const { t, lang } = useLanguage();
   const { addSale } = useApp();
   
-  // State
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
   const [quantity, setQuantity] = useState('1');
   const [customerId, setCustomerId] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showFlowAnimation, setShowFlowAnimation] = useState(false);
-  
-  // State for custom amount (discount/override)
   const [customAmount, setCustomAmount] = useState<number>(0);
 
-  // Data
-  const products = useLiveQuery(() => 
-    db.products.where('stock').above(0).toArray(), 
-  []);
+  const products = useLiveQuery(() => db.products.where('stock').above(0).toArray(), []);
   const customers = useLiveQuery(() => db.customers.toArray());
   const recentSales = useLiveQuery(() => db.sales.orderBy('date').reverse().limit(5).toArray(), []);
 
-  // Filtered Products
   const filteredProducts = useMemo(() => {
     if (!products) return [];
     return products.filter(p => 
@@ -42,7 +35,6 @@ const Sales: React.FC = () => {
     );
   }, [products, searchTerm]);
 
-  // Handlers
   const openSaleModal = (product: any) => {
     setSelectedProduct(product);
     setQuantity('1');
@@ -63,26 +55,19 @@ const Sales: React.FC = () => {
     
     const qty = parseFloat(toEnglishDigits(quantity));
     if (isNaN(qty) || qty <= 0) return alert("Invalid quantity");
-
-    if (qty > selectedProduct.stock) {
-      return alert(`Insufficient stock. Available: ${selectedProduct.stock} ${selectedProduct.unit}`);
-    }
+    if (qty > selectedProduct.stock) return alert(`Insufficient stock. Available: ${selectedProduct.stock} ${selectedProduct.unit}`);
 
     setIsProcessing(true);
     try {
-      // Logic: Use custom amount if set, otherwise calculate standard total
       const standardTotal = selectedProduct.sellPrice * qty;
       const finalTotal = customAmount > 0 ? customAmount : standardTotal;
       
-      // Calculate profit based on final total
-      const profit = finalTotal - (selectedProduct.buyPrice * qty);
-
       await addSale({
         productId: selectedProduct.id!,
         productName: selectedProduct.name,
         quantity: qty,
         buyPrice: selectedProduct.buyPrice,
-        sellPrice: finalTotal / qty, // Store the effective sell price per unit
+        sellPrice: finalTotal / qty,
         date: new Date(),
         customerId: customerId ? Number(customerId) : undefined,
         unit: selectedProduct.unit,
@@ -93,7 +78,6 @@ const Sales: React.FC = () => {
         closeModal();
         setIsProcessing(false);
       }, 1000);
-
     } catch (err: any) { 
       alert(err.message || "Error processing sale"); 
       setIsProcessing(false);
@@ -106,7 +90,6 @@ const Sales: React.FC = () => {
     setQuantity(String(newQty));
   };
 
-  // Calculate display totals
   const standardTotal = selectedProduct ? selectedProduct.sellPrice * parseFloat(toEnglishDigits(quantity) || '0') : 0;
   const profitValue = selectedProduct 
     ? (customAmount > 0 ? customAmount : standardTotal) - (selectedProduct.buyPrice * parseFloat(toEnglishDigits(quantity) || '0'))
@@ -116,31 +99,29 @@ const Sales: React.FC = () => {
     <div className="pb-32 animate-fade-in">
       <FlowAnimation trigger={showFlowAnimation} color="#FCA311" />
 
-      {/* Header Section */}
+      {/* Header */}
       <div className="mb-6">
         <h1 className="text-h1 text-prussian font-display mb-6">{t('sales.title')}</h1>
-        
-        {/* Search Input */}
         <div className="relative">
           <Search className="absolute left-4 top-3.5 text-prussian/40 w-5 h-5" />
           <input 
             type="text" 
             placeholder={t('sales.searchPlaceholder')}
-            className="w-full bg-white border border-gray-border rounded-md pl-12 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange focus:border-orange transition-all text-body text-prussian shadow-card"
+            className="w-full bg-white border border-gray-border rounded-md pl-12 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange text-body text-prussian shadow-card"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
 
-      {/* Product Grid Section */}
+      {/* Grid */}
       <div className="mb-8">
         <h2 className="text-small font-semibold text-secondary uppercase tracking-wide mb-3 px-1">{t('sales.inStock')}</h2>
         <div className="grid grid-cols-3 gap-3">
           {!filteredProducts ? (
              <div className="col-span-3 text-center py-10 text-secondary">{t('common.loading')}</div>
           ) : filteredProducts.length === 0 ? (
-             <div className="col-span-3 flex flex-col items-center justify-center py-10 text-center bg-white rounded-xl border border-gray-border border-dashed">
+             <div className="col-span-3 flex flex-col items-center justify-center py-10 text-center bg-white rounded-xl border-dashed border-gray-border">
                <Package size={40} className="text-prussian/20 mb-2" />
                <p className="text-sm font-medium text-secondary">{t('sales.noProducts')}</p>
              </div>
@@ -153,21 +134,13 @@ const Sales: React.FC = () => {
                 style={{ animationDelay: `${i * 40}ms` }}
               >
                 <div className="w-full flex justify-between items-start mb-1">
-                   <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                     product.stock < 5 
-                       ? 'bg-red-50 text-red-500' 
-                       : 'bg-green-50 text-green-600'
-                   }`}>
+                   <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${product.stock < 5 ? 'bg-red-50 text-red-500' : 'bg-green-50 text-green-600'}`}>
                      {product.stock} {product.unit}
                    </span>
                  </div>
-                
                 <div className="flex-1 flex items-center justify-center w-full">
-                  <h3 className="text-sm font-bold text-prussian text-center leading-tight line-clamp-2">
-                    {product.name}
-                  </h3>
+                  <h3 className="text-sm font-bold text-prussian text-center leading-tight line-clamp-2">{product.name}</h3>
                 </div>
-                
                 <div className="w-full mt-1 flex justify-between items-center">
                    <span className="text-[9px] text-secondary font-medium truncate pr-1">{product.category}</span>
                    <span className="text-sm font-bold text-orange">{formatCurrency(product.sellPrice, lang)}</span>
@@ -178,7 +151,7 @@ const Sales: React.FC = () => {
         </div>
       </div>
 
-      {/* Recent Sales Section */}
+      {/* Recent Sales */}
       {recentSales && recentSales.length > 0 && (
         <div className="mt-6">
           <h2 className="text-small font-semibold text-secondary uppercase tracking-wide mb-3 px-1">{t('sales.recent')}</h2>
@@ -189,9 +162,7 @@ const Sales: React.FC = () => {
                    <div className="p-2 bg-alabaster rounded-sm text-prussian"><ShoppingCart size={14}/></div>
                    <div>
                      <p className="text-sm font-semibold text-prussian">{sale.productName}</p>
-                     <p className="text-small text-secondary">
-                       {sale.quantity} {sale.unit || 'pcs'}
-                     </p>
+                     <p className="text-small text-secondary">{sale.quantity} {sale.unit || 'pcs'}</p>
                    </div>
                  </div>
                  <p className="text-body-lg font-bold text-prussian">{formatCurrency(sale.total, lang)}</p>
@@ -201,7 +172,7 @@ const Sales: React.FC = () => {
         </div>
       )}
 
-      {/* SALE BOTTOM SHEET */}
+      {/* Bottom Sheet */}
       <BottomSheet 
         isOpen={!!selectedProduct} 
         onClose={closeModal} 
@@ -215,11 +186,7 @@ const Sales: React.FC = () => {
                    {profitValue < 0 ? '-' : '+'}{formatCurrency(Math.abs(profitValue), lang)}
                  </span>
               </div>
-              <Button 
-                onClick={handleSale}
-                isLoading={isProcessing} 
-                icon={<Check size={20} />}
-              >
+              <Button onClick={handleSale} isLoading={isProcessing} icon={<Check size={20} />}>
                 {customerId ? t('sales.confirmDue') : t('sales.confirmCash')}
               </Button>
             </div>
@@ -228,72 +195,46 @@ const Sales: React.FC = () => {
       >
         {selectedProduct && (
           <div className="space-y-6">
-            {/* Product Info Header */}
             <div className="flex justify-between items-center bg-alabaster p-4 rounded-md">
               <div>
-                <p className="text-small text-secondary mb-1">{t('sales.unit')}</p>
+                <p className="text-small text-secondary mb-1">Price per {selectedProduct.unit}</p>
                 <p className="text-h1 text-prussian font-display">{formatCurrency(selectedProduct.sellPrice, lang)}</p>
               </div>
               <div className="text-right">
                 <p className="text-small text-secondary mb-1">{t('sales.inStock')}</p>
-                <p className={`text-h2 ${selectedProduct.stock < 5 ? 'text-red-500' : 'text-prussian'}`}>
-                  {selectedProduct.stock}
-                </p>
+                <p className={`text-h2 ${selectedProduct.stock < 5 ? 'text-red-500' : 'text-prussian'}`}>{selectedProduct.stock}</p>
               </div>
             </div>
 
-            {/* Quantity Selector */}
             <div>
               <label className="block text-small font-semibold mb-2 text-prussian">{t('sales.quantity')}</label>
               <div className="flex items-center gap-2">
-                <button type="button" onClick={() => adjustQuantity(-1)} className="bg-alabaster text-prussian p-3 rounded-md font-bold text-lg hover:bg-gray-200 transition-colors active:scale-95">
-                  <Minus size={20} />
-                </button>
+                <button type="button" onClick={() => adjustQuantity(-1)} className="bg-alabaster text-prussian p-3 rounded-md font-bold text-lg hover:bg-gray-200 active:scale-95 transition-all"><Minus size={20} /></button>
                 <input 
-                  type="number" 
-                  step="any"
+                  type="number" step="any"
                   className="flex-1 text-center text-h1 font-bold bg-white border border-gray-border rounded-md py-2 focus:outline-none focus:ring-2 focus:ring-orange text-prussian"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                  required
+                  value={quantity} onChange={(e) => setQuantity(e.target.value)} required
                 />
-                <button type="button" onClick={() => adjustQuantity(1)} className="bg-alabaster text-prussian p-3 rounded-md font-bold text-lg hover:bg-gray-200 transition-colors active:scale-95">
-                  <Plus size={20} />
-                </button>
+                <button type="button" onClick={() => adjustQuantity(1)} className="bg-alabaster text-prussian p-3 rounded-md font-bold text-lg hover:bg-gray-200 active:scale-95 transition-all"><Plus size={20} /></button>
               </div>
             </div>
 
-            {/* Custom Amount / Discount Input */}
-            <AmountInput 
-              value={customAmount}
-              onChange={(val) => setCustomAmount(val)}
-              label={t('sales.customAmount')}
-              placeholder={t('sales.standardPrice')}
-            />
+            <AmountInput value={customAmount} onChange={setCustomAmount} label={t('sales.customAmount')} placeholder={t('sales.standardPrice')} />
 
-            {/* Customer Selection */}
             <div>
-              <label className="block text-small font-semibold mb-2 text-prussian flex items-center gap-1">
-                <User size={12} /> {t('ledger.title')}
-              </label>
+              <label className="block text-small font-semibold mb-2 text-prussian flex items-center gap-1"><User size={12} /> {t('ledger.title')}</label>
               <select 
                 className="w-full px-4 py-3 rounded-md bg-white border border-gray-border text-prussian focus:ring-2 focus:ring-orange text-body"
-                value={customerId}
-                onChange={(e) => setCustomerId(e.target.value)}
+                value={customerId} onChange={(e) => setCustomerId(e.target.value)}
               >
                 <option value="">{t('sales.confirmCash')}</option>
-                {customers?.map(c => (
-                  <option key={c.id} value={c.id}>{c.name} ({t('ledger.debt')}: {formatCurrency(c.debt, lang)})</option>
-                ))}
+                {customers?.map(c => <option key={c.id} value={c.id}>{c.name} ({t('ledger.debt')}: {formatCurrency(c.debt, lang)})</option>)}
               </select>
             </div>
             
-            {/* Subtotal Display */}
             <div className="flex justify-between items-center pt-4 border-t border-gray-border">
               <span className="text-body text-secondary">{t('sales.total')}</span>
-              <span className="text-h2 font-bold text-prussian">
-                {formatCurrency(customAmount > 0 ? customAmount : standardTotal, lang)}
-              </span>
+              <span className="text-h2 font-bold text-prussian">{formatCurrency(customAmount > 0 ? customAmount : standardTotal, lang)}</span>
             </div>
           </div>
         )}
