@@ -8,6 +8,7 @@ import BottomSheet from '../ui/BottomSheet';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import AmountInput from '../ui/AmountInput';
+import Input from '../ui/Input';
 import { UNITS, CATEGORIES } from '../../lib/constants';
 import { formatCurrency } from '../../lib/utils';
 
@@ -89,34 +90,34 @@ const Inventory: React.FC = () => {
     <div className="pb-32 animate-fade-in">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-h1 text-prussian font-display">{t('inventory.title')}</h1>
-        <button onClick={() => openModal()} className="flex items-center gap-2 bg-orange text-white px-4 py-2 rounded-md shadow-float active:scale-95 transition-transform">
-          <Plus size={18} /> <span className="font-semibold">{t('inventory.addProduct')}</span>
+        <button onClick={() => openModal()} className="flex items-center gap-2 bg-orange text-prussian px-4 py-2 rounded-xl shadow-float active:scale-95 transition-transform text-sm font-bold">
+          <Plus size={18} /> <span className="hidden sm:inline">{t('inventory.addProduct')}</span>
         </button>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         {!products || products.length === 0 ? (
-          <div className="text-center py-20">
+          <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-border">
             <Package size={40} className="mx-auto text-prussian/20 mb-2"/>
             <p className="text-secondary">{t('common.noData')}</p>
           </div>
         ) : (
           products.map(product => (
-            <Card key={product.id} className="flex items-center justify-between">
-              <div className="flex-1">
-                <h3 className="font-bold text-prussian">{product.name}</h3>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs bg-alabaster px-2 py-0.5 rounded">{product.category}</span>
+            <Card key={product.id} className="flex items-center justify-between p-4">
+              <div className="flex-1 min-w-0 mr-3">
+                <h3 className="font-bold text-prussian truncate">{product.name}</h3>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <span className="text-[10px] bg-alabaster px-2 py-0.5 rounded-md font-medium text-prussian/60">{product.category}</span>
                   <span className="text-small text-secondary">Stock: {product.stock} {product.unit}</span>
                 </div>
-                <div className="flex gap-3 mt-1 text-sm">
-                  <span className="text-secondary">Buy: {formatCurrency(product.buyPrice, lang)}</span>
-                  <span className="text-orange font-bold">Sell: {formatCurrency(product.sellPrice, lang)}</span>
+                <div className="flex gap-3 mt-1.5 text-sm font-bold">
+                  <span className="text-secondary">Buy: <span className="text-prussian font-bold">{formatCurrency(product.buyPrice, lang)}</span></span>
+                  <span className="text-orange">Sell: {formatCurrency(product.sellPrice, lang)}</span>
                 </div>
               </div>
-              <div className="flex gap-1">
-                <button onClick={() => openModal(product)} className="p-2 text-prussian/60 hover:bg-alabaster rounded-full active:scale-90 transition-all"><Edit size={16}/></button>
-                <button onClick={() => handleDelete(product.id!)} className="p-2 text-red-400 hover:bg-red-50 rounded-full active:scale-90 transition-all"><Trash2 size={16}/></button>
+              <div className="flex gap-1 flex-shrink-0">
+                <button onClick={() => openModal(product)} className="p-2 text-prussian/60 hover:bg-alabaster rounded-xl active:scale-90 transition-all"><Edit size={16}/></button>
+                <button onClick={() => handleDelete(product.id!)} className="p-2 text-red-400 hover:bg-red-50 rounded-xl active:scale-90 transition-all"><Trash2 size={16}/></button>
               </div>
             </Card>
           ))
@@ -129,44 +130,34 @@ const Inventory: React.FC = () => {
         title={editingProduct ? t('common.edit') : t('inventory.addProduct')}
         footer={<Button onClick={handleSave} isLoading={isProcessing} icon={<Save size={18} />}>{t('common.save')}</Button>}
       >
-        <div className="space-y-5">
-          {/* Name */}
-          <div>
-            <label className="block text-small font-semibold mb-2 text-prussian">{t('inventory.productName')}</label>
-            <input 
-              type="text" value={name} onChange={(e) => setName(e.target.value)} required
-              className="w-full h-[50px] bg-white border border-gray-border rounded-md px-4 focus:ring-2 focus:ring-orange focus:outline-none"
-            />
-          </div>
+        <div className="space-y-1">
+          <Input label={t('inventory.productName')} value={name} onChange={(e) => setName(e.target.value)} required placeholder="e.g. Coca Cola" />
 
-          {/* Category & Unit Row */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-small font-semibold mb-2 text-prussian">{t('inventory.category')}</label>
-              <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full h-[50px] bg-white border border-gray-border rounded-md px-4 focus:ring-2 focus:ring-orange focus:outline-none">
+              <label className="block text-sm font-bold text-prussian mb-2">{t('inventory.category')}</label>
+              <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full h-[52px] bg-white border border-gray-border rounded-xl px-4 focus:border-orange focus:ring-2 focus:ring-orange/20 appearance-none">
                 {CATEGORIES.map(c => <option key={c.value} value={c.value}>{lang === 'bn' ? c.labelBn : c.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-small font-semibold mb-2 text-prussian">Unit</label>
-              <select value={unit} onChange={(e) => setUnit(e.target.value)} className="w-full h-[50px] bg-white border border-gray-border rounded-md px-4 focus:ring-2 focus:ring-orange focus:outline-none">
+              <label className="block text-sm font-bold text-prussian mb-2">Unit</label>
+              <select value={unit} onChange={(e) => setUnit(e.target.value)} className="w-full h-[52px] bg-white border border-gray-border rounded-xl px-4 focus:border-orange focus:ring-2 focus:ring-orange/20 appearance-none">
                 {UNITS.map(u => <option key={u.value} value={u.value}>{lang === 'bn' ? u.labelBn : u.label}</option>)}
               </select>
             </div>
           </div>
 
-          {/* Prices */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
              <AmountInput value={buyPrice} onChange={setBuyPrice} label={t('inventory.buyPrice')} />
              <AmountInput value={sellPrice} onChange={setSellPrice} label={t('inventory.sellPrice')} />
           </div>
 
-          {/* Stock */}
           <div>
-            <label className="block text-small font-semibold mb-2 text-prussian">{t('inventory.stock')}</label>
-            <input 
+             <label className="block text-sm font-bold text-prussian mb-2">{t('inventory.stock')}</label>
+             <input 
               type="number" step="any" value={stock} onChange={(e) => setStock(parseFloat(e.target.value) || 0)}
-              className="w-full h-[50px] bg-white border border-gray-border rounded-md px-4 focus:ring-2 focus:ring-orange focus:outline-none text-prussian font-bold"
+              className="w-full h-[52px] bg-white border border-gray-border rounded-xl px-4 focus:border-orange focus:ring-2 focus:ring-orange/20 text-prussian font-bold text-lg"
             />
           </div>
         </div>
