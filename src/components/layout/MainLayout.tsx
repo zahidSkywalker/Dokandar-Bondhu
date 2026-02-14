@@ -8,6 +8,7 @@ import Ledger from '../views/Ledger';
 import Settings from '../views/Settings';
 import Suppliers from '../views/Suppliers'; 
 import Market from '../views/Market';
+import InstallBanner from '../ui/InstallBanner';
 import { useLanguage } from '../../context/LanguageContext';
 import { Settings as SettingsIcon } from 'lucide-react';
 import { useSettings } from '../../context/SettingsContext';
@@ -61,6 +62,9 @@ const MainLayout: React.FC = () => {
       </main>
 
       <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
+    
+     {/* ADD BANNER HERE - Renders above BottomNav (z-60) */}
+      <InstallBanner />
     </div>
   );
 };
