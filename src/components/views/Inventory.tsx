@@ -1,178 +1,176 @@
 import React, { useState } from 'react';
-import { Plus, Search, Trash2, Package, Edit3, AlertTriangle, Tag, Scale } from 'lucide-react';
+import { Plus, Edit, Trash2, Package, Save } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
 import { useApp } from '../../context/AppContext';
 import { useLanguage } from '../../context/LanguageContext';
-import Modal from '../ui/Modal';
-import Input from '../ui/Input';
+import BottomSheet from '../ui/BottomSheet';
 import Button from '../ui/Button';
-import { formatCurrency, toEnglishDigits } from '../../lib/utils';
-import { UNITS, CATEGORIES } from '../../lib/constants'; // Import Constants
+import Card from '../ui/Card';
+import AmountInput from '../ui/AmountInput';
+import { UNITS, CATEGORIES } from '../../lib/constants';
+import { formatCurrency } from '../../lib/utils';
 
 const Inventory: React.FC = () => {
   const { t, lang } = useLanguage();
-  const { addProduct, deleteProduct, updateProduct } = useApp();
+  const { addProduct, updateProduct, deleteProduct } = useApp();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<any>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  
-  const [formData, setFormData] = useState({
-    name: '', buyPrice: '', sellPrice: '', stock: '', category: 'General', unit: 'pcs'
-  });
+  const [editingProduct, setEditingProduct] = useState<any | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const products = useLiveQuery(
-    () => db.products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())).toArray(),
-    [searchTerm]
-  );
+  // Form State
+  const [name, setName] = useState('');
+  const [category, setCategory] = useState('General');
+  const [unit, setUnit] = useState('pcs');
+  const [buyPrice, setBuyPrice] = useState(0);
+  const [sellPrice, setSellPrice] = useState(0);
+  const [stock, setStock] = useState(0);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const products = useLiveQuery(() => db.products.orderBy('name').toArray());
+
+  const resetForm = () => {
+    setName('');
+    setCategory('General');
+    setUnit('pcs');
+    setBuyPrice(0);
+    setSellPrice(0);
+    setStock(0);
+    setEditingProduct(null);
+  };
+
+  const openModal = (product?: any) => {
+    if (product) {
+      setEditingProduct(product);
+      setName(product.name);
+      setCategory(product.category);
+      setUnit(product.unit);
+      setBuyPrice(product.buyPrice);
+      setSellPrice(product.sellPrice);
+      setStock(product.stock);
+    } else {
+      resetForm();
+    }
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    resetForm();
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!name) return alert("Product name is required");
+
+    setIsProcessing(true);
     try {
-      const data = {
-        name: formData.name,
-        buyPrice: parseFloat(toEnglishDigits(formData.buyPrice)),
-        sellPrice: parseFloat(toEnglishDigits(formData.sellPrice)),
-        stock: parseInt(toEnglishDigits(formData.stock)),
-        category: formData.category,
-        unit: formData.unit
-      };
+      const data = { name, category, unit, buyPrice, sellPrice, stock };
       if (editingProduct) {
         await updateProduct(editingProduct.id, data);
       } else {
         await addProduct(data);
       }
       closeModal();
-    } catch (err) { alert("Error saving product"); }
+    } catch (err) {
+      alert("Error saving product");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  const openEditModal = (product: any) => {
-    setEditingProduct(product);
-    setFormData({
-      name: product.name, buyPrice: String(product.buyPrice), sellPrice: String(product.sellPrice),
-      stock: String(product.stock), category: product.category, unit: product.unit
-    });
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingProduct(null);
-    setFormData({ name: '', buyPrice: '', sellPrice: '', stock: '', category: 'General', unit: 'pcs' });
+  const handleDelete = async (id: number) => {
+    if (window.confirm(t('common.confirmDelete'))) {
+      await deleteProduct(id);
+    }
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="pb-32 animate-fade-in">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-prussian font-display">{t('inventory.title')}</h1>
-        <button onClick={() => setIsModalOpen(true)} className="bg-orange text-prussian p-3 rounded-2xl shadow-xl active:scale-95 transition-transform">
-          <Plus size={24} />
+        <h1 className="text-h1 text-prussian font-display">{t('inventory.title')}</h1>
+        <button onClick={() => openModal()} className="flex items-center gap-2 bg-orange text-white px-4 py-2 rounded-md shadow-float active:scale-95 transition-transform">
+          <Plus size={18} /> <span className="font-semibold">{t('inventory.addProduct')}</span>
         </button>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-6">
-        <Search className="absolute left-4 top-3.5 text-prussian/40 w-5 h-5" />
-        <input 
-          type="text" placeholder={t('common.search')}
-          className="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange focus:border-orange transition-all text-prussian"
-          value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
-
-      {/* Product List */}
-      <div className="space-y-3">
-        {!products ? (
-            <div className="text-center p-8 text-prussian">Loading...</div>
-        ) : products.length === 0 ? (
-           <div className="p-16 text-center border-2 border-dashed border-gray-200 rounded-3xl bg-white">
-             <Package className="mx-auto text-prussian/20 mb-4" size={64} />
-             <p className="text-prussian/50 font-medium">Inventory Empty</p>
-             <button onClick={() => setIsModalOpen(true)} className="mt-4 bg-orange/10 text-orange px-6 py-3 rounded-xl font-bold hover:bg-orange/20 transition-colors">
-               Add First Product
-             </button>
-           </div>
+      <div className="space-y-2">
+        {!products || products.length === 0 ? (
+          <div className="text-center py-20">
+            <Package size={40} className="mx-auto text-prussian/20 mb-2"/>
+            <p className="text-secondary">{t('common.noData')}</p>
+          </div>
         ) : (
-          products.map((product, i) => (
-            <div key={product.id} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center stagger-item" style={{ animationDelay: `${i * 50}ms` }}>
+          products.map(product => (
+            <Card key={product.id} className="flex items-center justify-between">
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-bold text-prussian text-lg">{product.name}</h3>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-prussian/5 text-prussian/60 font-bold uppercase">
-                        {product.category}
-                    </span>
+                <h3 className="font-bold text-prussian">{product.name}</h3>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs bg-alabaster px-2 py-0.5 rounded">{product.category}</span>
+                  <span className="text-small text-secondary">Stock: {product.stock} {product.unit}</span>
                 </div>
-                <p className="text-xs text-prussian/50 mt-1 font-medium">
-                  Buy: {formatCurrency(product.buyPrice, lang)} • Sell: {formatCurrency(product.sellPrice, lang)}
-                </p>
-                <div className={`mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold ${
-                  product.stock < 10 ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-green-50 text-green-600 border border-green-100'
-                }`}>
-                  <div className={`w-1.5 h-1.5 rounded-full ${product.stock < 10 ? 'bg-red-500' : 'bg-green-500'}`} />
-                  Stock: {product.stock} {product.unit}
+                <div className="flex gap-3 mt-1 text-sm">
+                  <span className="text-secondary">Buy: {formatCurrency(product.buyPrice, lang)}</span>
+                  <span className="text-orange font-bold">Sell: {formatCurrency(product.sellPrice, lang)}</span>
                 </div>
-                {(product.sellPrice - product.buyPrice) < (product.buyPrice * 0.1) && product.buyPrice > 0 && (
-                   <div className="mt-1 text-[10px] text-orange flex items-center gap-1"><AlertTriangle size={10}/> Low Margin</div>
-                )}
               </div>
-              
-              <div className="flex gap-2 ml-4">
-                <button onClick={() => openEditModal(product)} className="p-3 rounded-xl bg-alabaster hover:bg-gray-200 transition-colors">
-                   <Edit3 size={18} className="text-prussian/60" />
-                </button>
-                <button onClick={() => deleteProduct(product.id!)} className="p-3 rounded-xl bg-red-50 hover:bg-red-100 transition-colors">
-                   <Trash2 size={18} className="text-red-500" />
-                </button>
+              <div className="flex gap-1">
+                <button onClick={() => openModal(product)} className="p-2 text-prussian/60 hover:bg-alabaster rounded-full active:scale-90 transition-all"><Edit size={16}/></button>
+                <button onClick={() => handleDelete(product.id!)} className="p-2 text-red-400 hover:bg-red-50 rounded-full active:scale-90 transition-all"><Trash2 size={16}/></button>
               </div>
-            </div>
+            </Card>
           ))
         )}
       </div>
 
-      {/* Add/Edit Modal */}
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingProduct ? "Edit Product" : t('inventory.addProduct')}>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input label={t('inventory.productName')} required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
-          
-          <div className="grid grid-cols-2 gap-4">
-            <Input label={t('inventory.buyPrice')} type="number" required value={formData.buyPrice} onChange={(e) => setFormData({...formData, buyPrice: e.target.value})} />
-            <Input label={t('inventory.sellPrice')} type="number" required value={formData.sellPrice} onChange={(e) => setFormData({...formData, sellPrice: e.target.value})} />
-          </div>
-          
-          <Input label={t('inventory.stock')} type="number" required value={formData.stock} onChange={(e) => setFormData({...formData, stock: e.target.value})} />
-
-          {/* Category Dropdown */}
+      <BottomSheet 
+        isOpen={isModalOpen} 
+        onClose={closeModal} 
+        title={editingProduct ? t('common.edit') : t('inventory.addProduct')}
+        footer={<Button onClick={handleSave} isLoading={isProcessing} icon={<Save size={18} />}>{t('common.save')}</Button>}
+      >
+        <div className="space-y-5">
+          {/* Name */}
           <div>
-            <label className="block text-sm font-bold mb-1 text-prussian flex items-center gap-1">
-                <Tag size={12} /> {t('inventory.category')}
-            </label>
-            <select 
-                className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 text-prussian focus:ring-2 focus:ring-orange focus:border-orange transition-all"
-                value={formData.category} 
-                onChange={(e) => setFormData({...formData, category: e.target.value})}
-            >
-              {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-            </select>
+            <label className="block text-small font-semibold mb-2 text-prussian">{t('inventory.productName')}</label>
+            <input 
+              type="text" value={name} onChange={(e) => setName(e.target.value)} required
+              className="w-full h-[50px] bg-white border border-gray-border rounded-md px-4 focus:ring-2 focus:ring-orange focus:outline-none"
+            />
           </div>
 
-          {/* Unit Dropdown */}
+          {/* Category & Unit Row */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-small font-semibold mb-2 text-prussian">{t('inventory.category')}</label>
+              <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full h-[50px] bg-white border border-gray-border rounded-md px-4 focus:ring-2 focus:ring-orange focus:outline-none">
+                {CATEGORIES.map(c => <option key={c.value} value={c.value}>{lang === 'bn' ? c.labelBn : c.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-small font-semibold mb-2 text-prussian">Unit</label>
+              <select value={unit} onChange={(e) => setUnit(e.target.value)} className="w-full h-[50px] bg-white border border-gray-border rounded-md px-4 focus:ring-2 focus:ring-orange focus:outline-none">
+                {UNITS.map(u => <option key={u.value} value={u.value}>{lang === 'bn' ? u.labelBn : u.label}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* Prices */}
+          <div className="grid grid-cols-2 gap-3">
+             <AmountInput value={buyPrice} onChange={setBuyPrice} label={t('inventory.buyPrice')} />
+             <AmountInput value={sellPrice} onChange={setSellPrice} label={t('inventory.sellPrice')} />
+          </div>
+
+          {/* Stock */}
           <div>
-            <label className="block text-sm font-bold mb-1 text-prussian flex items-center gap-1">
-                <Scale size={12} /> {t('inventory.unit')}
-            </label>
-            <select 
-                className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 text-prussian focus:ring-2 focus:ring-orange focus:border-orange transition-all"
-                value={formData.unit} 
-                onChange={(e) => setFormData({...formData, unit: e.target.value})}
-            >
-              {UNITS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
-            </select>
+            <label className="block text-small font-semibold mb-2 text-prussian">{t('inventory.stock')}</label>
+            <input 
+              type="number" step="any" value={stock} onChange={(e) => setStock(parseFloat(e.target.value) || 0)}
+              className="w-full h-[50px] bg-white border border-gray-border rounded-md px-4 focus:ring-2 focus:ring-orange focus:outline-none text-prussian font-bold"
+            />
           </div>
-
-          <div className="h-6" />
-          <Button icon={<Plus size={20} />}>{editingProduct ? "Update Product" : t('common.save')}</Button>
-        </form>
-      </Modal>
+        </div>
+      </BottomSheet>
     </div>
   );
 };
