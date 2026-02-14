@@ -14,11 +14,11 @@ const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title, child
   // 1. Lock scroll & Hide Navbar
   useEffect(() => {
     if (isOpen) {
-      document.body.classList.add('sheet-open');
+      document.body.classList.add('sheet-open', 'no-scroll');
     } else {
-      document.body.classList.remove('sheet-open');
+      document.body.classList.remove('sheet-open', 'no-scroll');
     }
-    return () => document.body.classList.remove('sheet-open');
+    return () => document.body.classList.remove('sheet-open', 'no-scroll');
   }, [isOpen]);
 
   if (!isOpen) return null;
