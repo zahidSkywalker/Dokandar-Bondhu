@@ -2,26 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Secondary Text */
+/* Custom Typography */
 .text-secondary {
   @apply text-prussian opacity-65;
 }
 
-/* Motion */
+/* Motion & Interaction */
 .tap-scale {
   transition: transform 150ms ease-out;
 }
 .tap-scale:active {
-  transform: scale(0.98);
+  transform: scale(0.96);
 }
 
 /* Animations */
 @keyframes slideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 .animate-slide-up {
-  animation: slideUp 350ms cubic-bezier(0.32, 0.72, 0, 1);
+  animation: slideUp 400ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 @keyframes fadeIn {
@@ -37,31 +37,57 @@
   animation: fadeSlideUp 400ms ease-out forwards;
 }
 @keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Layout Utilities */
 body.no-scroll { overflow: hidden; }
 
-/* Responsive Layout Wrapper */
+/* Main App Container - Mobile First */
 .app-container {
   @apply relative min-h-screen bg-alabaster;
 }
 
-/* On Desktop/Tablet (md breakpoint +), we limit width for better readability */
+/* Responsive Wrapper */
 @media (min-width: 768px) {
   .app-container {
-    max-width: 420px; /* Looks like a phone app on desktop */
+    max-width: 480px; /* Slightly wider for better desktop view */
     margin-left: auto;
     margin-right: auto;
-    box-shadow: 0 0 40px rgba(0,0,0,0.1);
+    box-shadow: 0 0 60px rgba(0,0,0,0.1);
     border-left: 1px solid #e5e5e5;
     border-right: 1px solid #e5e5e5;
   }
   
-  /* Hide bottom nav shadow on desktop simulation */
   .bottom-nav {
      box-shadow: none;
      border-top: 1px solid #e5e5e5;
+     border-left: 1px solid #e5e5e5;
+     border-right: 1px solid #e5e5e5;
+     max-width: 480px;
+     margin-left: auto;
+     margin-right: auto;
+  }
+}
+
+/* Hide Scrollbars for cleaner UI */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Input & Button Global Fixes */
+input, select, textarea {
+  @apply outline-none;
+}
+
+/* Safe Area Padding for iOS */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }
