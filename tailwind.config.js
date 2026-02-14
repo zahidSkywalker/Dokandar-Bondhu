@@ -10,36 +10,43 @@ module.exports = {
         prussian: '#003049',
         orange: '#FCA311',
         alabaster: '#F5F5F5',
+        'gray-border': '#E5E5E5',
       },
-      // 1. Typography Hierarchy
+      // Responsive Typography
       fontSize: {
         'h1': ['24px', { lineHeight: '32px', fontWeight: '700' }],
+        'h1-lg': ['32px', { lineHeight: '40px', fontWeight: '700' }], // For larger screens
+        
         'h2': ['18px', { lineHeight: '24px', fontWeight: '600' }],
+        'h2-lg': ['22px', { lineHeight: '28px', fontWeight: '600' }],
+        
         'body': ['14px', { lineHeight: '20px' }],
         'body-lg': ['16px', { lineHeight: '24px' }],
+        
         'small': ['12px', { lineHeight: '16px' }],
       },
-      // 9. Border Radius Scale
+      // Responsive Radius Scale
       borderRadius: {
         'sm': '8px',
         'md': '12px',
         'lg': '16px',
         'xl': '20px',
       },
-      // 4. Elevation System (Soft Shadows)
+      // Elevation System
       boxShadow: {
-        'card': '0 2px 8px rgba(0, 0, 0, 0.04)', // Subtle
-        'float': '0 4px 16px rgba(0, 0, 0, 0.08)', // Medium
-        'sheet': '0 -8px 40px rgba(0, 0, 0, 0.12)', // Strongest
+        'card': '0 2px 8px rgba(0, 48, 73, 0.06)',
+        'float': '0 4px 12px rgba(0, 48, 73, 0.08)',
+        'sheet': '0 -10px 40px rgba(0, 48, 73, 0.15)',
       },
-      // 7. Motion
-      transitionTimingFunction: {
-        'out': 'cubic-bezier(0.25, 0.1, 0.25, 1)', // Standard ease-out
-        'spring': 'cubic-bezier(0.34, 1.56, 0.64, 1)', // Spring effect
+      // Responsive Container Widths
+      screens: {
+        'sm': '640px',
+        'md': '768px', // Tablet
+        'lg': '1024px', // Desktop
+        'xl': '1280px',
       },
-      // 2. 8pt Spacing System (Extending defaults)
       spacing: {
-        'safe': 'env(safe-area-inset-bottom)',
+        'safe': 'env(safe-area-inset-bottom, 0px)',
       }
     },
   },
