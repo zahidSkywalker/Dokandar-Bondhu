@@ -24,7 +24,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, isActive, onClick 
 const BottomNav: React.FC<{ activeTab: string; setActiveTab: (tab: string) => void }> = ({ activeTab, setActiveTab }) => {
   const { t } = useLanguage();
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 animate-slide-up">
+    <div className="fixed bottom-8 left-4 right-4 z-50 animate-slide-up">
       <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 px-2 py-2">
         <div className="flex justify-between items-center h-16">
           <NavItem icon={LayoutDashboard} label={t('dashboard.title')} isActive={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
